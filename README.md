@@ -4,6 +4,8 @@ This repository contains a standalone Jupyter Notebook for exploring GridDividen
 
 This model is intended for exploratory and educational purposes. Results depend heavily on assumptions regarding utility capital spending, load growth, DER adoption, avoided costs, and regulatory frameworks.
 
+AI has been used extensively in the creation of this tool.
+
 ## Citation
 
 If you use this work in research or publications, please cite:
