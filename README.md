@@ -12,14 +12,16 @@ AI has been used extensively in the creation of this tool.
 
 GridDividend models what happens to customer electricity bills and utility finances when a regulatory framework replaces traditional infrastructure build-out with a **shared savings mechanism**: Non-Wires Solutions (NWS) — batteries, demand response, managed EV charging — defer capital investment, and the resulting savings are split between the utility (as an earnings incentive) and customers (as bill reductions).
 
-The model runs **2026–2050** projections across four scenarios per utility:
+The model runs **2026–2050** projections across five scenarios per utility, plus a BAU baseline:
 
 | Scenario | Description |
 |----------|-------------|
 | BAU | Business As Usual — traditional CAPEX build-out, no reform |
-| BAU + Freeze | BAU with a temporary rate freeze (shows catch-up cost) |
-| Shared Savings | NWS avoidance + savings pass-through to customers |
-| Shared Savings + Freeze | Shared savings with a near-term rate freeze |
+| BASE | Standard shared savings programme — NWS avoidance + 30/70 savings split |
+| ACCELERATED | Faster NWS ramp, 2× standard pace — tests aggressive programme delivery |
+| FREEZE_PLUS | BASE programme with a 4-year rate freeze — lower early bills, gradual catch-up |
+| COMBINED | ACCELERATED programme with a 3-year freeze — maximum near-term customer benefit |
+| FRONTLOADED | BASE programme with 3-year full customer passthrough — utility earns 0% in years 1–3 |
 
 Currently models two New York utilities: **Con Edison** (Case 25-E-0072, approved Jan 2026) and **RG&E** (Case 25-E-0379, temporary rates Jun 2026).
 
@@ -27,11 +29,13 @@ Currently models two New York utilities: **Con Edison** (Case 25-E-0072, approve
 
 ## Key result
 
-![Con Edison — Customer Bills: All 4 Scenarios](docs/bill_coned.png)
+![Con Edison — Customer Bills: All 5 Scenarios](charts_article/chart2_coned_full.png)
 
-Under shared savings, a typical Con Edison residential customer (600 kWh/month) avoids hundreds of dollars per year in bill increases that BAU regulation would otherwise impose. Cumulative customer savings reach \$52B by 2050 across Con Edison's 3.7M customers.
+Under shared savings, a typical Con Edison residential customer (600 kWh/month) avoids hundreds of dollars per year in bill increases that BAU regulation would otherwise impose. Cumulative savings reach **$12,907 per customer** by 2050 ($52B aggregate across Con Edison's 3.7M customers).
 
-![Con Edison vs. RG&E — Side-by-Side Comparison](docs/comparison.png)
+![The Case for Structural Reform](charts_article/chart12_the_case_for_reform.png)
+
+The rate freeze (FREEZE_PLUS) reshapes the timing of savings — bills are lower in years 1–4, then gradually recover — but converges with BASE by 2034. The 25-year cumulative saving is identical. Structural reform delivers a permanently lower trajectory; a rate freeze is a timing mechanism, not a cost reduction.
 
 ---
 
@@ -49,7 +53,7 @@ Under shared savings, a typical Con Edison residential customer (600 kWh/month) 
 
 **Option A — Conda (recommended if you have Anaconda/Miniconda):**
 ```bash
-git clone https://github.com/your-username/GridDividend.git
+git clone https://github.com/robertafcurrie/GridDividend.git
 cd GridDividend
 conda activate base          # or any environment with the packages below
 jupyter notebook GridDividend_v1.0.ipynb
@@ -57,7 +61,7 @@ jupyter notebook GridDividend_v1.0.ipynb
 
 **Option B — pip:**
 ```bash
-git clone https://github.com/your-username/GridDividend.git
+git clone https://github.com/robertafcurrie/GridDividend.git
 cd GridDividend
 pip install -r requirements.txt
 jupyter notebook GridDividend_v1.0.ipynb
@@ -77,7 +81,7 @@ This is a **strategic policy simulation**, not a utility planning model or rate-
 - **Not a forecast.** Results show direction and order of magnitude. Key sensitivities are the NWS avoidance rate at maturity and the electrification ramp — see Section 8 (Sensitivity Analysis).
 - **RG&E data is provisional.** The PSC set temporary rates in June 2026; the final order on Case 25-E-0379 is still pending. Parameters should be updated when the order issues.
 
-Full caveats are in **Section 10** of the notebook.
+Full caveats are in **Section 10** of the notebook (13 items, including discussion of permanent avoidance vs temporary deferral and the legislative design implications for clawback provisions).
 
 ---
 

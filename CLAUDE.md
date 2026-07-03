@@ -9,9 +9,10 @@ This is an exploratory/educational tool, not a utility planning model or rate-ca
 ## Repository layout
 
 ```
-GridDividend_v1.0.ipynb   — entire model (24 cells, self-contained)
+GridDividend_v1.0.ipynb   — entire model (36 cells, self-contained)
 requirements.txt          — pandas, numpy, matplotlib (minimum versions)
-docs/                     — pre-run chart images for README
+charts_article/           — 12 publication-quality charts (300 dpi PNG, written on notebook run)
+docs/                     — original pre-run chart images (legacy README references)
 README.md
 LICENSE                   — MIT
 ```
@@ -52,19 +53,26 @@ The notebook installs nothing at runtime — all dependencies (pandas, numpy, ma
 
 ## Notebook structure
 
+Cell indices are 0-based (matching `nb['cells'][n]` in Python).
+
 | Section | Cell(s) | Content |
 |---------|---------|---------|
-| 0 | 2 | Imports, matplotlib styling, output directory |
-| 1 | 4–6 | All user-adjustable parameters (edit here, re-run all) |
-| 2 | 7–8 | Utility starting data from filed rate cases |
-| 3 | 9–10 | `project()` model engine: 2026–2050 annual loop |
-| 4 | 11–12 | Runs BAU / shared savings × freeze / no-freeze for each utility |
-| 5 | 13–14 | Customer bill charts |
-| 6 | 15–16 | CAPEX & OPEX spending charts |
-| 7 | 17–18 | Utility financial results |
-| 8 | 19–20 | Sensitivity analysis |
-| 9 | 21–22 | Con Edison vs. RG&E side-by-side comparison |
-| 10 | 23 | Model caveats and scope statement |
+| Title | 0 | Notebook introduction and scope statement |
+| 0 | 1–2 | Imports, matplotlib styling, output directory |
+| 1 | 3–4 | All user-adjustable parameters (edit here, re-run all) |
+| 1b | 5–8 | Scenario definitions (`SCENARIO_DEFS`) and parameter guidance |
+| 2 | 9–10 | Utility starting data from filed rate cases |
+| 3 | 11–12 | `project()` model engine: 2026–2050 annual loop |
+| 4 | 13–15 | Runs BAU / all named scenarios; `run_named_scenario()` |
+| 5 | 16–17 | Customer bill charts |
+| 6 | 18–19 | CAPEX & OPEX spending charts |
+| 7 | 20–21 | Utility financial results |
+| 8 | 22–23 | Sensitivity analysis |
+| 9 | 24–25 | Con Edison vs. RG&E side-by-side comparison |
+| 9b | 26–29 | Near-term vs long-term trade-off (5 scenarios) |
+| 9c | 30–31 | Article charts (Charts 1–6, saved to `charts_article/`) |
+| 9d | 32–34 | Deferral sensitivity (Chart 7) + long-term case (Charts 8–12) |
+| 10 | 35 | Model caveats and scope statement (13 items) |
 
 ## Key parameters (Section 1, Cell 4)
 
@@ -74,6 +82,9 @@ Every parameter has a source citation in the comment block immediately below it.
 - `NWS_AVOIDANCE_OF_ELIGIBLE_MATURE` — avoidance rate at programme maturity (default 0.80)
 - `NWS_AVOIDANCE_RAMP_YEARS` — years to reach maturity (default 9)
 - `FLEX_LOAD_UTILISATION_SHARE_SS` — utilisation credit for shared savings scenario (default 0.15)
+- `DEFERRAL_FRACTION` — share of avoided CAPEX that eventually re-enters rate base (default 0.0 = permanent avoidance); 0.40–0.60 more realistic for dense urban networks long-term
+- `DEFERRAL_PERIOD_YEARS` — years before deferred CAPEX re-enters rate base (default 10)
+- `UPFRONT_PASSTHROUGH_YEARS` — years of 100% customer passthrough before standard split applies (default 0); set to 3 in the FRONTLOADED scenario
 - `utilities_to_run` — list of utility keys to model (`['ConEd']`, `['RGE']`, or both)
 
 ## What to be careful about
@@ -82,6 +93,7 @@ Every parameter has a source citation in the comment block immediately below it.
 - **Spatially aggregate.** NWS is modelled as a system-wide % of eligible CAPEX; real outcomes depend on feeder-level constraint types and DER siting.
 - **RG&E data is provisional.** Update when Case 25-E-0379 issues a final order.
 - **Property tax rates are estimates** (~1.6% ConEd, ~1.8% RG&E electric assets only) derived from annual reports, not official filed figures.
+- **FRONTLOADED scenario** uses `upfront_passthrough_years=3`; utility earns 0% of shared savings in years 1–3. The 25-year cumulative outcome is the same as BASE — it is a timing mechanism.
 - **Do not remove or reorder sections** — downstream cells reference earlier variables by name.
 
 ## Coding conventions
