@@ -17,3 +17,5 @@ charts/
 # OS
 .DS_Store
 Thumbs.db
+charts_article/
+docs/
