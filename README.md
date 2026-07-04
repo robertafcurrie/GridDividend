@@ -29,11 +29,7 @@ Currently models two New York utilities: **Con Edison** (Case 25-E-0072, approve
 
 ## Key result
 
-![Con Edison — Customer Bills: All 5 Scenarios](charts_article/chart2_coned_full.png)
-
 Under shared savings, a typical Con Edison residential customer (600 kWh/month) avoids hundreds of dollars per year in bill increases that BAU regulation would otherwise impose. Cumulative savings reach **$12,907 per customer** by 2050 ($52B aggregate across Con Edison's 3.7M customers).
-
-![The Case for Structural Reform](charts_article/chart12_the_case_for_reform.png)
 
 The rate freeze (FREEZE_PLUS) reshapes the timing of savings — bills are lower in years 1–4, then gradually recover — but converges with BASE by 2034. The 25-year cumulative saving is identical. Structural reform delivers a permanently lower trajectory; a rate freeze is a timing mechanism, not a cost reduction.
 
