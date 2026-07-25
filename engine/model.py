@@ -143,8 +143,38 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
 
     for year in YEARS:
         elr = get_elec_ramp(year, cfg)
-        dcr = params['dc_load_growth_annual']
-        tlg = BASELINE_LOAD_GROWTH + elr + dcr
+
+        # Segmented load model — data centres grow independently from their
+        # own starting MW at their own rate, instead of a blended rate applied
+        # to the entire load base (the old dc_load_growth_annual approach
+        # overstated dc-driven growth by ~4-5x for utilities where dc load is
+        # a large share of total peak, e.g. Virginia).
+        dc_mw_start = params.get('dc_load_mw_start', 0)
+        dc_rate     = params.get('dc_load_growth_rate', params.get('dc_load_growth_annual', 0))
+        base_growth = BASELINE_LOAD_GROWTH + elr
+
+        dc_load_year = dc_mw_start * (1 + dc_rate) ** (year - 2026)
+        base_pk      = (params['peak_demand_mw'] - dc_mw_start) * (1 + base_growth) ** (year - 2026)
+        pk_natural   = base_pk + dc_load_year   # organic total peak, before flex-load capture
+
+        prior_dc     = dc_mw_start * (1 + dc_rate) ** (year - 2026 - 1)
+        prior_base   = (params['peak_demand_mw'] - dc_mw_start) * (1 + base_growth) ** (year - 2026 - 1)
+        prior_pk     = prior_base + prior_dc
+
+        # tlg is the effective blended total-load growth rate this year, derived
+        # from the segmented model rather than assumed as a fixed sum of rates.
+        # It still drives revenue requirement, supply revenue, and utilisation
+        # credit calculations below, unchanged. The existing scenario-dependent
+        # flex-load-capture dampening (pk update at the end of the loop) is
+        # applied to this rate exactly as before — the segmented model only
+        # changes how the *natural* (pre-capture) growth rate is derived.
+        tlg = (pk_natural / prior_pk) - 1 if prior_pk > 0 else base_growth
+        # dcr = the data-centre segment's marginal contribution to tlg this
+        # year (replaces the old fixed dc_load_growth_annual input — correctly
+        # weighted by the dc segment's actual share of total load, rather than
+        # applied uniformly to the whole load base). Retained under the same
+        # name because it still feeds cum_elec_load and dc_fl below.
+        dcr = tlg - base_growth
 
         cum_elec_load += (elr + dcr)
         annual_capex   = capex0 * cum_load

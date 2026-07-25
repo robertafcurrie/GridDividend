@@ -20,7 +20,9 @@
   "supply_rate_kwh": "NUMERIC — residential supply/energy rate in $/kWh. Use 0 if vertically integrated and supply not separately stated",
   "basic_charge_month": "NUMERIC — residential fixed monthly customer charge in $",
   "delivery_share_rr": "NUMERIC — delivery charges as share of total revenue requirement, as decimal",
-  "dc_load_growth_annual": "NUMERIC — additional annual load growth from data centres as decimal e.g. 0.008",
+  "dc_load_growth_annual": "NUMERIC — legacy field, superseded by dc_load_mw_start + dc_load_growth_rate below. NOT a true fallback: if dc_load_mw_start is omitted (defaults to 0), the data-centre segment contributes zero load growth regardless of this value, because dc_load_mw_start=0 zeroes out the segment entirely rather than reproducing the old blended-rate behaviour. New utilities must set dc_load_mw_start and dc_load_growth_rate — do not rely on this field alone.",
+  "dc_load_mw_start": "NUMERIC — data centre load in MW at start of projection (2026). Used with dc_load_growth_rate to model data centre load as a separate segment growing from its own base. Set to 0 if data centre load is negligible.",
+  "dc_load_growth_rate": "NUMERIC — annual growth rate of the data centre load segment only, applied to dc_load_mw_start not to total load. Typical range 0.05-0.15. Higher than dc_load_growth_annual for the same scenario because it applies to a smaller base.",
   "dc_distribution_share": "NUMERIC — share of new data centre load at distribution voltage",
   "dc_flexibility_share": "NUMERIC — share of data centre load enrollable in demand response",
   "der_storage_mw_start": "NUMERIC — installed distributed storage at start of projection in MW",
@@ -28,5 +30,6 @@
   "property_tax_rate": "NUMERIC — effective property tax rate on electric rate base as decimal e.g. 0.016",
   "nws_eligible_capex_share_start": "NUMERIC — share of CAPEX programme addressable by NWS at programme start. Range 0.15-0.50",
   "dist_upgrade_cost_per_mw": "NUMERIC — blended cost per MW of NWS-eligible distribution upgrade in $M. See CLAUDE.md for derivation guidance",
-  "_notes": "Add any jurisdiction-specific notes here — regulatory framework, pending cases, known data limitations, parameter derivation sources"
+  "_notes": "Add any jurisdiction-specific notes here — regulatory framework, pending cases, known data limitations, parameter derivation sources",
+  "_milestone_note": "Define state-specific policy milestone years in Section 1 of the notebook using the MY dict — do NOT copy New York CLCPA years to other states. For Virginia use VCEA milestones. For other states find the relevant clean energy legislation and its key target years."
 }

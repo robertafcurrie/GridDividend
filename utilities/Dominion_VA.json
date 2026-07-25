@@ -40,6 +40,10 @@
   "dc_distribution_share": 0.15,
   "dc_flexibility_share": 0.20,
 
+  "dc_load_mw_start": 5500,
+  "dc_load_growth_rate": 0.04,
+  "_dc_note": "Virginia data centre operational capacity ~5,926 MW in 2024 per AAF/Virginia DEQ data; using 5,500 MW as Dominion-system estimate. dc_load_growth_rate calibrated to 4%/yr (down from an initially-proposed 8-12%/yr, which is directionally consistent with near-term data centre buildout pace but compounds to an implausible ~37,000-83,000+ MW data-centre segment alone by 2050 under this model's pure-exponential, no-saturation growth curve over a 24-year horizon). 4%/yr produces a 2050 total system peak of ~38,000 MW, consistent with the Dominion 2024 IRP range (~17,000 MW in 2022 to ~29,000 MW in 2045, roughly 70% growth). This is a modelling-horizon calibration, not a data centre industry growth forecast — real data centre buildout is expected to ramp faster than 4%/yr near-term and plateau as land/power/interconnection availability saturates, a dynamic this model's constant-rate exponential does not capture. Source: AAF April 2026; PJM 2026/2027 BRA Report; Virginia Business Feb 2026; Dominion 2024 IRP. dc_load_growth_annual retained for backward compatibility.",
+
   "der_storage_mw_start": 200,
   "ev_managed_charging_pct_bau": 0.06,
 

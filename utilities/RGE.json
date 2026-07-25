@@ -27,6 +27,10 @@
 
   "residential_kwh_month": 600,
 
+  "dc_load_mw_start": 150,
+  "dc_load_growth_rate": 0.015,
+  "_dc_note": "Upstate NY data centre load estimated ~150 MW (2026), growing at 1.5%/yr (recalibrated down from an initially-proposed 200 MW / 10%/yr, which produced a 4.8% total-peak CAGR — implausible for upstate NY, which is not a major data centre market unlike NYC or Northern Virginia). At 150 MW / 1.5%/yr, total peak CAGR is 1.47%, consistent with a modest, low-base data centre presence being courted by developers rather than a major build-out. Source: NYISO load forecasts.",
+
   "_sources": "Rate base, annual_capex_m and total_revenue_m are ESTIMATED, back-calculated from the June 2025 filing under NYPSC Case 25-E-0379. PSC set temporary rates June 1 2026 (+4.0% electric); final order still pending — update these figures when the final order is issued. ROE is the utility's requested rate (10.0%), not yet approved. Data centre load parameters reflect upstate NY DC siting activity.",
   "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
 }
