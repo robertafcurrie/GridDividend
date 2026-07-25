@@ -1,5 +1,5 @@
 {
-  "_instructions": "Dominion Energy Virginia (Virginia Electric and Power Company). Parameters sourced from SCC Case PUR-2025-00058 (final order November 2025), PJM BRA reports 2025, Dominion 10-K 2025, and Schedule 1 tariff effective January 2026. Six fields marked _VERIFY require confirmation from the SCC rate case filing before results should be trusted.",
+  "_instructions": "Dominion Energy Virginia (Virginia Electric and Power Company). Parameters sourced from SCC Case PUR-2025-00058 (final order November 2025), PJM BRA reports 2025, Dominion 10-K 2025, and Schedule 1 tariff effective January 2026. rate_base_start_m and annual_capex_m are anchored to 10-K/8-K data (see _rate_base_note, _capex_note). Four remaining fields marked _VERIFY require confirmation from the SCC rate case filing before results should be trusted.",
 
   "name": "Virginia Electric and Power Company (Dominion Energy Virginia)",
   "short_name": "Dominion VA",
@@ -12,11 +12,11 @@
 
   "residential_kwh_month": 1000,
 
-  "_rate_base_VERIFY": "Dominion's total electric rate base includes generation, transmission, and distribution. Model requires distribution-only rate base for NWS analysis. Total electric rate base estimated at $36-40B from 10-K; distribution-only estimated at 25-30% of total (~$9-11B). NEEDS VERIFICATION FROM SCC RATE CASE FILING.",
-  "rate_base_start_m": 10000,
+  "_rate_base_note": "Virginia base rate base $13.8B per Dominion 8-K investor presentation (2024E). This is the distribution base rate component excluding transmission rider ($11.8B) and generation/renewable riders ($10.5B). Distribution PP&E gross $17,261M per 10-K December 2024. Confirmation of regulatory rate base vs book value from SCC filing still useful.",
+  "rate_base_start_m": 13800,
 
-  "_capex_VERIFY": "Total 2026-2030 capital plan ~$55B ($11B/yr average) including generation, offshore wind, and transmission. Distribution-only CAPEX estimated at 20-25% of total (~$2.2-2.75B/yr). NWS-eligible share lower than NY utilities — large share is transmission-driven or compliance-driven. NEEDS VERIFICATION FROM SCC FILING AND IRP.",
-  "annual_capex_m": 2500,
+  "_capex_note": "Distribution-only CAPEX estimated at $1,600M/yr: Virginia base rate base grows ~$560M/yr net (13.8B to 16.6B over 5 years per 8-K), implying gross CAPEX of ~$1,400-1,800M after depreciation of ~$800-900M/yr on $13.8B base at ~6% depreciation rate. Total Dominion CAPEX plan is $55B/5yr=$11B/yr but this includes generation, offshore wind, and transmission. NWS-eligible share of $1,600M distribution CAPEX still needs IRP validation.",
+  "annual_capex_m": 1600,
 
   "_revenue_VERIFY": "SCC approved base rate revenue increases of $565.7M for 2026 and $209.9M for 2027. Total electric revenue requirement including all riders estimated at $8-10B. NEEDS VERIFICATION FROM SCC FILING.",
   "total_revenue_m": 9000,
