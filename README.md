@@ -23,7 +23,7 @@ The model runs **2026–2050** projections across five scenarios per utility, pl
 | COMBINED | ACCELERATED programme with a 3-year freeze — maximum near-term customer benefit |
 | FRONTLOADED | BASE programme with 3-year full customer passthrough — utility earns 0% in years 1–3 |
 
-Currently models two New York utilities: **Con Edison** (Case 25-E-0072, approved Jan 2026) and **RG&E** (Case 25-E-0379, temporary rates Jun 2026).
+Currently models three utilities across two states — New York (Con Edison and RG&E) and Virginia (Dominion Energy Virginia): **Con Edison** (Case 25-E-0072, approved Jan 2026), **RG&E** (Case 25-E-0379, temporary rates Jun 2026), and **Dominion Energy Virginia** (SCC Case PUR-2025-00058, rates effective Jan 2026).
 
 ---
 
@@ -32,6 +32,13 @@ Currently models two New York utilities: **Con Edison** (Case 25-E-0072, approve
 Under shared savings, a typical Con Edison residential customer (600 kWh/month) avoids hundreds of dollars per year in bill increases that BAU regulation would otherwise impose. Cumulative savings reach **$12,907 per customer** by 2050 ($52B aggregate across Con Edison's 3.7M customers).
 
 The rate freeze (FREEZE_PLUS) reshapes the timing of savings — bills are lower in years 1–4, then gradually recover — but converges with BASE by 2034. The 25-year cumulative saving is identical. Structural reform delivers a permanently lower trajectory; a rate freeze is a timing mechanism, not a cost reduction.
+
+**Dominion Energy Virginia** (SCC Case PUR-2025-00058, rates effective January 2026)
+- Starting bill: $155/month (1,000 kWh/month Virginia SCC benchmark)
+- BAU 2050: $350/month
+- Shared savings 2050: $232/month
+- Annual saving 2050: $1,410/year
+- ⚠️ Six parameters require verification from SCC filing before results should be cited — see `utilities/Dominion_VA.json`
 
 ---
 
