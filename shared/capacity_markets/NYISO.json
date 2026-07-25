@@ -1,0 +1,16 @@
+{
+  "name": "New York Independent System Operator",
+  "zones": {
+    "NYC": {
+      "capacity_cost_start_m_per_mw_yr": 0.120,
+      "source": "NYISO 2024 ICAP auction, NYC load zone",
+      "notes": "Includes generation ICAP and transmission capacity components"
+    },
+    "G_H_I": {
+      "capacity_cost_start_m_per_mw_yr": 0.070,
+      "source": "NYISO 2024 ICAP auction, upstate zones G/H/I"
+    }
+  },
+  "capacity_cost_growth_real": 0.03,
+  "notes": "3%/yr real growth assumption — electrification tightens reserve margins"
+}

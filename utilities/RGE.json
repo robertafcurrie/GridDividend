@@ -1,0 +1,30 @@
+{
+  "name": "Rochester Gas and Electric Corporation",
+  "short_name": "RG&E",
+  "state": "New York",
+  "territory": "Nine-county region centred on Rochester, NY",
+  "filing_case": "Case 25-E-0379 (temporary rates Jun 2026; final order pending)",
+  "capacity_market": "NYISO",
+  "capacity_market_zone": "G_H_I",
+
+  "rate_base_start_m": 1600,
+  "annual_capex_m": 235,
+  "total_revenue_m": 1096,
+
+  "roe": 0.100,
+  "equity_ratio": 0.48,
+
+  "electric_customers": 383000,
+  "peak_demand_mw": 1050,
+  "annual_energy_gwh": 5500,
+
+  "dc_load_growth_annual": 0.018,
+  "dc_distribution_share": 0.25,
+  "dc_flexibility_share": 0.35,
+
+  "der_storage_mw_start": 60,
+  "ev_managed_charging_pct_bau": 0.08,
+
+  "_sources": "Rate base, annual_capex_m and total_revenue_m are ESTIMATED, back-calculated from the June 2025 filing under NYPSC Case 25-E-0379. PSC set temporary rates June 1 2026 (+4.0% electric); final order still pending — update these figures when the final order is issued. ROE is the utility's requested rate (10.0%), not yet approved. Data centre load parameters reflect upstate NY DC siting activity.",
+  "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
+}

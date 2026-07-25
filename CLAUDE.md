@@ -19,6 +19,27 @@ LICENSE                   — MIT
 
 No Python modules, tests, or helper scripts exist yet.
 
+## Repository Architecture (v1.1+)
+
+The codebase uses a modular structure separating engine from data:
+
+```
+engine/model.py          — project(), run_named_scenario(), apply_passthrough_savings()
+utilities/ConEd.json     — Con Edison parameters
+utilities/RGE.json       — RG&E parameters
+utilities/[Utility].json — one file per utility for new states
+shared/capacity_markets/ — per-market ICAP/capacity cost data
+notebooks/               — state-specific notebooks importing from engine/
+GridDividend_v1.0.ipynb  — self-contained notebook (kept for compatibility)
+```
+
+To add a new utility:
+1. Create `utilities/[Name].json` following the `ConEd.json` structure
+2. Create `shared/capacity_markets/[MARKET].json` if market not already defined
+3. Copy `notebooks/GridDividend_NewYork.ipynb` as a template
+4. Load the new utility JSON in Section 0 and add to `utilities_to_run`
+5. Run through Section 6 and verify results are plausible
+
 ## Running the notebook
 
 The kernel name in the notebook metadata is `conda-base-py`. When executing headlessly via nbconvert, override the kernel:
