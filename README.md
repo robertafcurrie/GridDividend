@@ -83,6 +83,7 @@ This is a **strategic policy simulation**, not a utility planning model or rate-
 - **Spatially aggregate.** NWS is modelled as a system-wide percentage of eligible CAPEX. Real outcomes depend on feeder-level constraint types and DER siting. Individual feeders will range from zero NWS benefit (fault-current or asset-condition driven) to near-complete deferral (growth-driven, thermally constrained, demand-coincident).
 - **Not a forecast.** Results show direction and order of magnitude. Key sensitivities are the NWS avoidance rate at maturity and the electrification ramp — see Section 8 (Sensitivity Analysis).
 - **RG&E data is provisional.** The PSC set temporary rates in June 2026; the final order on Case 25-E-0379 is still pending. Parameters should be updated when the order issues.
+- **Dominion Energy Virginia** parameters include six values flagged for verification from the SCC rate case filing (rate base, distribution CAPEX, total revenue, delivery rate split, property tax rate, and NWS eligible share). Results for Dominion VA should be treated as illustrative until those parameters are confirmed.
 
 Full caveats are in **Section 10** of the notebook (13 items, including discussion of permanent avoidance vs temporary deferral and the legislative design implications for clawback provisions).
 
