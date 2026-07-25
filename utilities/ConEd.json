@@ -25,6 +25,8 @@
   "der_storage_mw_start": 150,
   "ev_managed_charging_pct_bau": 0.10,
 
+  "residential_kwh_month": 600,
+
   "_sources": "Rate base & capital: Joint Proposal, NYPSC Case 25-E-0072, approved January 22 2026 (annual_capex_m = average of RY1 $4,550M / RY2 $4,474M / RY3 $4,712M; total_revenue_m estimated). ROE and equity_ratio: Joint Proposal 2026-2028. Customers, peak_demand_mw, annual_energy_gwh: Con Edison 2024 Form 10-K. DER baseline: CLCPA progress reports; NYSERDA data.",
   "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
 }

@@ -25,6 +25,8 @@
   "der_storage_mw_start": 60,
   "ev_managed_charging_pct_bau": 0.08,
 
+  "residential_kwh_month": 600,
+
   "_sources": "Rate base, annual_capex_m and total_revenue_m are ESTIMATED, back-calculated from the June 2025 filing under NYPSC Case 25-E-0379. PSC set temporary rates June 1 2026 (+4.0% electric); final order still pending — update these figures when the final order is issued. ROE is the utility's requested rate (10.0%), not yet approved. Data centre load parameters reflect upstate NY DC siting activity.",
   "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
 }
