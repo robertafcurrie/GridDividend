@@ -12,6 +12,7 @@ env/
 
 # Notebook execution artifacts
 charts/
+reports/
 *.html
 
 # OS

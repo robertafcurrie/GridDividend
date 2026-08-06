@@ -421,11 +421,15 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
         sh['avg_annual_bill'] = sh['avg_monthly_bill'] * 12
 
     # ── Step 2: capacity market pass-through ─────────────────────────────────
+    # Mirrors apply_passthrough_savings(): customer share reduces the bill,
+    # utility share adds to shared savings income (utility_shared_revenue_m /
+    # total_utility_revenue_m) so scenario_results[k][sname] stays consistent
+    # with results[k]['shared'] for the same utility.
     bau_df = results[utility_key]['bau']
     cap_cost_start = (cfg['CAPACITY_COST_START'][utility_key]
                       if isinstance(cfg['CAPACITY_COST_START'], dict) else cfg['CAPACITY_COST_START'])
 
-    pt_monthly = []
+    pt_total, pt_customer, pt_utility, pt_monthly = [], [], [], []
     for yr in cfg['YEARS']:
         b_row        = bau_df[bau_df['year'] == yr].iloc[0]
         s_row        = sh[sh['year'] == yr].iloc[0]
@@ -433,13 +437,27 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
         cap_cost     = cap_cost_start * (1 + cfg['CAPACITY_COST_GROWTH']) ** (yr - 2026)
         saving_m     = peak_red * cap_cost
         cust_share_m = saving_m * (1 - cfg['UTILITY_SAVINGS_SHARE'])
+        util_share_m = saving_m * cfg['UTILITY_SAVINGS_SHARE']
         monthly_red  = (cust_share_m * 1e6) / (s_row['customers'] * 12)
+        pt_total.append(saving_m)
+        pt_customer.append(cust_share_m)
+        pt_utility.append(util_share_m)
         pt_monthly.append(monthly_red)
 
-    pt_df = pd.DataFrame({'year': cfg['YEARS'], 'pt_monthly_bill_reduction': pt_monthly})
+    pt_df = pd.DataFrame({
+        'year': cfg['YEARS'],
+        'pt_total_savings_m': pt_total,
+        'pt_customer_m': pt_customer,
+        'pt_utility_m': pt_utility,
+        'pt_monthly_bill_reduction': pt_monthly,
+    })
     sh = sh.merge(pt_df, on='year', how='left')
     sh['avg_monthly_bill'] -= sh['pt_monthly_bill_reduction']
     sh['avg_annual_bill']  = sh['avg_monthly_bill'] * 12
+    sh['utility_shared_revenue_m'] = sh['utility_shared_revenue_m'] + sh['pt_utility_m']
+    sh['total_utility_revenue_m']  = sh['traditional_earnings_m']   + sh['utility_shared_revenue_m']
+    sh['savings_pool_m'] = sh['savings_pool_m'] + sh['pt_total_savings_m']
+    sh['customer_savings_m'] = sh['customer_savings_m'] + sh['pt_customer_m']
 
     # ── Upfront customer passthrough ────────────────────────────────────────────
     # During UPFRONT_PASSTHROUGH_YEARS, 100% of shared savings goes to customers.

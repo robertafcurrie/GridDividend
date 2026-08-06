@@ -25,11 +25,13 @@ The codebase uses a modular structure separating engine from data:
 
 ```
 engine/model.py          — project(), run_named_scenario(), apply_passthrough_savings()
+engine/report.py         — compute_insights(), render_report_html(), try_convert_html_to_pdf()
 utilities/ConEd.json     — Con Edison parameters
 utilities/RGE.json       — RG&E parameters
 utilities/[Utility].json — one file per utility for new states
 shared/capacity_markets/ — per-market ICAP/capacity cost data
 notebooks/               — state-specific notebooks importing from engine/
+notebooks/reports/       — per-utility/scenario HTML + best-effort PDF summary reports (gitignored, written on notebook run)
 GridDividend_v1.0.ipynb  — self-contained notebook (kept for compatibility)
 ```
 
@@ -94,6 +96,7 @@ Cell indices are 0-based (matching `nb['cells'][n]` in Python).
 | 9c | 30–31 | Article charts (Charts 1–6, saved to `charts_article/`) |
 | 9d | 32–34 | Deferral sensitivity (Chart 7) + long-term case (Charts 8–12) |
 | 10 | 35 | Model caveats and scope statement (13 items) |
+| 11 | 36–37 | Summary report generator — single scenario vs. BAU, never a cross-scenario comparison; toggle via `GENERATE_SUMMARY_REPORT` / `REPORT_SCENARIOS`; writes `reports/{Utility}_{Scenario}_{years}.html` (+ `.pdf` best-effort); see `engine/report.py` |
 
 ## Key parameters (Section 1, Cell 4)
 
