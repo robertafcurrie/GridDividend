@@ -52,6 +52,7 @@
 
   "_nws_VERIFY": "NWS eligibility lower than NY utilities: large share of CAPEX is transmission not distribution; offshore wind and CVOW are not NWS-addressable; data centre driven transmission upgrades (89 projects per 2024 IRP) are not distribution NWS. Starting estimate 20-25% of total CAPEX is distribution NWS-eligible. MOST UNCERTAIN PARAMETER — review against IRP capital breakdown before modelling.",
   "nws_eligible_capex_share_start": 0.22,
+  "_grid_utilization_VERIFY": "This analysis does not use actual Dominion grid utilization, hosting-capacity, or feeder-loading data — the NWS-eligible CAPEX share above (and its ceiling) is a system-wide estimate, not a measurement of real spare grid capacity anywhere on Dominion's network. If Dominion or the SCC publishes actual grid utilization data (e.g. feeder-level hosting capacity, loading, or constraint maps), it should replace this assumption. NEEDS REAL GRID UTILIZATION DATA.",
   "nws_eligible_capex_share_max": 0.35,
 
   "_dist_upgrade_VERIFY": "Northern Virginia (data centre corridor) has dense suburban/urban network approaching Con Edison cost levels. Rest of Dominion territory predominantly overhead suburban and rural, similar to RG&E. Blended estimate $1.5-2.0M/MW. NEEDS VERIFICATION FROM SCC CAPITAL FILINGS.",

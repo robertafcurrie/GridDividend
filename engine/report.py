@@ -72,6 +72,10 @@ UNIVERSAL_CAVEATS = [
     ("Spatially aggregate.", "Non-Wires Solutions are modelled as a system-wide "
      "share of eligible CAPEX, not a feeder-level analysis — real outcomes will "
      "vary by location and constraint type."),
+    ("No real grid-utilization data.", "NWS-eligible CAPEX share and avoidance "
+     "assumptions are estimates, not derived from actual utility hosting-capacity, "
+     "feeder-loading, or grid-utilization data. Where a utility publishes real "
+     "grid-utilization data, it should replace these assumptions."),
     ("Bill scope is partial.", "Savings cover delivery and supply (capacity) "
      "costs only. Wholesale energy prices, transmission investment, and other "
      "rider-based surcharges continue on their baseline trajectory."),
@@ -238,7 +242,9 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
         f"<strong>{scenario_label}</strong> (Non-Wires Solutions savings shared between "
         f"customers and the utility) versus <strong>BAU</strong> (business-as-usual, no "
         f"reform). Produced with <a href=\"{GITHUB_URL}\">GridDividend</a>, an open-source "
-        f"policy simulation framework.",
+        f"policy simulation framework &mdash; a directional illustration of order of magnitude, "
+        f"not a guarantee of results or a substitute for detailed, state-by-state modelling and "
+        f"legislative design work (see Model Caveats).",
 
         f"By {ins['end_year']}, the typical {short_name} residential customer pays "
         f"{_fmt(ins['scenario_final_bill'])}/month under {scenario_label} versus "

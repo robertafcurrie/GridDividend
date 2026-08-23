@@ -25,13 +25,14 @@ The codebase uses a modular structure separating engine from data:
 
 ```
 engine/model.py          — project(), run_named_scenario(), apply_passthrough_savings()
-engine/report.py         — compute_insights(), render_report_html(), try_convert_html_to_pdf()
+engine/report.py         — compute_insights(), render_report_html()
 utilities/ConEd.json     — Con Edison parameters
 utilities/RGE.json       — RG&E parameters
+utilities/Dominion_VA.json — Dominion Energy Virginia parameters
 utilities/[Utility].json — one file per utility for new states
 shared/capacity_markets/ — per-market ICAP/capacity cost data
 notebooks/               — state-specific notebooks importing from engine/
-notebooks/reports/       — per-utility/scenario HTML summary reports (gitignored, written on notebook run)
+reports/                 — per-utility/scenario HTML summary reports (top-level, gitignored, written on notebook run)
 GridDividend_v1.0.ipynb  — self-contained notebook (kept for compatibility)
 ```
 
@@ -63,6 +64,7 @@ The notebook installs nothing at runtime — all dependencies (pandas, numpy, ma
 | DER | Distributed Energy Resource — rooftop solar, battery, managed EV, demand response |
 | Shared savings | Mechanism splitting NWS cost savings between utility (incentive) and customers (bill reduction) |
 | BAU | Business As Usual — traditional build-out, no shared savings reform |
+| EASE Act | The Electricity Affordability, Savings, and Efficiency Act — the (proposed/hypothetical) legislation that would enact the shared-savings mechanism. "EASE Case" in generated reports is the modelled outcome if the EASE Act passed, contrasted against BAU. Directional illustration only — not a guarantee of results, and not a substitute for state-by-state modelling and legislative design work |
 | Rate base | Regulated asset value on which the utility earns its allowed ROE |
 | WACC | Weighted average cost of capital (equity + debt blend) |
 | CLCPA | Climate Leadership and Community Protection Act — NY's 2019 clean energy law |
@@ -73,6 +75,7 @@ The notebook installs nothing at runtime — all dependencies (pandas, numpy, ma
 |-----|------|-----------------|
 | `'ConEd'` | Consolidated Edison (CECONY) | Case 25-E-0072, approved Jan 2026 |
 | `'RGE'` | Rochester Gas and Electric | Case 25-E-0379, temp rates Jun 2026; final order pending |
+| `'DomVA'` | Dominion Energy Virginia | SCC Case PUR-2025-00058, rates effective Jan 2026 and Jan 2027 |
 
 ## Notebook structure
 
@@ -95,7 +98,7 @@ Cell indices are 0-based (matching `nb['cells'][n]` in Python).
 | 9b | 26–29 | Near-term vs long-term trade-off (5 scenarios) |
 | 9c | 30–31 | Article charts (Charts 1–6, saved to `charts_article/`) |
 | 9d | 32–34 | Deferral sensitivity (Chart 7) + long-term case (Charts 8–12) |
-| 10 | 35 | Model caveats and scope statement (13 items) |
+| 10 | 35 | Model caveats and scope statement (14 items) |
 | 11 | 36–37 | Summary report generator — single scenario vs. BAU, never a cross-scenario comparison; toggle via `GENERATE_SUMMARY_REPORT` / `REPORT_SCENARIOS`; writes `reports/{Utility}_{Scenario}_{years}.html`; see `engine/report.py` |
 
 ## Key parameters (Section 1, Cell 4)
@@ -115,6 +118,7 @@ Every parameter has a source citation in the comment block immediately below it.
 
 - **Not a forecast.** Direction and order of magnitude only.
 - **Spatially aggregate.** NWS is modelled as a system-wide % of eligible CAPEX; real outcomes depend on feeder-level constraint types and DER siting.
+- **No real grid-utilization data.** NWS-eligible CAPEX share and avoidance rates are estimates from rate-case filings and industry benchmarks, not measured from actual utility hosting-capacity, feeder-loading, or grid-utilization data. If a utility publishes real grid-utilization data, prefer it over these assumptions — this applies to every utility modelled, and is flagged explicitly for Dominion VA (`utilities/Dominion_VA.json`, `_grid_utilization_VERIFY`).
 - **RG&E data is provisional.** Update when Case 25-E-0379 issues a final order.
 - **Property tax rates are estimates** (~1.6% ConEd, ~1.8% RG&E electric assets only) derived from annual reports, not official filed figures.
 - **FRONTLOADED scenario** uses `upfront_passthrough_years=3`; utility earns 0% of shared savings in years 1–3. The 25-year cumulative outcome is the same as BASE — it is a timing mechanism.
