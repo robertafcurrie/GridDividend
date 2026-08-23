@@ -484,7 +484,7 @@ footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-w
   <section>
     <h2>Utility Financial Position</h2>
     <table>
-      <thead><tr><th>Year</th><th>BAU RB $B</th><th>EASE RB $B</th><th>BAU Earn $M</th><th>EASE Earn $M</th><th>Incentive $M</th><th>Total Rev $M</th></tr></thead>
+      <thead><tr><th>Year</th><th>BAU RB $B</th><th>EASE RB $B</th><th>BAU RB Earn $M</th><th>EASE RB Earn $M</th><th>EASE Incentive $M</th><th>Total EASE Rev $M</th></tr></thead>
       <tbody>{fin_rows()}</tbody>
     </table>
   </section>
