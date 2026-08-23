@@ -3,12 +3,67 @@
 # Never compares named scenarios to each other; one report = one scenario vs BAU.
 
 import base64
-import os
-import platform
-import shutil
-import subprocess
 
 import numpy as np
+
+GITHUB_URL = "https://github.com/robertafcurrie/GridDividend"
+
+MECHANISMS = [
+    ("NWS avoidance", "Flexible demand (DERs, managed EV charging, demand "
+     "response) reduces peak load on constrained circuits, letting the "
+     "utility defer or avoid distribution CAPEX it would otherwise spend. "
+     "That avoided spending shrinks the rate base and the return earned "
+     "on it."),
+    ("Pass-through savings", "The same flexible demand also shaves "
+     "system-wide peak demand, so the utility buys less capacity in the "
+     "wholesale capacity market. This saving flows through on the supply "
+     "portion of the bill."),
+    ("Utilisation credit", "Flexible demand fills existing spare grid "
+     "capacity instead of forcing new capacity to be built, spreading "
+     "fixed delivery costs over more kWh sold and slowing delivery-rate "
+     "growth directly."),
+]
+MECHANISMS_NOTE = ("Each mechanism's savings are split between customers "
+    "and the utility ({utility_share:.0%} to the utility as an incentive, "
+    "the rest to customer bills) &mdash; see Section 1 of the source "
+    "notebook (<code>UTILITY_SAVINGS_SHARE</code>) for the split and "
+    "Section 3 (<code>engine/model.py</code>) for the calculations.")
+
+# (utility_json key, display label, value formatter) — pulled straight from
+# the utility's own JSON, with a source citation looked up via _note_for().
+STARTING_DATA_FIELDS = [
+    ('rate_base_start_m', 'Rate base', lambda v: f"${v:,.0f}M"),
+    ('annual_capex_m', 'Annual CAPEX', lambda v: f"${v:,.0f}M"),
+    ('roe', 'Allowed ROE', lambda v: f"{v:.1%}"),
+    ('equity_ratio', 'Equity ratio', lambda v: f"{v:.0%}"),
+    ('electric_customers', 'Customers', lambda v: f"{v:,.0f}"),
+    ('peak_demand_mw', 'Peak demand', lambda v: f"{v:,.0f} MW"),
+    ('residential_kwh_month', 'Residential usage benchmark', lambda v: f"{v:,.0f} kWh/month"),
+]
+
+# (MODEL_CONFIG key, display label, value formatter, plain-English description)
+MECHANISM_PARAM_FIELDS = [
+    ('UTILITY_SAVINGS_SHARE', 'Utility savings share', lambda v: f"{v:.0%}",
+     "Share of every mechanism's savings retained by the utility as an incentive."),
+    ('NWS_ELIGIBLE_CAPEX_SHARE_START', 'NWS-eligible CAPEX (start)', lambda v: f"{v:.0%}",
+     "Fraction of annual CAPEX addressable by non-wires solutions in year 1."),
+    ('NWS_ELIGIBLE_CAPEX_SHARE_MAX', 'NWS-eligible CAPEX (ceiling)', lambda v: f"{v:.0%}",
+     "Ceiling on that eligible share as electrification grows."),
+    ('NWS_AVOIDANCE_OF_ELIGIBLE_START', 'NWS avoidance (start)', lambda v: f"{v:.0%}",
+     "Fraction of eligible CAPEX actually deferred in year 1."),
+    ('NWS_AVOIDANCE_OF_ELIGIBLE_MATURE', 'NWS avoidance (mature)', lambda v: f"{v:.0%}",
+     "Fraction of eligible CAPEX deferred once the programme matures."),
+    ('NWS_AVOIDANCE_RAMP_YEARS', 'Avoidance ramp', lambda v: f"{v:.0f} yr",
+     "Years to go from start to mature avoidance."),
+    ('DEFERRAL_FRACTION', 'Deferral fraction', lambda v: f"{v:.0%}",
+     "Share of avoided CAPEX that eventually re-enters the rate base (0% = permanent avoidance)."),
+    ('DEFERRAL_PERIOD_YEARS', 'Deferral period', lambda v: f"{v:.0f} yr",
+     "Years before deferred CAPEX re-enters the rate base."),
+    ('UPFRONT_PASSTHROUGH_YEARS', 'Upfront pass-through', lambda v: f"{v:.0f} yr",
+     "Years of 100% customer pass-through before the standard split applies."),
+    ('FLEX_LOAD_UTILISATION_SHARE_SS', 'Utilisation credit', lambda v: f"{v:.0%}",
+     "Share of the delivery-cost utilisation credit applied under this scenario."),
+]
 
 UNIVERSAL_CAVEATS = [
     ("Not a forecast.", "This is a single deterministic model path illustrating "
@@ -118,6 +173,42 @@ def _verify_rows(utility_json):
     return rows
 
 
+def _note_for(utility_json, data_key):
+    """Citation text for a starting-data field, if the JSON's authoring
+    convention placed a '_..._note' or '_..._VERIFY' key immediately before
+    it (see _verify_rows for the same convention)."""
+    keys = list(utility_json.keys())
+    if data_key not in keys:
+        return None
+    idx = keys.index(data_key)
+    if idx == 0:
+        return None
+    prev = keys[idx - 1]
+    if prev.endswith('_note') or prev.endswith('_VERIFY'):
+        return utility_json[prev]
+    return None
+
+
+def _starting_data_rows(utility_json):
+    rows = []
+    for key, label, fmt in STARTING_DATA_FIELDS:
+        if key not in utility_json or utility_json[key] is None:
+            continue
+        value = fmt(utility_json[key])
+        note = _note_for(utility_json, key) or '&mdash;'
+        rows.append((label, value, note))
+    return rows
+
+
+def _mechanism_param_rows(model_config):
+    rows = []
+    for key, label, fmt, desc in MECHANISM_PARAM_FIELDS:
+        if key not in model_config or model_config[key] is None:
+            continue
+        rows.append((label, fmt(model_config[key]), desc))
+    return rows
+
+
 def _embed_image(path):
     try:
         with open(path, 'rb') as f:
@@ -133,7 +224,7 @@ def _fmt(x, decimals=0, prefix='$', suffix=''):
 
 def render_report_html(utility_key, utility_json, utility_params, scenario_label,
                         years, bau_df, scenario_df, insights, chart_png_path,
-                        generated_at, git_sha):
+                        generated_at, git_sha, model_config=None):
     """Self-contained HTML string for one utility/scenario. System font stack
     only — no embedded custom font, so this works portably with zero new deps
     and no third-party font redistribution."""
@@ -143,6 +234,12 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
     ins = insights
     up_or_down = 'higher' if ins['revenue_delta_b'] >= 0 else 'lower'
     sentences = [
+        f"This report models {short_name}, {ins['start_year']}&ndash;{ins['end_year']}, under "
+        f"<strong>{scenario_label}</strong> (Non-Wires Solutions savings shared between "
+        f"customers and the utility) versus <strong>BAU</strong> (business-as-usual, no "
+        f"reform). Produced with <a href=\"{GITHUB_URL}\">GridDividend</a>, an open-source "
+        f"policy simulation framework.",
+
         f"By {ins['end_year']}, the typical {short_name} residential customer pays "
         f"{_fmt(ins['scenario_final_bill'])}/month under {scenario_label} versus "
         f"{_fmt(ins['bau_final_bill'])}/month under business-as-usual &mdash; a "
@@ -208,6 +305,43 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
                        f"<td>{_fmt(s['total_utility_revenue_m'])}</td></tr>")
         return "\n".join(out)
 
+    model_config = model_config or {}
+    utility_share = model_config.get('UTILITY_SAVINGS_SHARE', 0.30)
+    mechanisms_html = "".join(
+        f"<li><strong>{name}.</strong> {desc}</li>" for name, desc in MECHANISMS
+    )
+
+    starting_rows = _starting_data_rows(utility_json)
+    starting_html = "".join(
+        f"<tr><td>{label}</td><td>{value}</td><td>{note}</td></tr>"
+        for label, value, note in starting_rows
+    )
+    param_rows = _mechanism_param_rows(model_config)
+    param_html = "".join(
+        f"<tr><td>{label}</td><td>{value}</td><td>{desc}</td></tr>"
+        for label, value, desc in param_rows
+    )
+    filing_case = utility_json.get('filing_case', '')
+    assumptions_html = f"""
+  <section class="page-break">
+    <h2>Modeling Assumptions &amp; Starting Data</h2>
+    <p class="section-intro">{short_name} starting data, sourced from {filing_case}.</p>
+    <div class="verify-box">
+      <table class="prose">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Source</th></tr></thead>
+        <tbody>{starting_html}</tbody>
+      </table>
+    </div>
+    <p class="section-intro">Shared-savings mechanism parameters (Section 1 of the source
+      notebook), common across all utilities modelled.</p>
+    <div class="verify-box">
+      <table class="prose">
+        <thead><tr><th>Parameter</th><th>Value</th><th>What it controls</th></tr></thead>
+        <tbody>{param_html}</tbody>
+      </table>
+    </div>
+  </section>"""
+
     verify_rows = _verify_rows(utility_json)
     verify_html = ''
     if verify_rows:
@@ -224,7 +358,7 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
       robust to reasonable variation in these; the specific magnitudes above are not.</p>
       <div class="verify-box">
         <table class="prose">
-          <thead><tr><th>Parameter</th><th>Current estimate</th><th style="text-align:left">Verification needed</th></tr></thead>
+          <thead><tr><th>Parameter</th><th>Current estimate</th><th>Verification needed</th></tr></thead>
           <tbody>{"".join(row_html)}</tbody>
         </table>
       </div>
@@ -237,6 +371,12 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
     chart_html = _embed_image(chart_png_path)
 
     sha_bit = f" &middot; commit {git_sha}" if git_sha else ""
+
+    footer_html = """
+  <footer>
+    GridDividend is an open-source policy simulation framework (MIT License) &mdash; not a utility
+    planning model or rate-case replica. Auto-generated, single EASE scenario vs BAU scenario.
+  </footer>"""
 
     return f"""<!doctype html>
 <html lang="en">
@@ -261,20 +401,27 @@ body {{
   background: var(--paper); color: var(--ink); margin: 0; padding: 28px 16px 40px;
   font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
 }}
-.sheet {{ max-width: 760px; margin: 0 auto; background: var(--sheet); border: 1px solid var(--line); padding: 36px 44px; }}
+.sheet {{ max-width: 760px; margin: 0 auto; background: var(--sheet); border: 1px solid var(--line); padding: 30px 44px 46px; }}
 .eyebrow {{ font-family: -apple-system, 'Segoe UI', sans-serif; font-size: 10px; font-weight: 600;
   letter-spacing: 0.13em; text-transform: uppercase; color: var(--copper); margin: 0 0 8px; }}
 h1 {{ font-size: 22px; line-height: 1.25; margin: 0 0 6px; }}
-.meta {{ font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--ink-soft); margin: 0 0 16px; }}
-hr {{ border: 0; border-top: 1px solid var(--line-strong); margin: 0 0 16px; }}
-.lede {{ font-size: 13px; line-height: 1.5; margin: 0 0 18px; }}
-.lede li {{ margin-bottom: 6px; }}
-h2 {{ font-size: 14.5px; margin: 0 0 4px; padding-left: 10px; border-left: 3px solid var(--copper); }}
+.meta {{ font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--ink-soft); margin: 0 0 12px; }}
+hr {{ border: 0; border-top: 1px solid var(--line-strong); margin: 0 0 12px; }}
+.lede {{ font-size: 13px; line-height: 1.45; margin: 0 0 12px; }}
+.lede li {{ margin-bottom: 5px; }}
+a {{ color: var(--teal); }}
+h2 {{ font-size: 14.5px; margin: 0 0 4px; padding-left: 10px; border-left: 3px solid var(--copper);
+  page-break-after: avoid; break-after: avoid-page; }}
 h2.flag {{ border-left-color: var(--flag); }}
-.section-intro {{ font-size: 11.5px; color: var(--ink-soft); margin: 4px 0 8px 13px; }}
-section {{ margin-bottom: 16px; }}
-.chart-img {{ max-width: 100%; height: auto; display: block; margin: 6px 0 12px; border: 1px solid var(--line); }}
-table {{ width: 100%; border-collapse: collapse; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; }}
+.section-intro {{ font-size: 11.5px; color: var(--ink-soft); margin: 3px 0 6px 13px; }}
+section {{ margin-bottom: 11px; }}
+section.page-break {{ page-break-before: always; break-before: page; }}
+ul.mechanisms {{ margin: 5px 0 0 13px; padding-left: 16px; font-size: 13px; line-height: 1.45; }}
+ul.mechanisms li {{ margin-bottom: 5px; }}
+.chart-wrap {{ page-break-inside: avoid; break-inside: avoid-page; }}
+.chart-img {{ max-width: 92%; height: auto; display: block; margin: 6px auto 10px; border: 1px solid var(--line); }}
+table {{ width: 100%; border-collapse: collapse; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px;
+  page-break-inside: avoid; break-inside: avoid; }}
 table.prose td {{ font-family: Georgia, serif; font-size: 11px; white-space: normal; vertical-align: top; }}
 th {{ font-family: -apple-system, 'Segoe UI', sans-serif; font-size: 8.5px; font-weight: 600; text-transform: uppercase;
   color: var(--ink-soft); text-align: right; padding: 0 10px 4px 0; border-bottom: 1px solid var(--line-strong); }}
@@ -282,24 +429,40 @@ th:first-child, td:first-child {{ text-align: left; }}
 td {{ text-align: right; padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }}
 tr:last-child td {{ border-bottom: 1px solid var(--line-strong); font-weight: 600; }}
 .verify-box {{ background: var(--flag-bg); border-left: 3px solid var(--flag); padding: 8px 10px 2px; margin: 5px 0 10px 13px; }}
-ul.caveats {{ margin: 5px 0 0 13px; padding-left: 16px; font-size: 11px; line-height: 1.4; }}
-footer {{ margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--line);
+.verify-box table th, .verify-box table td {{
+  font-family: Georgia, serif; font-size: 11px; text-transform: none; text-align: left;
+  padding: 4px 8px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line);
+}}
+.verify-box table th {{ font-weight: 600; color: var(--ink); }}
+.verify-box table th:last-child, .verify-box table td:last-child {{ border-right: none; }}
+.verify-box table tr:last-child td {{ font-weight: 400; border-bottom: 1px solid var(--line); }}
+.verify-box table code {{ font-size: 11px; }}
+ul.caveats {{ margin: 5px 0 0 13px; padding-left: 16px; font-size: 11px; line-height: 1.3;
+  page-break-inside: avoid; break-inside: avoid; }}
+footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-width: 760px;
+  padding: 6px 44px 0; border-top: 1px solid var(--line); background: var(--sheet);
   font-family: -apple-system, 'Segoe UI', sans-serif; font-size: 9px; color: var(--ink-soft); }}
 </style>
 </head>
 <body>
 <div class="sheet">
   <p class="eyebrow">Summary Report &mdash; Single Scenario vs. BAU</p>
-  <h1>{short_name}: {scenario_label}, {ins['start_year']}&ndash;{ins['end_year']}</h1>
+  <h1>{short_name}: EASE vs BAU Modeling, {ins['start_year']}&ndash;{ins['end_year']}</h1>
   <p class="meta">Generated {generated_at}{sha_bit} &middot; GridDividend v1.1</p>
   <hr>
   <ul class="lede">{"".join(f"<li>{s}</li>" for s in sentences)}</ul>
 
   <section>
+    <h2>How These Savings Are Achieved</h2>
+    <ul class="mechanisms">{mechanisms_html}</ul>
+    <p class="section-intro">{MECHANISMS_NOTE.format(utility_share=utility_share)}</p>
+  </section>
+
+  <section class="page-break">
     <h2>Customer Bills</h2>
-    {chart_html}
+    <div class="chart-wrap">{chart_html}</div>
     <table>
-      <thead><tr><th>Year</th><th>BAU $/mo</th><th>Scenario $/mo</th><th>Saving/yr</th><th>% Saving</th><th>Cum. $B</th></tr></thead>
+      <thead><tr><th>Year</th><th>BAU $/mo</th><th>EASE $/mo</th><th>Saving/yr</th><th>% Saving</th><th>Cum. $B</th></tr></thead>
       <tbody>{bill_rows()}</tbody>
     </table>
   </section>
@@ -315,7 +478,7 @@ footer {{ margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--line);
   <section>
     <h2>Utility Financial Position</h2>
     <table>
-      <thead><tr><th>Year</th><th>BAU RB $B</th><th>Scen. RB $B</th><th>BAU Earn $M</th><th>Scen. Earn $M</th><th>Incentive $M</th><th>Total Rev $M</th></tr></thead>
+      <thead><tr><th>Year</th><th>BAU RB $B</th><th>EASE RB $B</th><th>BAU Earn $M</th><th>EASE Earn $M</th><th>Incentive $M</th><th>Total Rev $M</th></tr></thead>
       <tbody>{fin_rows()}</tbody>
     </table>
   </section>
@@ -325,67 +488,9 @@ footer {{ margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--line);
     <ul class="caveats">{caveats_html}</ul>
     <p class="section-intro" style="margin-left:0">See Section 10 of the source notebook for the complete caveats and limitations list.</p>
   </section>
+  {assumptions_html}
 
-  <footer>
-    GridDividend is an open-source policy simulation framework (MIT License) &mdash; not a utility
-    planning model or rate-case replica. Auto-generated, single-scenario-vs-BAU only &mdash; not a
-    comparison across scenarios.
-  </footer>
+  {footer_html}
 </div>
 </body>
 </html>"""
-
-
-def try_convert_html_to_pdf(html_path, pdf_path, timeout=30):
-    """Best-effort HTML->PDF via a local Chrome/Chromium/wkhtmltopdf install.
-    Never raises; returns False (and leaves no partial file) if none is found
-    or conversion fails."""
-    html_abs = os.path.abspath(html_path)
-    pdf_abs = os.path.abspath(pdf_path)
-
-    which_names = ['google-chrome-stable', 'google-chrome', 'chromium-browser',
-                   'chromium', 'chrome', 'msedge', 'wkhtmltopdf']
-    candidates = [shutil.which(name) for name in which_names]
-
-    system = platform.system()
-    if system == 'Darwin':
-        candidates += [
-            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-            '/Applications/Chromium.app/Contents/MacOS/Chromium',
-            '/opt/homebrew/bin/wkhtmltopdf',
-            '/usr/local/bin/wkhtmltopdf',
-        ]
-    elif system == 'Linux':
-        candidates += [
-            '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
-            '/usr/bin/chromium-browser', '/usr/bin/chromium',
-            '/snap/bin/chromium', '/usr/bin/wkhtmltopdf',
-        ]
-    elif system == 'Windows':
-        candidates += [
-            r'C:\Program Files\Google\Chrome\Application\chrome.exe',
-            r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
-            r'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
-        ]
-
-    binary = next((c for c in candidates if c and os.path.exists(c)), None)
-    if not binary:
-        return False
-
-    is_wkhtmltopdf = 'wkhtmltopdf' in os.path.basename(binary).lower()
-    if is_wkhtmltopdf:
-        cmd = [binary, html_abs, pdf_abs]
-    else:
-        cmd = [binary, '--headless=new', '--disable-gpu', '--no-sandbox',
-               f'--print-to-pdf={pdf_abs}', html_abs]
-
-    try:
-        subprocess.run(cmd, timeout=timeout, capture_output=True)
-    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-        return False
-
-    if os.path.exists(pdf_abs) and os.path.getsize(pdf_abs) > 0:
-        return True
-    if os.path.exists(pdf_abs):
-        os.remove(pdf_abs)
-    return False
