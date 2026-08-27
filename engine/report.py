@@ -94,9 +94,29 @@ def _milestone_years(years):
     return ys
 
 
-def compute_insights(bau_df, scenario_df, scenario_label, years):
+def _bill_milestone_years(years, dense_until=2035, sparse_step=5):
+    """Denser checkpoints through `dense_until` (every year — this is where
+    the report's own near-term threshold claims, e.g. first year savings
+    exceed $10/mo, actually live), every `sparse_step`th year after."""
+    dense = [y for y in years if y <= dense_until]
+    last_dense = dense[-1] if dense else years[0]
+    sparse = [y for y in years if y > last_dense and y % sparse_step == 0]
+    out = dense + sparse
+    if years[-1] not in out:
+        out.append(years[-1])
+    return out
+
+
+def compute_insights(bau_df, scenario_df, scenario_label, years,
+                      bau_freeze_df=None, scenario_freeze_df=None):
     """Deterministic derived facts for one scenario vs BAU. Numbers only — no
     prose. See render_report_html() for the templated sentences built from this.
+
+    bau_freeze_df / scenario_freeze_df are optional: the same rate-freeze
+    overlay pair already plotted in the Section 5 bill chart (results[k]
+    ['bau_freeze'] / ['shared_freeze']), not a named freeze scenario. When
+    supplied, freeze_insight is populated with the relief/catch-up/reconverge
+    facts shown in that chart's near-term panel.
     """
     b_final = bau_df[bau_df['year'] == years[-1]].iloc[0]
     s_final = scenario_df[scenario_df['year'] == years[-1]].iloc[0]
@@ -117,6 +137,56 @@ def compute_insights(bau_df, scenario_df, scenario_label, years):
     cum_total_utility_revenue_b = scenario_df['total_utility_revenue_m'].sum() / 1000
     cum_bau_earnings_b = bau_df['traditional_earnings_m'].sum() / 1000
     revenue_delta_b = cum_total_utility_revenue_b - cum_bau_earnings_b
+
+    # ── Savings-pool decomposition ────────────────────────────────────────
+    # The pool (mechanism 1 NWS avoidance + mechanism 2 capacity pass-through,
+    # net of NWS OPEX) is split UTILITY_SAVINGS_SHARE/rest between the
+    # utility's shared-savings incentive and customer bill credits — see
+    # engine/model.py run_named_scenario()/apply_passthrough_savings().
+    # Mechanism 3 (utilisation credit) is NOT part of this pool: it lowers
+    # delivery cost per kWh directly and doesn't touch the utility's revenue
+    # requirement, so it never appears as a split dollar figure — it's
+    # captured below only as the residual against actual bill savings.
+    cum_pool_customer_b = scenario_df['customer_savings_m'].sum() / 1000
+    cum_pool_utility_b = scenario_df['utility_shared_revenue_m'].sum() / 1000
+    cum_pool_total_b = cum_pool_customer_b + cum_pool_utility_b
+    cum_mech1_net_b = cum_capex_avoided_b - cum_opex_b
+    cum_mech2_total_b = (scenario_df['pt_total_savings_m'].sum() / 1000
+                          if 'pt_total_savings_m' in scenario_df.columns else 0.0)
+    # Residual: actual observed bill savings minus the pool's customer share.
+    # Positive because mechanism 1's pool share is a same-year dollar figure
+    # while its actual bill effect compounds through the delivery-rate index
+    # over 25 years, and mechanism 3 adds further savings outside the pool
+    # entirely — the two are not separable from the model's own bookkeeping.
+    cum_uc_savings_b = cum_bill_savings_b - cum_pool_customer_b
+    effective_utility_share = (cum_pool_utility_b / cum_pool_total_b
+                                if cum_pool_total_b else 0.0)
+
+    # ── Utility revenue-delta decomposition ──────────────────────────────
+    # revenue_delta_b nets two very differently-shaped effects: the flow of
+    # shared-savings incentive income (cum_pool_utility_b, a fixed share of
+    # each year's newly avoided CAPEX) against te_delta_b, the change in
+    # traditional rate-base earnings (a stock effect — avoided CAPEX that
+    # never enters the rate base keeps earning nothing every subsequent
+    # year). The two need not be anywhere close in size.
+    te_delta_b = (scenario_df['traditional_earnings_m'].sum()
+                  - bau_df['traditional_earnings_m'].sum()) / 1000
+
+    freeze_insight = None
+    if bau_freeze_df is not None and scenario_freeze_df is not None:
+        rel = (scenario_df['avg_monthly_bill'].values
+               - scenario_freeze_df['avg_monthly_bill'].values)
+        max_i, min_i = int(np.argmax(rel)), int(np.argmin(rel))
+        converge_year = None
+        for i, yr in enumerate(years):
+            if yr > years[max_i] and abs(rel[i]) < 0.05:
+                converge_year = int(yr)
+                break
+        freeze_insight = dict(
+            max_relief=float(rel[max_i]), max_relief_year=int(years[max_i]),
+            max_catchup=float(-rel[min_i]), max_catchup_year=int(years[min_i]),
+            converge_year=converge_year,
+        )
 
     first_10_year = None
     for _, row in bau_df.iterrows():
@@ -152,6 +222,15 @@ def compute_insights(bau_df, scenario_df, scenario_label, years):
         cum_total_utility_revenue_b=cum_total_utility_revenue_b,
         cum_bau_earnings_b=cum_bau_earnings_b,
         revenue_delta_b=revenue_delta_b,
+        te_delta_b=te_delta_b,
+        cum_pool_customer_b=cum_pool_customer_b,
+        cum_pool_utility_b=cum_pool_utility_b,
+        cum_pool_total_b=cum_pool_total_b,
+        cum_mech1_net_b=cum_mech1_net_b,
+        cum_mech2_total_b=cum_mech2_total_b,
+        cum_uc_savings_b=cum_uc_savings_b,
+        effective_utility_share=effective_utility_share,
+        freeze_insight=freeze_insight,
         first_10_year=first_10_year,
         nws_ceiling_year=nws_ceiling_year,
     )
@@ -228,15 +307,33 @@ def _fmt(x, decimals=0, prefix='$', suffix=''):
 
 def render_report_html(utility_key, utility_json, utility_params, scenario_label,
                         years, bau_df, scenario_df, insights, chart_png_path,
-                        generated_at, git_sha, model_config=None):
+                        generated_at, git_sha, model_config=None,
+                        bau_freeze_df=None, scenario_freeze_df=None):
     """Self-contained HTML string for one utility/scenario. System font stack
     only — no embedded custom font, so this works portably with zero new deps
-    and no third-party font redistribution."""
+    and no third-party font redistribution.
+
+    bau_freeze_df / scenario_freeze_df are optional: the same rate-freeze
+    overlay pair already drawn in the embedded Section 5 chart. When given,
+    the Customer Bills table gains BAU+Freeze/EASE+Freeze columns for the
+    near-term rows, matching what the chart already shows."""
     short_name = utility_json.get('short_name', utility_key)
     milestones = _milestone_years(years)
+    bill_milestones = _bill_milestone_years(years)
+    have_freeze = bau_freeze_df is not None and scenario_freeze_df is not None
 
     ins = insights
+    model_config = model_config or {}
+    utility_share = model_config.get('UTILITY_SAVINGS_SHARE', 0.30)
+    eff_share = ins.get('effective_utility_share', utility_share)
+    inflation_rate = model_config.get('INFLATION_RATE')
     up_or_down = 'higher' if ins['revenue_delta_b'] >= 0 else 'lower'
+
+    inflation_note = (
+        f" (Includes assumed {inflation_rate:.1%}/yr inflation &mdash; not adjusted back to "
+        f"{ins['start_year']} dollars.)" if inflation_rate else ""
+    )
+
     sentences = [
         f"This report models {short_name}, {ins['start_year']}&ndash;{ins['end_year']}, under "
         f"<strong>{scenario_label}</strong> (Non-Wires Solutions savings shared between "
@@ -247,19 +344,52 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
         f"legislative design work (see Model Caveats).",
 
         f"By {ins['end_year']}, the typical {short_name} residential customer pays "
-        f"{_fmt(ins['scenario_final_bill'])}/month under {scenario_label} versus "
-        f"{_fmt(ins['bau_final_bill'])}/month under business-as-usual &mdash; a "
-        f"{_fmt(ins['bill_gap_monthly'])}/month ({ins['bill_gap_pct']:.0%}) reduction.",
+        f"{_fmt(ins['bau_final_bill'])}/month under business-as-usual versus "
+        f"{_fmt(ins['scenario_final_bill'])}/month under {scenario_label} &mdash; a "
+        f"{_fmt(ins['bill_gap_monthly'])}/month ({ins['bill_gap_pct']:.0%}) reduction."
+        f"{inflation_note}",
 
-        f"Cumulative bill savings over {ins['start_year']}&ndash;{ins['end_year']} reach "
-        f"{_fmt(ins['cum_bill_savings_b'], 1, suffix='B')}, driven by "
-        f"{_fmt(ins['cum_capex_avoided_b'], 1, suffix='B')} of avoided distribution CAPEX "
-        f"against {_fmt(ins['cum_opex_b'], 1, suffix='B')} of NWS programme cost.",
+        (
+            f"From {ins['start_year']} to {ins['end_year']}, the model projects a total savings "
+            f"of {_fmt(ins['cum_pool_total_b'], 1, suffix='B')} under {scenario_label}, split "
+            f"{eff_share:.0%}/{1 - eff_share:.0%} between the utility "
+            f"({_fmt(ins['cum_pool_utility_b'], 1, suffix='B')} as an earnings incentive; "
+            + (
+                f"less {_fmt(abs(ins['te_delta_b']), 1, suffix='B')} in foregone traditional "
+                f"rate-base earnings on CAPEX that was never built &mdash; netting "
+                f"{_fmt(abs(ins['revenue_delta_b']), 1, suffix='B')} {up_or_down} revenue vs. "
+                f"business-as-usual"
+                if ins['te_delta_b'] < -0.05 else
+                f"plus {_fmt(ins['te_delta_b'], 1, suffix='B')} in additional traditional "
+                f"rate-base earnings as deferred CAPEX re-enters the rate base &mdash; netting "
+                f"{_fmt(abs(ins['revenue_delta_b']), 1, suffix='B')} {up_or_down} revenue vs. "
+                f"business-as-usual"
+                if ins['te_delta_b'] > 0.05 else
+                f"netting {_fmt(abs(ins['revenue_delta_b']), 1, suffix='B')} {up_or_down} revenue "
+                f"vs. business-as-usual, with little change in traditional rate-base earnings"
+            )
+            + f") and customers ({_fmt(ins['cum_pool_customer_b'], 1, suffix='B')} credited "
+            f"directly to bills), per the UTILITY_SAVINGS_SHARE parameter ({utility_share:.0%})."
+        ),
 
-        f"Modelled total utility revenue under {scenario_label} is "
-        f"{_fmt(abs(ins['revenue_delta_b']), 1, suffix='B')} {up_or_down}, cumulatively, "
-        f"than business-as-usual.",
+        f"That savings comes from two mechanisms: {_fmt(ins['cum_mech1_net_b'], 1, suffix='B')} "
+        f"from NWS CAPEX avoidance ({_fmt(ins['cum_capex_avoided_b'], 1, suffix='B')} of avoided "
+        f"distribution CAPEX net of {_fmt(ins['cum_opex_b'], 1, suffix='B')} of NWS programme cost) "
+        f"and {_fmt(ins['cum_mech2_total_b'], 1, suffix='B')} from capacity-market pass-through "
+        f"savings on reduced system peak demand.",
+
+        f"Actual cumulative bill savings for customers total "
+        f"{_fmt(ins['cum_bill_savings_b'], 1, suffix='B')} &mdash; "
+        f"{_fmt(ins['cum_pool_customer_b'], 1, suffix='B')} of that is the customer share "
+        f"described above, plus a further {_fmt(ins['cum_uc_savings_b'], 1, suffix='B')} from the "
+        f"utilisation credit mechanism: flexible demand fills spare grid capacity instead of "
+        f"forcing new capacity to be built, spreading the same fixed delivery costs over more "
+        f"electricity sold and lowering the delivery rate directly. That "
+        f"{_fmt(ins['cum_uc_savings_b'], 1, suffix='B')} doesn't touch the utility's revenue "
+        f"requirement, so it isn't part of the {eff_share:.0%}/{1 - eff_share:.0%} split above "
+        f"&mdash; it's savings customers get on top of it.",
     ]
+
     threshold_bits = []
     if ins['first_10_year']:
         threshold_bits.append(f"monthly savings first exceed $10 in {ins['first_10_year']}")
@@ -269,9 +399,32 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
     if threshold_bits:
         sentences.append(("; ".join(threshold_bits) + ".").capitalize())
 
+    fi = ins.get('freeze_insight')
+    if fi:
+        freeze_years = model_config.get('RATE_FREEZE_YEARS')
+        yr_phrase = f"a {freeze_years:.0f}-year rate freeze" if freeze_years else "a rate freeze"
+        freeze_bits = [
+            f"{yr_phrase} (shown in the accompanying chart) would add up to "
+            f"{_fmt(fi['max_relief'])}/month of relief by {fi['max_relief_year']}"
+        ]
+        if fi['max_catchup'] > 0.05:
+            freeze_bits.append(
+                f"recovered through up to {_fmt(fi['max_catchup'])}/month in higher catch-up "
+                f"bills around {fi['max_catchup_year']}")
+        if fi['converge_year']:
+            freeze_bits.append(
+                f"before reconverging with the unfrozen {scenario_label} path by "
+                f"{fi['converge_year']}")
+        sentences.append(
+            f"Separate from the EASE Case mechanics above, rate freezes are a well-established "
+            f"regulatory tool that could be paired with {scenario_label} to accelerate near-term "
+            f"customer relief while the reform is pursued: "
+            + (", ".join(freeze_bits) + ".")
+        )
+
     def bill_rows():
         out = []
-        for yr in milestones:
+        for yr in bill_milestones:
             b = bau_df[bau_df['year'] == yr].iloc[0]
             s = scenario_df[scenario_df['year'] == yr].iloc[0]
             save_yr = (b['avg_monthly_bill'] - s['avg_monthly_bill']) * 12
@@ -281,8 +434,15 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
                 (bau_df.loc[idx, 'avg_annual_bill'].values - scenario_df.loc[idx, 'avg_annual_bill'].values)
                 * scenario_df.loc[idx, 'customers'].values
             ) / 1e9
+            freeze_cells = ''
+            if have_freeze:
+                bf = bau_freeze_df[bau_freeze_df['year'] == yr].iloc[0]
+                sf = scenario_freeze_df[scenario_freeze_df['year'] == yr].iloc[0]
+                freeze_cells = (f"<td>{_fmt(bf['avg_monthly_bill'],1)}</td>"
+                                 f"<td>{_fmt(sf['avg_monthly_bill'],1)}</td>")
             out.append(f"<tr><td>{yr}</td><td>{_fmt(b['avg_monthly_bill'],1)}</td>"
-                       f"<td>{_fmt(s['avg_monthly_bill'],1)}</td><td>{_fmt(save_yr)}</td>"
+                       f"<td>{_fmt(s['avg_monthly_bill'],1)}</td>{freeze_cells}"
+                       f"<td>{_fmt(save_yr)}</td>"
                        f"<td>{pct:.1%}</td><td>{_fmt(cum,1,suffix='B')}</td></tr>")
         return "\n".join(out)
 
@@ -468,9 +628,10 @@ footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-w
     <h2>Customer Bills</h2>
     <div class="chart-wrap">{chart_html}</div>
     <table>
-      <thead><tr><th>Year</th><th>BAU $/mo</th><th>EASE $/mo</th><th>Saving/yr</th><th>% Saving</th><th>Cum. $B</th></tr></thead>
+      <thead><tr><th>Year</th><th>BAU $/mo</th><th>EASE $/mo</th>{'<th>BAU+Freeze $/mo</th><th>EASE+Freeze $/mo</th>' if have_freeze else ''}<th>Saving/yr</th><th>% Saving</th><th>Cum. $B</th></tr></thead>
       <tbody>{bill_rows()}</tbody>
     </table>
+    {'<p class="section-intro">Freeze columns show the same 2-year rate-freeze overlay plotted in the chart above &mdash; a legislative timing choice layered on top of ' + scenario_label + ', not a separate named scenario.</p>' if have_freeze else ''}
   </section>
 
   <section>
