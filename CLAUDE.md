@@ -114,6 +114,53 @@ Every parameter has a source citation in the comment block immediately below it.
 - `UPFRONT_PASSTHROUGH_YEARS` — years of 100% customer passthrough before standard split applies (default 0); set to 3 in the FRONTLOADED scenario
 - `utilities_to_run` — list of utility keys to model (`['ConEd']`, `['RGE']`, or both)
 
+## Savings pool basis (`SAVINGS_POOL_BASIS`)
+
+`project()` supports two definitions of the annual shared-savings pool:
+
+- `'capex'` (default; reproduces v1.0 results): pool = avoided CAPEX − NWS OPEX in the year of avoidance. The customer 70% is credited against that year's revenue requirement, and the avoided CAPEX also stays out of rate base. Customers therefore benefit from the same avoided dollar twice: once as a credit and again as years of lower return and property tax on a smaller rate base. The utility's 30% is not recovered from anyone. Treat headline savings under this basis as a likely upper bound.
+- `'revenue_requirement'`: pool = annual reduction in delivery revenue requirement vs BAU (return + property tax on the avoided rate base) − NWS OPEX, computed from a paired BAU run. Customers receive the reduction through the lower rate base, with no extra credit. The utility's share is recovered in the delivery revenue requirement. The pool is negative in the first year or so (OPEX exceeds the RR reduction), and the split is applied symmetrically.
+
+The ROE sweep (`engine/roe_sweep.py`, notebook Section 8b in the modular notebooks) runs both bases. `ROE_OVERRIDE` sets a per-run ROE and recomputes WACC. By default it also rebases the starting delivery bill (`ROE_OVERRIDE_REBASE_BILL`), because bills are indexed to each run's own first-year revenue requirement. `tests/test_regression.py` pins the default Con Edison BASE result; run it with `python -m pytest tests/`.
+
+## Correction flags and the CORRECTED preset
+
+Each flag defaults to v1.0 behaviour, and the defaults reproduce v1.0 results bit for bit. `engine/model.py` `PRESETS['CORRECTED']` switches on the recommended set together. It is **not** the default: set `MODEL_PRESET = 'CORRECTED'` in Section 1 to apply it to `MODEL_CONFIG`.
+
+| Flag | Default | CORRECTED | Effect |
+|------|---------|-----------|--------|
+| `INCLUDE_DEPRECIATION_EXPENSE` | `False` | `True` | Adds 3.5% × opening rate base (the model's rate-base decay) to delivery RR. Recalibrates other O&M so 2026 BAU delivery RR equals `total_revenue_m × delivery_share_rr` (see `delivery_rr_reconciliation()`). Avoided depreciation enters the RR pool |
+| `SAVINGS_POOL_BASIS` | `'capex'` | `'revenue_requirement'` | See above |
+| `NEGATIVE_POOL_TREATMENT` | `'symmetric'` | `'carry_forward'` | `'floor_zero'`: the utility share is never below zero. `'carry_forward'`: negative pools are netted against later positive pools, with no interest. Applies to the NWS pool only; capacity pass-through is added afterwards and is never negative |
+| `NWS_COST_TREATMENT` | `'expense'` | `'expense'` | `'capitalise'`: NWS OPEX goes into a regulatory asset in rate base. It earns WACC, carries no property tax or decay, and is amortised straight-line over `NWS_AMORTISATION_YEARS` (10) starting the following year |
+| `BILL_INDEX_BASE` | `'own'` | `'bau'` | `'bau'` indexes every scenario's delivery bill to BAU 2026 delivery RR, so first-year differences show in bills |
+
+The engine output also includes `equity_earnings_m`: equity return (rate base × equity ratio × ROE) plus shared income. The older `total_utility_revenue_m` is the WACC-based series: the full return on rate base (including debt interest) plus shared income. Incentive metrics in the ROE sweep use the equity-only series.
+
+**2026 reconciliation caveat:** With depreciation included, recalibrated other O&M is 14% of delivery RR for Con Edison (low), 64% for RG&E and 55% for Dominion VA (high). The high values suggest the back-calculated RG&E and Dominion rate bases are understated relative to rate-case revenue. Without the flag, the v1.0 model's 2026 delivery RR is 13–43% below the rate-case figure (ConEd $4,405M vs $5,040M; RG&E $350M vs $614M; DomVA $2,526M vs $4,050M).
+
+## v1.0 notebook vs engine (reconciliation)
+
+The "$12,907 per customer" Con Edison figure in `README.md` and in a Section 9d code comment is **stale**. It is the output of both code paths **before** commit 78f1a4f (segmented load model, 2026-07-25), which replaced the blended `dc_load_growth_annual` rate with a data-centre segment growing from its own MW base. At every commit since then, `GridDividend_v1.0.ipynb` and `engine/` both give **$12,423** (undiscounted nominal, BASE vs BAU), and the bills are bit-identical. The two paths do still differ, as follows:
+
+| Item | v1.0 notebook | engine / modular notebooks | Effect on results |
+|------|---------------|----------------------------|-------------------|
+| `project()` | Inline copy (cell 12) | `engine/model.py` | Identical logic at HEAD before the correction flags (whitespace-only diff). v1.0 lacks all flags added since |
+| Utility data | Inline `UTILITIES` dict (cell 2) | `utilities/*.json` | Same values. The JSON adds only metadata (`capacity_market*`) and an explicit `residential_kwh_month: 600`, which equals the default |
+| Capacity pass-through, Section 4 | Inline loop (cell 14) | `apply_passthrough_savings()` | Identical outputs |
+| `run_named_scenario()` pass-through | Adds only the customer bill reduction | Also adds the utility share to `utility_shared_revenue_m` / `total_utility_revenue_m`, and the totals to `savings_pool_m` / `customer_savings_m` (fix in commit 018180d) | Bills identical for BASE, ACCELERATED, FREEZE_PLUS, COMBINED. Utility-side columns differ: ConEd BASE shared income +$2,957M and pool +$9,858M cumulative in the engine; RG&E +$191M / +$635M |
+| FRONTLOADED upfront passthrough | Moves only the NWS utility share to customers in years 1–3 | Also moves the pass-through utility share | Engine FRONTLOADED bills are slightly lower (ConEd $5.5, RG&E $3.4 cumulative per customer) |
+| `pt_*` columns on scenario frames | Absent | Present | — |
+
+**Proposed change (not applied):** make `GridDividend_v1.0.ipynb` import the engine.
+1. Cell 2: add `sys.path.insert(0, '.')` and `from engine import project, run_named_scenario, apply_passthrough_savings`. Keep the inline `UTILITIES` dict, or load `utilities/*.json` as the NY notebook does. Loading the JSON gives a single source of data but gives up the "self-contained" convention, so that is the author's decision.
+2. Cell 12: replace the inline helpers and `project()` with a comment pointing to `engine/model.py`. Keep `vlines()`.
+3. Cell 14: replace the inline pass-through loop with `results = apply_passthrough_savings(results, k, utility_data, MODEL_CONFIG)`.
+4. Cell 15: delete the inline `run_named_scenario()` definition and keep the loop that calls it.
+5. Cell 4: add the new Section 1 flags (copy from `notebooks/GridDividend_NewYork.ipynb`).
+
+Expected effect: identical bills. The v1.0 utility-side columns (and anything plotted from them) pick up the pass-through fix, and FRONTLOADED bills shift as in the table. Update `README.md` ($12,907 → $12,423; aggregate $52B needs recomputing) at the same time.
+
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.

@@ -75,9 +75,124 @@ def get_territory_ev(params, year, scenario, config):
     return total_ev, total_ev * mev * ev_peak_kw / 1000
 
 
+SAVINGS_POOL_BASES       = ('capex', 'revenue_requirement')
+NEGATIVE_POOL_TREATMENTS = ('symmetric', 'floor_zero', 'carry_forward')
+NWS_COST_TREATMENTS      = ('expense', 'capitalise')
+BILL_INDEX_BASES         = ('own', 'bau')
+
+# Annual rate-base decay used in project(): rb = rb * (1 - RATE_BASE_DECAY) + ...
+RATE_BASE_DECAY = 0.035
+
+# Other O&M as a share of 2026 delivery RR below which the depreciation
+# recalibration is flagged as implausibly low (distribution utilities typically
+# run roughly 25-45% O&M excluding depreciation and taxes; model judgement).
+OTHER_OM_LOW_SHARE  = 0.15
+OTHER_OM_HIGH_SHARE = 0.50   # above this, rate base (or revenue) inputs look inconsistent
+
+# Named config presets. Not applied unless the caller asks (apply_preset()).
+PRESETS = {
+    # Recommended corrections, switched on together:
+    #  - depreciation expense in delivery RR, other O&M recalibrated to the
+    #    rate-case delivery RR
+    #  - savings pool measured as the delivery RR reduction vs BAU
+    #  - negative early-year pools carried forward, not charged to the utility
+    #  - all scenarios' bills indexed to the BAU 2026 revenue requirement
+    'CORRECTED': {
+        'INCLUDE_DEPRECIATION_EXPENSE': True,
+        'SAVINGS_POOL_BASIS':           'revenue_requirement',
+        'NEGATIVE_POOL_TREATMENT':      'carry_forward',
+        'BILL_INDEX_BASE':              'bau',
+        'NWS_COST_TREATMENT':           'expense',
+        'ROE_OVERRIDE_REBASE_BILL':     True,
+    },
+}
+
+
+def apply_preset(config, name):
+    """Return a copy of config with the named PRESETS entry applied."""
+    if name not in PRESETS:
+        raise ValueError(f"Unknown preset {name!r}; choose from {list(PRESETS)}")
+    return {**config, **PRESETS[name], 'MODEL_PRESET': name}
+
+
+def _check_option(cfg, key, default, allowed):
+    val = cfg.get(key, default)
+    if val not in allowed:
+        raise ValueError(f"{key} must be one of {allowed}, got {val!r}")
+    return val
+
+
+def delivery_rr_reconciliation(params, config):
+    """
+    2026 delivery revenue requirement build-up (BAU, nominal $M) at the
+    rate-case WACC, against the rate-case delivery RR
+    (total_revenue_m × delivery_share_rr).
+
+    Returns a dict with the target, return, property tax, depreciation
+    (RATE_BASE_DECAY × opening rate base), other O&M under the v1.0 rule
+    (35% of delivery RR less property tax) and the recalibrated other O&M
+    used when INCLUDE_DEPRECIATION_EXPENSE is on
+    (= target − return − property tax − depreciation), plus warnings.
+    """
+    wacc   = params.get('rate_case_wacc', params['wacc'])
+    rb0    = params['rate_base_start_m']
+    rb26   = rb0 * 0.965 + params['annual_capex_m']          # first-year BAU rate base
+    target = params['total_revenue_m'] * params['delivery_share_rr']
+    ret    = rb26 * wacc
+    ptax   = rb26 * params['property_tax_rate']
+    dep    = RATE_BASE_DECAY * rb0
+    om_v10 = max(0, target * 0.35 - rb0 * params['property_tax_rate'])
+    om_cal = target - ret - ptax - dep
+    warnings = []
+    if om_cal < 0:
+        warnings.append(f"recalibrated other O&M is NEGATIVE ({om_cal:,.0f} $M); floored at 0")
+    elif om_cal < OTHER_OM_LOW_SHARE * target:
+        warnings.append(f"recalibrated other O&M is only {om_cal / target:.0%} of delivery RR "
+                        f"(< {OTHER_OM_LOW_SHARE:.0%}) — implausibly low")
+    elif om_cal > OTHER_OM_HIGH_SHARE * target:
+        warnings.append(f"recalibrated other O&M is {om_cal / target:.0%} of delivery RR "
+                        f"(> {OTHER_OM_HIGH_SHARE:.0%}) — implausibly high; rate base may be "
+                        f"understated relative to rate-case revenue")
+    return dict(target_delivery_rr_m=target, return_m=ret, property_tax_m=ptax,
+                depreciation_m=dep, other_om_v10_m=om_v10,
+                v10_delivery_rr_m=ret + ptax + om_v10,
+                other_om_recalibrated_m=om_cal,
+                other_om_recalibrated_share=om_cal / target if target else float('nan'),
+                warnings=warnings)
+
+
+def apply_roe_override(params, roe, config):
+    """
+    Return a copy of params with the allowed ROE replaced by `roe`.
+
+    WACC is recomputed exactly as load_utility() does:
+        wacc = roe * equity_ratio + COST_OF_DEBT * (1 - equity_ratio)
+
+    If config['ROE_OVERRIDE_REBASE_BILL'] is True (the default), the starting
+    delivery bill is also rescaled by the ratio of the first-year BAU delivery
+    revenue requirement at `roe` to that at the rate-case ROE. project() indexes
+    each year's delivery bill to its own first-year revenue requirement, so
+    without this rebase a different ROE would change bill growth but not the
+    starting tariff level, which was set at the rate-case ROE.
+    """
+    p = dict(params)
+    p['rate_case_wacc'] = params.get('rate_case_wacc', params['wacc'])
+    p['roe']  = roe
+    p['wacc'] = roe * p['equity_ratio'] + config['COST_OF_DEBT'] * (1 - p['equity_ratio'])
+    if config.get('ROE_OVERRIDE_REBASE_BILL', True) and roe != params['roe']:
+        base_cfg = {**config, 'ROE_OVERRIDE': None}
+        rr_rate_case = project(params, 'bau', config=base_cfg)['delivery_rr_m'].iloc[0]
+        rr_override  = project(p,      'bau', config=base_cfg)['delivery_rr_m'].iloc[0]
+        p['start_delivery_bill_monthly'] = (params['start_delivery_bill_monthly']
+                                            * rr_override / rr_rate_case)
+        p['start_monthly_bill'] = (p['start_delivery_bill_monthly']
+                                   + p['start_supply_bill_monthly'])
+    return p
+
+
 # ── Core projection function ───────────────────────────────────────────────────
 
-def project(params, scenario='bau', apply_freeze=False, config=None):
+def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=None):
     """
     Project utility financials and residential customer bills 2026–2050.
 
@@ -88,12 +203,76 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
     apply_freeze : bool — apply two-year rate freeze overlay
     config       : dict of all Section 1 model parameters (see notebook
                    MODEL_CONFIG). Required — no values are read from globals.
+                   Optional keys (defaults reproduce v1.0 results):
+                     SAVINGS_POOL_BASIS  'capex' (default) or
+                                         'revenue_requirement' — see below
+                     ROE_OVERRIDE        None (default) or an ROE to use in
+                                         place of params['roe']; see
+                                         apply_roe_override()
+                     INCLUDE_DEPRECIATION_EXPENSE  False (default). True adds
+                                         RATE_BASE_DECAY × opening rate base
+                                         to delivery RR and recalibrates other
+                                         O&M so 2026 BAU delivery RR equals the
+                                         rate-case figure (see
+                                         delivery_rr_reconciliation())
+                     NEGATIVE_POOL_TREATMENT 'symmetric' (default: utility
+                                         shares negative pools), 'floor_zero'
+                                         (utility share never below zero) or
+                                         'carry_forward' (negative pools netted
+                                         against later positive pools, no
+                                         interest)
+                     NWS_COST_TREATMENT  'expense' (default) or 'capitalise':
+                                         NWS OPEX goes into a regulatory asset
+                                         in rate base, earning WACC and
+                                         amortised straight-line over
+                                         NWS_AMORTISATION_YEARS (default 10)
+                     BILL_INDEX_BASE     'own' (default: each scenario's bill
+                                         indexed to its own 2026 delivery RR)
+                                         or 'bau' (indexed to BAU 2026
+                                         delivery RR, so year-one differences
+                                         show in bills)
+    bau_ref      : optional BAU DataFrame from project(..., 'bau', ...) at the
+                   same config. Only used when scenario='shared' and either
+                   SAVINGS_POOL_BASIS='revenue_requirement' or
+                   BILL_INDEX_BASE='bau'; computed here if not supplied.
+
+    Savings pool basis
+    ------------------
+    'capex': pool = avoided CAPEX − NWS OPEX in the year of avoidance. The
+        customer share is credited against that year's revenue requirement
+        while the avoided CAPEX also stays out of rate base, so customers
+        benefit twice from the same avoided dollar (v1.0 behaviour).
+    'revenue_requirement': pool = reduction in delivery revenue requirement
+        vs BAU (return + property tax on the avoided rate base) − NWS OPEX.
+        Customers already receive the whole reduction through the lower rate
+        base, so no separate customer credit is applied; the utility's share
+        is recovered in the delivery revenue requirement. The pool is split
+        symmetrically — in early years NWS OPEX can exceed the RR reduction,
+        making the pool (and the utility's share) negative.
 
     Returns
     -------
     pd.DataFrame, one row per year, all financial metrics and bill components
     """
     cfg = config or {}
+    POOL_BASIS  = _check_option(cfg, 'SAVINGS_POOL_BASIS', 'capex', SAVINGS_POOL_BASES)
+    NEG_POOL    = _check_option(cfg, 'NEGATIVE_POOL_TREATMENT', 'symmetric',
+                                NEGATIVE_POOL_TREATMENTS)
+    COST_TREAT  = _check_option(cfg, 'NWS_COST_TREATMENT', 'expense', NWS_COST_TREATMENTS)
+    INDEX_BASE  = _check_option(cfg, 'BILL_INDEX_BASE', 'own', BILL_INDEX_BASES)
+    INCLUDE_DEP = bool(cfg.get('INCLUDE_DEPRECIATION_EXPENSE', False))
+    AMORT_YEARS = cfg.get('NWS_AMORTISATION_YEARS', 10)
+    if scenario == 'shared' and (POOL_BASIS == 'revenue_requirement' or INDEX_BASE == 'bau'):
+        if bau_ref is None:
+            # Paired run: BAU at the same config (and ROE override, if any)
+            bau_ref = project(params, 'bau', apply_freeze=False, config=cfg)
+        bau_core = bau_ref['traditional_earnings_m'] + bau_ref['property_tax_m']
+        if INCLUDE_DEP:
+            bau_core = bau_core + bau_ref['depreciation_m']
+        bau_rr_by_year = dict(zip(bau_ref['year'], bau_core))
+        bau_first_delivery_rr = bau_ref['delivery_rr_m'].iloc[0]
+    if cfg.get('ROE_OVERRIDE') is not None:
+        params = apply_roe_override(params, cfg['ROE_OVERRIDE'], cfg)
     # Pull all scalar params referenced directly in this function's body from
     # cfg once, up front, so the rest of the body reads local variables.
     # (Params only needed by the helper functions above are NOT pulled here —
@@ -128,6 +307,11 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
     ptbase   = rr * (1 - params['delivery_share_rr'])   # supply/pass-through base
     prop_tax_base = rb * params['property_tax_rate']
     other_om_base = max(0, rr * params['delivery_share_rr'] * 0.35 - prop_tax_base)
+    if INCLUDE_DEP:
+        other_om_base = max(0, delivery_rr_reconciliation(params, cfg)['other_om_recalibrated_m'])
+    reg_vintages = []        # (year, amount) NWS OPEX capitalised into regulatory asset
+    reg_asset = 0.0
+    pool_carry = 0.0         # cumulative negative pool carried forward (≤ 0)
 
     cum_load = 1.0; cum_elec_load = 0.0
     deferred_pool = []       # list of (year, amount) tuples for deferral payback
@@ -139,6 +323,8 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
     delivery_bill = params['start_delivery_bill_monthly']
     supply_bill   = params['start_supply_bill_monthly']
     prev_delivery_rr = None
+    if scenario == 'shared' and INDEX_BASE == 'bau':
+        prev_delivery_rr = bau_first_delivery_rr   # first-year ratio = SS / BAU
     prev_capex_spent = None
 
     for year in YEARS:
@@ -233,11 +419,29 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
             (yr, amt) for (yr, amt) in deferred_pool
             if year - yr < DEFERRAL_PERIOD_YEARS
         ]
+        rb_open = rb
         rb = rb * 0.965 + capex_spent + payback_this_year
-        te = rb * params['wacc']
+        # NWS cost treatment. 'capitalise': this year's NWS OPEX joins a
+        # regulatory asset (in rate base, earning WACC, no property tax or
+        # decay), amortised straight-line from the following year.
+        if COST_TREAT == 'capitalise' and scenario == 'shared':
+            nws_amort = sum(amt / AMORT_YEARS for (yr, amt) in reg_vintages
+                            if 0 < year - yr <= AMORT_YEARS)
+            reg_vintages.append((year, nws_opex))
+            reg_asset = reg_asset - nws_amort + nws_opex
+            rb_earning  = rb + reg_asset
+            nws_rr_cost = nws_amort
+        else:
+            nws_amort   = 0.0
+            rb_earning  = rb
+            nws_rr_cost = nws_opex
+        te = rb_earning * params['wacc']
         prop_tax  = rb * params['property_tax_rate'] * (1 + INFLATION_RATE * 0.5) ** (year - 2026)
         other_om  = other_om_base * (1 + INFLATION_RATE) ** (year - 2026)
-        delivery_rr = te + prop_tax + other_om + nws_opex
+        dep = RATE_BASE_DECAY * rb_open if INCLUDE_DEP else 0.0
+        delivery_rr = te + prop_tax + other_om + nws_rr_cost
+        if INCLUDE_DEP:
+            delivery_rr += dep
 
         # ── Supply revenue requirement ────────────────────────────────────────
         # Supply/pass-through grows with load in both scenarios.
@@ -249,15 +453,40 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
         rrc = delivery_rr + supply_rr
 
         if scenario == 'bau':
-            usr = cs = sp = 0.0
+            usr = cs = sp = incentive_base = 0.0
         else:
-            # Savings pool: NWS CAPEX avoidance net of OPEX only
-            # (capacity market pass-through savings added in Section 4)
-            sp  = av - nws_opex
-            usr = sp * UTILITY_SAVINGS_SHARE
-            cs  = sp * (1 - UTILITY_SAVINGS_SHARE)
-            rrc -= cs
-            delivery_rr -= cs * params['delivery_share_rr']
+            if POOL_BASIS == 'capex':
+                # Savings pool: NWS CAPEX avoidance net of OPEX only
+                # (capacity market pass-through savings added in Section 4)
+                sp = av - nws_opex
+            else:
+                # Savings pool: delivery RR reduction vs BAU (return + property
+                # tax [+ depreciation]) net of NWS cost recovered in RR
+                # (OPEX if expensed, amortisation if capitalised).
+                ss_core = te + prop_tax
+                if INCLUDE_DEP:
+                    ss_core = ss_core + dep
+                sp = bau_rr_by_year[year] - ss_core - nws_rr_cost
+            # Amount the utility share applies to, after negative-pool treatment
+            if NEG_POOL == 'symmetric':
+                incentive_base = sp
+            elif NEG_POOL == 'floor_zero':
+                incentive_base = max(0.0, sp)
+            else:   # carry_forward
+                net = sp + pool_carry
+                pool_carry = min(0.0, net)
+                incentive_base = max(0.0, net)
+            usr = incentive_base * UTILITY_SAVINGS_SHARE
+            cs  = (sp * (1 - UTILITY_SAVINGS_SHARE) if NEG_POOL == 'symmetric'
+                   else sp - usr)
+            if POOL_BASIS == 'capex':
+                rrc -= cs
+                delivery_rr -= cs * params['delivery_share_rr']
+            else:
+                # Customer share is already in the lower rate base (no extra
+                # credit); the utility share is collected through delivery RR.
+                rrc += usr
+                delivery_rr += usr
 
         # ── Bill calculation: Mechanisms 1, 2, and 3 ─────────────────────────
         # Mechanism 1 tracked: delivery_rr changes → delivery_bill index
@@ -331,9 +560,9 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
             # Utility financials
             utility_shared_revenue_m=usr,
             total_utility_revenue_m=te + usr,
-            roe_earnings_m=rb * params['equity_ratio'] * params['roe'],
+            roe_earnings_m=rb_earning * params['equity_ratio'] * params['roe'],
             customer_savings_m=cs, savings_pool_m=sp,
-            rate_base_m=rb,
+            rate_base_m=rb_earning,
             # DER stack
             nws_capable_mw=nws_mw, storage_mw=smw,
             ev_count=get_territory_ev(params, year, scenario, cfg)[0],
@@ -349,6 +578,17 @@ def project(params, scenario='bau', apply_freeze=False, config=None):
             freeze_active=freeze_active, catchup_active=catchup_active,
             cost_per_mwh=(rrc * 1e3) / max(1, egwh),
             peak_per_ratebase=pk / max(1, rb),
+            # Added with the correction flags (appended; zero / unchanged
+            # under defaults). All nominal $M.
+            depreciation_m=dep,
+            regulatory_asset_m=reg_asset,
+            nws_amortisation_m=nws_amort,
+            incentive_base_m=incentive_base,      # pool the utility share applies to
+            pool_carry_forward_m=pool_carry,
+            # Equity-only earnings: equity return on rate base + shared income.
+            # (total_utility_revenue_m above is the WACC-based series: full
+            # return on rate base, debt interest included, + shared income.)
+            equity_earnings_m=rb_earning * params['equity_ratio'] * params['roe'] + usr,
         ))
     return pd.DataFrame(rows)
 
@@ -458,6 +698,8 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
     sh['total_utility_revenue_m']  = sh['traditional_earnings_m']   + sh['utility_shared_revenue_m']
     sh['savings_pool_m'] = sh['savings_pool_m'] + sh['pt_total_savings_m']
     sh['customer_savings_m'] = sh['customer_savings_m'] + sh['pt_customer_m']
+    sh['incentive_base_m']  = sh['incentive_base_m'] + sh['pt_total_savings_m']
+    sh['equity_earnings_m'] = sh['roe_earnings_m'] + sh['utility_shared_revenue_m']
 
     # ── Upfront customer passthrough ────────────────────────────────────────────
     # During UPFRONT_PASSTHROUGH_YEARS, 100% of shared savings goes to customers.
@@ -478,6 +720,7 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
                 sh.at[i, 'total_utility_revenue_m']  = (
                     sh.at[i, 'traditional_earnings_m']
                 )
+                sh.at[i, 'equity_earnings_m'] = sh.at[i, 'roe_earnings_m']
 
     return sh
 
@@ -546,6 +789,8 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
         # Add to savings pool
         df['savings_pool_m'] = df['savings_pool_m'] + df['pt_total_savings_m']
         df['customer_savings_m'] = df['customer_savings_m'] + df['pt_customer_m']
+        df['incentive_base_m']  = df['incentive_base_m'] + df['pt_total_savings_m']
+        df['equity_earnings_m'] = df['roe_earnings_m'] + df['utility_shared_revenue_m']
         results[k][key] = df
 
     # Store pass-through data for reference
