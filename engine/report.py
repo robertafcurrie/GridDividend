@@ -305,10 +305,42 @@ def _fmt(x, decimals=0, prefix='$', suffix=''):
     return f"{prefix}{x:,.{decimals}f}{suffix}"
 
 
+def _state_context_sentence(utility_json):
+    """Optional jurisdiction sentence from utility_json['report_context']
+    (regulator, case, statutes). Returns None when the JSON has no such block,
+    so reports for utilities without it are unchanged."""
+    ctx = utility_json.get('report_context')
+    if not ctx:
+        return None
+    bits = []
+    if ctx.get('regulator'):
+        bits.append(f"Regulator: {ctx['regulator']}")
+    if ctx.get('case'):
+        bits.append(f"rate case: {ctx['case']}")
+    out = "; ".join(bits) + "." if bits else ""
+    if ctx.get('statutes'):
+        out += " State policy context: " + "; ".join(ctx['statutes']) + "."
+    if ctx.get('note'):
+        out += " " + ctx['note']
+    return out.strip() or None
+
+
+POOL_BASIS_TEXT = {
+    'capex': ("Savings-pool basis: <code>'capex'</code> (avoided CAPEX net of NWS cost, in the "
+              "year of avoidance). Customers also benefit from the smaller rate base in later "
+              "years, so the same avoided dollar counts twice &mdash; treat these savings as an "
+              "<strong>upper bound</strong>."),
+    'revenue_requirement': ("Savings-pool basis: <code>'revenue_requirement'</code> (annual "
+                            "reduction in delivery revenue requirement vs BAU, net of NWS cost). "
+                            "No double count; the utility's share is recovered in rates."),
+}
+
+
 def render_report_html(utility_key, utility_json, utility_params, scenario_label,
                         years, bau_df, scenario_df, insights, chart_png_path,
                         generated_at, git_sha, model_config=None,
-                        bau_freeze_df=None, scenario_freeze_df=None):
+                        bau_freeze_df=None, scenario_freeze_df=None,
+                        pool_basis_note=False):
     """Self-contained HTML string for one utility/scenario. System font stack
     only — no embedded custom font, so this works portably with zero new deps
     and no third-party font redistribution.
@@ -316,7 +348,12 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
     bau_freeze_df / scenario_freeze_df are optional: the same rate-freeze
     overlay pair already drawn in the embedded Section 5 chart. When given,
     the Customer Bills table gains BAU+Freeze/EASE+Freeze columns for the
-    near-term rows, matching what the chart already shows."""
+    near-term rows, matching what the chart already shows.
+
+    Optional, off unless supplied (existing reports render identically):
+    utility_json['report_context'] adds a regulator / case / statute sentence;
+    pool_basis_note=True states the SAVINGS_POOL_BASIS in the lede and caveats,
+    labelling the default 'capex' basis as an upper bound."""
     short_name = utility_json.get('short_name', utility_key)
     milestones = _milestone_years(years)
     bill_milestones = _bill_milestone_years(years)
@@ -389,6 +426,15 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
         f"requirement, so it isn't part of the {eff_share:.0%}/{1 - eff_share:.0%} split above "
         f"&mdash; it's savings customers get on top of it.",
     ]
+
+    state_sentence = _state_context_sentence(utility_json)
+    if state_sentence:
+        sentences.insert(1, state_sentence)
+    pool_text = None
+    if pool_basis_note:
+        pool_text = POOL_BASIS_TEXT.get(model_config.get('SAVINGS_POOL_BASIS', 'capex'))
+        if pool_text:
+            sentences.insert(1, pool_text)
 
     threshold_bits = []
     if ins['first_10_year']:
@@ -530,8 +576,11 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
       </div>
     </section>"""
 
+    caveat_items = list(UNIVERSAL_CAVEATS)
+    if pool_text:
+        caveat_items.append(("Savings-pool basis.", pool_text))
     caveats_html = "".join(
-        f"<li><strong>{title}</strong> {body}</li>" for title, body in UNIVERSAL_CAVEATS
+        f"<li><strong>{title}</strong> {body}</li>" for title, body in caveat_items
     )
 
     chart_html = _embed_image(chart_png_path)

@@ -180,3 +180,40 @@ def test_min_share_break_even_under_corrected_from_zero_share(ny):
     s_star = m['min_share_25y'].iloc[0]
     m2 = compute_roe_metrics(run_roe_sweep(ny['utility_data'], cfg, shares=(s_star,), **kw))
     assert m2['cum_earnings_gap_25y_m'].iloc[0] == pytest.approx(0.0, abs=1e-6)
+
+
+# ── Pepco MD (Maryland notebook) ─────────────────────────────────────────────
+
+# Pepco MD BASE (EASE Case) cumulative bill saving per customer vs BAU,
+# 2026–2050, undiscounted nominal — default settings ('capex' pool, an upper
+# bound; PEPCO capacity price growth = INFLATION_RATE), recorded from
+# notebooks/GridDividend_Maryland.ipynb Section 12g and confirmed by the author.
+PEPCO_MD_BASE_CUM_SAVING_PER_CUSTOMER = 1725.0941982988775
+
+
+@pytest.fixture(scope='module')
+def md():
+    """Namespace after running the MD notebook's Section 0, 1, 1b and 2 cells."""
+    nb_dir = os.path.join(ROOT, 'notebooks')
+    nb = json.load(open(os.path.join(nb_dir, 'GridDividend_Maryland.ipynb')))
+    sources = [''.join(c['source']) for c in nb['cells'] if c['cell_type'] == 'code']
+    ns, cwd = {}, os.getcwd()
+    os.chdir(nb_dir)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            for prefix in SETUP_CELL_PREFIXES:
+                matches = [s for s in sources if s.startswith(prefix)]
+                assert len(matches) == 1, f'setup cell not found: {prefix!r}'
+                exec(matches[0], ns)
+    finally:
+        os.chdir(cwd)
+    return ns
+
+
+def test_pepco_md_base_cumulative_saving_unchanged(md):
+    k = 'PepcoMD'
+    bau = project(md['utility_data'][k], 'bau', config=md['MODEL_CONFIG'])
+    base = run_named_scenario(k, md['SCENARIO_DEFS']['BASE'], md['utility_data'],
+                              {k: {'bau': bau}}, md['MODEL_CONFIG'])
+    assert _cum_saving(bau, base) == pytest.approx(PEPCO_MD_BASE_CUM_SAVING_PER_CUSTOMER,
+                                                   rel=1e-12)

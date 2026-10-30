@@ -1,0 +1,46 @@
+component,value_m,source,scope,status
+adjusted_rate_base,2994.612,"Order No. 92607 Appendix A (Case 9820), $000s",MD distribution,sourced
+per_book_rate_base,3038.275,Order No. 92607 Appendix A,MD distribution,sourced
+white_flint_rate_base_removed,-128.845,"Order No. 92607 Appendix A, contested adjustment",MD distribution,sourced
+rate_of_return_pct,7.22,"Order No. 92607 Appendix A (value is a percentage, not $M)",MD distribution,sourced
+roe_pct,9.40,"Order No. 92607 (value is a percentage, not $M)",MD distribution,sourced
+equity_ratio_pct,50.50,"Order No. 92607, capital structure adopted (value is a percentage)",MD distribution,sourced
+cost_of_debt_pct,5.00,"Order No. 92607, Staff recommendation accepted (value is a percentage)",MD distribution,sourced
+required_operating_income,216.211,Order No. 92607 Appendix A,MD distribution,sourced
+adjusted_operating_income,179.748,Order No. 92607 Appendix A,MD distribution,sourced
+operating_income_deficiency,36.463,Order No. 92607 Appendix A,MD distribution,sourced
+conversion_factor,1.3972,Order No. 92607 Appendix A (dimensionless),MD distribution,sourced
+revenue_increase_authorised,50.946,Order No. 92607 Appendix A,MD distribution,sourced
+revenue_increase_requested,119.876,Order No. 92607 Table 1,MD distribution,sourced
+ttycf_sale_of_electricity,818.370,"OPC Exhibit DMM-1 Sched. A line 17 (Pepco TTYCF, unadjusted, 12ME 30 Sep 2025)",MD distribution,sourced
+ttycf_other_revenues,8.556,OPC Exhibit DMM-1 Sched. A line 18,MD distribution,sourced
+ttycf_total_operating_revenues,826.926,OPC Exhibit DMM-1 Sched. A line 19,MD distribution,sourced
+ttycf_om_expense,232.686,OPC Exhibit DMM-1 Sched. A line 21,MD distribution,sourced
+ttycf_depreciation_amortisation,153.759,OPC Exhibit DMM-1 Sched. A line 22,MD distribution,sourced
+ttycf_other_taxes,227.492,OPC Exhibit DMM-1 Sched. A line 23 (taxes other than income),MD distribution,sourced
+ttycf_state_income_tax,11.009,OPC Exhibit DMM-1 Sched. A line 24,MD distribution,sourced
+ttycf_federal_income_tax,16.602,OPC Exhibit DMM-1 Sched. A line 25,MD distribution,sourced
+ttycf_operating_income,185.378,OPC Exhibit DMM-1 Sched. A line 27 (Appendix A per-book OI is 189.841 after later actual-data updates),MD distribution,sourced
+total_distribution_revenues_adjusted,835.582,"OPC Exhibit DMM-1 Sched. A line 38 (present rates, Pepco ratemaking adjustments)",MD distribution,sourced
+property_tax_test_period,55.186,"OPC Exhibit DMM-1, RMA 26 workpaper: Pepco Distribution Maryland test-period MD property taxes",MD distribution,sourced
+property_tax_fy2026,59.091,"OPC Exhibit DMM-1, RMA 26 workpaper: FY2026 assessment",MD distribution,sourced
+property_tax_rate_pct,1.973,59.091 / 2994.612 (percentage),MD distribution,derived
+non_property_other_taxes,172.306,227.492 - 55.186 (test year). Composition from Form 1 2024 rows below,MD distribution,derived
+f1_2024_montgomery_fuel_energy_tax,126.565,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024; separately billed",MD,sourced
+f1_2024_md_gross_receipts_franchise_tax,28.37,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024; separately billed",MD,sourced
+f1_2024_md_universal_service_program,7.548,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024; separately billed",MD,sourced
+f1_2024_md_psc_assessment,3.895,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024; recovered in base distribution rates",MD,sourced
+f1_2024_md_environmental_surcharge,1.915,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024; separately billed",MD,sourced
+f1_2024_md_other_and_diesel,0.088,"Pepco 2024 FERC Form 1 pp. 262-263 (filed with MD PSC), calendar 2024",MD,sourced
+f1_2024_pg_county_energy_tax_paid,49.379,"Pepco 2024 MD Property & Energy Taxes Paid report (Form 1 p.429); collected on a net basis, NOT in Other Taxes",MD,sourced
+separately_billed_taxes_excluded_test_year,168.23,172.306 x 164.399/168.382 (2024 Form 1 proportions),MD,derived
+distribution_rr_all_in_2026,886.528,835.582 + 50.946,MD distribution,derived
+distribution_rr_core_2026,718.298,886.528 - 168.230 (excludes separately billed taxes and surcharges; keeps PSC assessment); model target total_revenue_m x delivery_share_rr,MD distribution,derived
+om_share_of_core_rr_pct,32.39,232.686 / 718.298 (percentage; inside 20-50% sanity band),MD distribution,derived
+om_share_of_all_in_rr_pct,26.25,232.686 / 886.528 (percentage),MD distribution,derived
+depreciation_rate_on_rate_base_pct,5.06,153.759 / 3038.275 (percentage; model uses 3.5% rate-base decay),MD distribution,derived
+supply_transmission_revenue_2026,1762.123,13280 GWh net 2026 x $0.13269/kWh (SOS Jun-Sep 2026 + transmission); overstates Pepco revenue (retail choice),MD supply + FERC transmission,derived
+total_revenue_model,2480.421,718.298 + 1762.123,MD total (excl. EmPOWER and taxes),derived
+md_distribution_capex_avg_2026_2029,274.900,"0.463 x mean(650,575,575,575); Exelon Q4 2025 8-K Pepco slide; MD share = 2994.6 / (0.77 x 8400)",MD distribution,_VERIFY
+md_distribution_capex_2026,300.943,0.463 x 650,MD distribution,_VERIFY
+pepco_rate_base_2025_total,8400,Exelon Q4 2025 8-K Pepco slide (DC+MD; 77% distribution / 23% transmission),Pepco DC+MD,sourced

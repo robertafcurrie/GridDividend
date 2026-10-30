@@ -65,7 +65,11 @@ def get_territory_ev(params, year, scenario, config):
     ev_managed_shared = config['EV_MANAGED_CHARGING_SHARED']
     ev_adoption_curve = config['EV_ADOPTION_CURVE']
     ev_peak_kw        = config['EV_PEAK_KW']
-    share = params['electric_customers'] / 8_000_000
+    # Territory share of the EV_ADOPTION_CURVE. Default (v1.0): customers / 8M,
+    # an NY-calibrated constant. A utility JSON may set 'ev_territory_share'
+    # directly (e.g. its share of statewide EV registrations) when the curve is
+    # a statewide count for a state of different size.
+    share = params.get('ev_territory_share', params['electric_customers'] / 8_000_000)
     c2 = ev_adoption_curve
     ys2 = sorted(c2); vs = [c2[y] for y in ys2]
     base_ev = int(np.interp(2026, ys2, vs)) * share
@@ -113,6 +117,36 @@ def apply_preset(config, name):
     if name not in PRESETS:
         raise ValueError(f"Unknown preset {name!r}; choose from {list(PRESETS)}")
     return {**config, **PRESETS[name], 'MODEL_PRESET': name}
+
+
+def capacity_cost_in_year(config, utility_key, year):
+    """
+    Capacity cost ($M per MW-year, nominal) for one utility in one year:
+    CAPACITY_COST_START × (1 + CAPACITY_COST_GROWTH) ** (year − 2026).
+    Either config value may be a scalar or a dict keyed by utility, so a
+    market or zone can carry its own growth rate (e.g. PEPCO at inflation)
+    without changing other utilities.
+    """
+    start = config['CAPACITY_COST_START']
+    growth = config['CAPACITY_COST_GROWTH']
+    start = start[utility_key] if isinstance(start, dict) else start
+    growth = growth[utility_key] if isinstance(growth, dict) else growth
+    return start * (1 + growth) ** (year - 2026)
+
+
+def passthrough_utility_share(config):
+    """
+    (utility share of capacity pass-through, whether it follows the pool).
+    PASSTHROUGH_UTILITY_SHARE = None (default) → UTILITY_SAVINGS_SHARE, and the
+    pass-through saving counts in incentive_base_m (v1.0 behaviour). A number
+    fixes the utility's pass-through share (0 = customers keep 100%); the
+    pass-through is then excluded from incentive_base_m and its utility income
+    is reported in fixed_shared_income_m.
+    """
+    s = config.get('PASSTHROUGH_UTILITY_SHARE')
+    if s is None:
+        return config['UTILITY_SAVINGS_SHARE'], True
+    return s, False
 
 
 def _check_option(cfg, key, default, allowed):
@@ -326,6 +360,8 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
     if scenario == 'shared' and INDEX_BASE == 'bau':
         prev_delivery_rr = bau_first_delivery_rr   # first-year ratio = SS / BAU
     prev_capex_spent = None
+    dc_step_mw   = params.get('dc_load_step_mw', 0) or 0
+    dc_step_year = params.get('dc_load_step_year', 9999)
 
     for year in YEARS:
         elr = get_elec_ramp(year, cfg)
@@ -341,9 +377,19 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
 
         dc_load_year = dc_mw_start * (1 + dc_rate) ** (year - 2026)
         base_pk      = (params['peak_demand_mw'] - dc_mw_start) * (1 + base_growth) ** (year - 2026)
-        pk_natural   = base_pk + dc_load_year   # organic total peak, before flex-load capture
 
         prior_dc     = dc_mw_start * (1 + dc_rate) ** (year - 2026 - 1)
+        # Optional one-off data-centre step (e.g. a single large campus):
+        # dc_load_step_mw added to the dc segment from dc_load_step_year on.
+        # It raises peak in full but distribution capex only through
+        # dc_distribution_share (see tlg_capex below).
+        # Absent / 0 (default) leaves every existing utility unchanged.
+        if dc_step_mw:
+            if year >= dc_step_year:
+                dc_load_year += dc_step_mw
+            if year - 1 >= dc_step_year:
+                prior_dc += dc_step_mw
+        pk_natural   = base_pk + dc_load_year   # organic total peak, before flex-load capture
         prior_base   = (params['peak_demand_mw'] - dc_mw_start) * (1 + base_growth) ** (year - 2026 - 1)
         prior_pk     = prior_base + prior_dc
 
@@ -362,7 +408,22 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
         # name because it still feeds cum_elec_load and dc_fl below.
         dcr = tlg - base_growth
 
-        cum_elec_load += (elr + dcr)
+        # Capex-relevant growth. For the optional dc step, only the share
+        # connected at distribution voltage (dc_distribution_share) drives
+        # utility-funded distribution capex and NWS eligibility; the rest is
+        # assumed transmission-connected or CIAC/customer-funded (large-load
+        # tariffs). The full step still counts in peak (tlg), so capacity and
+        # supply effects are unchanged. Without a step these equal tlg / dcr.
+        if dc_step_mw:
+            ext = dc_step_mw * (1 - params.get('dc_distribution_share', 0))
+            pk_capex    = pk_natural - (ext if year >= dc_step_year else 0.0)
+            prior_capex = prior_pk - (ext if year - 1 >= dc_step_year else 0.0)
+            tlg_capex = (pk_capex / prior_capex) - 1 if prior_capex > 0 else base_growth
+            dcr_capex = tlg_capex - base_growth
+        else:
+            tlg_capex, dcr_capex = tlg, dcr
+
+        cum_elec_load += (elr + dcr_capex)
         annual_capex   = capex0 * cum_load
         eligible_share = get_nws_eligible_share(cum_elec_load, cfg)
         eligible_capex = annual_capex * eligible_share
@@ -533,7 +594,7 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
         monthly_bill = delivery_bill + supply_bill + freeze_bill_adj
 
         # Update system state
-        cum_load *= (1 + tlg); egwh *= (1 + tlg)
+        cum_load *= (1 + tlg_capex); egwh *= (1 + tlg)
         pk = pk * (1 + tlg * (1 - flc)) if scenario == 'shared' else pk * (1 + tlg)
         cust *= 1.005
 
@@ -666,18 +727,17 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
     # total_utility_revenue_m) so scenario_results[k][sname] stays consistent
     # with results[k]['shared'] for the same utility.
     bau_df = results[utility_key]['bau']
-    cap_cost_start = (cfg['CAPACITY_COST_START'][utility_key]
-                      if isinstance(cfg['CAPACITY_COST_START'], dict) else cfg['CAPACITY_COST_START'])
+    pt_share, pt_in_pool = passthrough_utility_share(cfg)
 
     pt_total, pt_customer, pt_utility, pt_monthly = [], [], [], []
     for yr in cfg['YEARS']:
         b_row        = bau_df[bau_df['year'] == yr].iloc[0]
         s_row        = sh[sh['year'] == yr].iloc[0]
         peak_red     = max(0.0, b_row['peak_mw'] - s_row['peak_mw'])
-        cap_cost     = cap_cost_start * (1 + cfg['CAPACITY_COST_GROWTH']) ** (yr - 2026)
+        cap_cost     = capacity_cost_in_year(cfg, utility_key, yr)
         saving_m     = peak_red * cap_cost
-        cust_share_m = saving_m * (1 - cfg['UTILITY_SAVINGS_SHARE'])
-        util_share_m = saving_m * cfg['UTILITY_SAVINGS_SHARE']
+        cust_share_m = saving_m * (1 - pt_share)
+        util_share_m = saving_m * pt_share
         monthly_red  = (cust_share_m * 1e6) / (s_row['customers'] * 12)
         pt_total.append(saving_m)
         pt_customer.append(cust_share_m)
@@ -698,7 +758,10 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
     sh['total_utility_revenue_m']  = sh['traditional_earnings_m']   + sh['utility_shared_revenue_m']
     sh['savings_pool_m'] = sh['savings_pool_m'] + sh['pt_total_savings_m']
     sh['customer_savings_m'] = sh['customer_savings_m'] + sh['pt_customer_m']
-    sh['incentive_base_m']  = sh['incentive_base_m'] + sh['pt_total_savings_m']
+    if pt_in_pool:
+        sh['incentive_base_m']  = sh['incentive_base_m'] + sh['pt_total_savings_m']
+    else:
+        sh['fixed_shared_income_m'] = sh['pt_utility_m']
     sh['equity_earnings_m'] = sh['roe_earnings_m'] + sh['utility_shared_revenue_m']
 
     # ── Upfront customer passthrough ────────────────────────────────────────────
@@ -739,9 +802,7 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
     """
     k = utility_key
     p_util = utility_data[k]
-    cap_cost_start = (config['CAPACITY_COST_START'][k]
-                      if isinstance(config['CAPACITY_COST_START'], dict)
-                      else config['CAPACITY_COST_START'])
+    pt_share, pt_in_pool = passthrough_utility_share(config)
     bau_df = results[k]['bau'].copy()
     sh_df  = results[k]['shared'].copy()
 
@@ -755,10 +816,10 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
         s_row = sh_df[sh_df['year'] == yr].iloc[0]
         peak_reduction_mw = b_row['peak_mw'] - s_row['peak_mw']
         peak_reduction_mw = max(0.0, peak_reduction_mw)  # floor at zero
-        cap_cost = cap_cost_start * (1 + config['CAPACITY_COST_GROWTH']) ** (yr - 2026)
+        cap_cost = capacity_cost_in_year(config, k, yr)
         saving_m = peak_reduction_mw * cap_cost   # $M in that year
-        cust_share_m = saving_m * (1 - config['UTILITY_SAVINGS_SHARE'])
-        util_share_m = saving_m * config['UTILITY_SAVINGS_SHARE']
+        cust_share_m = saving_m * (1 - pt_share)
+        util_share_m = saving_m * pt_share
         # Convert customer share to monthly bill reduction
         cust_count = s_row['customers']
         monthly_reduction = (cust_share_m * 1e6) / (cust_count * 12)
@@ -789,7 +850,10 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
         # Add to savings pool
         df['savings_pool_m'] = df['savings_pool_m'] + df['pt_total_savings_m']
         df['customer_savings_m'] = df['customer_savings_m'] + df['pt_customer_m']
-        df['incentive_base_m']  = df['incentive_base_m'] + df['pt_total_savings_m']
+        if pt_in_pool:
+            df['incentive_base_m']  = df['incentive_base_m'] + df['pt_total_savings_m']
+        else:
+            df['fixed_shared_income_m'] = df['pt_utility_m']
         df['equity_earnings_m'] = df['roe_earnings_m'] + df['utility_shared_revenue_m']
         results[k][key] = df
 

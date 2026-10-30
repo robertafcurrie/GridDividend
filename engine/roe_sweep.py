@@ -47,6 +47,8 @@ def roe_grid(rate_case_roe, floor=DEFAULT_ROE_FLOOR, step=DEFAULT_ROE_STEP):
 
 def _tidy(df, **labels):
     out = df[_KEEP_COLS].copy()
+    if 'fixed_shared_income_m' in df:
+        out['fixed_shared_income_m'] = df['fixed_shared_income_m']
     # utility_earnings_m = equity-only earnings (equity return on rate base +
     # shared-savings income), used for all incentive metrics. The WACC-based
     # series (return incl. debt interest + shared income) is kept as
@@ -128,6 +130,10 @@ def min_incentive_share(bau, ease, horizon):
     """
     b = bau.iloc[:horizon]; e = ease.iloc[:horizon]
     gap  = b['roe_earnings_m'].sum() - e['roe_earnings_m'].sum()
+    # Utility income that does not scale with the share (pass-through income
+    # when PASSTHROUGH_UTILITY_SHARE is fixed); absent/zero by default.
+    if 'fixed_shared_income_m' in e:
+        gap -= e['fixed_shared_income_m'].fillna(0).sum()
     pool = e['incentive_base_m'].sum()
     if gap <= 0:
         return 0.0

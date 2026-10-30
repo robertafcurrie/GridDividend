@@ -1,0 +1,44 @@
+{
+  "name": "PJM Interconnection",
+  "zones": {
+    "DOM": {
+      "capacity_cost_start_m_per_mw_yr": 0.12,
+      "source": "PJM 2026/2027 BRA Report (July 2025): DOM cleared at $329.17/MW-day (RTO-wide cap). $329.17 x 365 / 1,000,000 = $0.12015M/MW-yr, rounded to 0.120 — the value the Virginia notebook has used since v1.0 (kept so Virginia results are unchanged).",
+      "notes": "Includes generation capacity; transmission capacity is not separately priced in RPM.",
+      "bra_history_usd_per_mw_day": {
+        "2025/2026": 444.26,
+        "2026/2027": 329.17,
+        "2027/2028": 333.44,
+        "2028/2029": 325.0
+      },
+      "bra_sources": {
+        "2025/2026": "PJM 2025/2026 BRA Report (July 2024); also Dominion_VA.json _capacity_note",
+        "2026/2027": "PJM 2026/2027 BRA Report (July 2025)",
+        "2027/2028": "PJM 2028/2029 BRA Report (14 Jul 2026), price comparison table: RTO cleared at the $333.44 cap in 2027/28",
+        "2028/2029": "PJM 2028/2029 BRA Report (14 Jul 2026): DOM zone $325.00/MW-day (cap)"
+      }
+    },
+    "PEPCO": {
+      "capacity_cost_start_m_per_mw_yr": 0.1217,
+      "capacity_cost_growth": "INFLATION_RATE",
+      "capacity_cost_growth_note": "Zone override of the market-wide 5%/yr: capacity price held flat in real terms (grows at the model's INFLATION_RATE, 2.5%/yr nominal). PEPCO-zone load is flat and the RELIEF Act assigns PJM data-centre capacity costs to data centres; 5%/yr compounds the 2027/28 price to ~$1,070/MW-day nominal by 2050, above PJM's uncapped 2028/29 simulation ($554.72). 5%/yr is run as a sensitivity in the Maryland notebook.",
+      "source": "PJM 2027/2028 BRA: PEPCO zone cleared at the RTO-wide cap of $333.44/MW-day (no zonal separation). $333.44 x 365 / 1,000,000 = $0.12171M/MW-yr. Anchor chosen as the most recent capped price before the 2028/29 step-down; the 2026/27 price ($329.17 -> 0.1201) would be the strict 2026 anchor.",
+      "notes": "PEPCO zone includes Pepco DC and Pepco MD load; zonal results do not separate Maryland. Price cap and floor applied in the 2026/27, 2027/28 and 2028/29 BRAs. _VERIFY: secondary sources report the cap/floor extended through the 2029/30 BRA; not stated in the PJM 2028/29 report itself.",
+      "bra_history_usd_per_mw_day": {
+        "2023/2024": 49.49,
+        "2024/2025": 49.49,
+        "2025/2026": 269.92,
+        "2026/2027": 329.17,
+        "2027/2028": 333.44,
+        "2028/2029": 325.0
+      },
+      "bra_sources": {
+        "2023/2024 to 2026/2027": "MD PSC Ten-Year Plan (2025-2034) of Electric Companies in Maryland, Dec 2025, Table 14 (PJM BRA capacity prices by zone)",
+        "2027/2028": "PJM 2028/2029 BRA Report (14 Jul 2026), price comparison table",
+        "2028/2029": "PJM 2028/2029 BRA Report (14 Jul 2026): PEPCO zone $325.00/MW-day (cap); uncapped simulation $554.72/MW-day"
+      }
+    }
+  },
+  "capacity_cost_growth_real": 0.05,
+  "notes": "5%/yr real growth: the assumption the Virginia notebook has used since v1.0, reflecting data-centre load tightening PJM reserve margins (2028/29 BRA cleared 6.8 GW short of the reliability requirement; uncapped price $554.72/MW-day). Market-wide default; a zone can override it with 'capacity_cost_growth' (number or 'INFLATION_RATE'). DOM uses the market-wide value; PEPCO overrides to INFLATION_RATE."
+}
