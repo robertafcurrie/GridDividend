@@ -274,8 +274,33 @@
   },
 
   "forward_assumptions": {
-    "_note": "Forward assumptions for the layer engine (engine/layers.py). Data only for v1.0 / CORRECTED, which do not read this section. Levels: for layer assumptions, 'low' is the value that gives customers a SMALLER shared-savings effect and 'high' a LARGER one, so all-low / all-high bracket the outcome. For load-growth and price-growth assumptions (system_needs, projection, capacity price growth) 'low'/'high' mean lower/higher growth. 'derived' = computed from a cited input by the stated method; '_VERIFY' = judgement or placeholder needing a utility-specific source.",
+    "_note": "Forward assumptions for the layer engine (engine/layers.py). v1.0 / CORRECTED do not read this section. Levels: for layer assumptions 'low' gives customers a SMALLER shared-savings effect and 'high' a LARGER one. For growth assumptions (projection, system_needs, capacity price growth) low/high = lower/higher growth. Scenarios (Cautious / Central / Ambitious) set the programs, deferral and utilisation layers together and hold growth assumptions and the utility share at central.",
     "as_of": "2026-10-31",
+    "scenarios": {
+      "Cautious": {
+        "description": "Low flexible MW and EE savings, high cost per kW-year, high capitalised share, low locational match and utilisation; growth and utility share central.",
+        "default_level": "central",
+        "levels": {
+          "programs": "low",
+          "deferral": "low",
+          "utilisation": "low"
+        }
+      },
+      "Central": {
+        "description": "Every assumption at central.",
+        "default_level": "central",
+        "levels": {}
+      },
+      "Ambitious": {
+        "description": "High flexible MW and EE savings, low cost per kW-year, low capitalised share, high locational match and utilisation; growth and utility share central.",
+        "default_level": "central",
+        "levels": {
+          "programs": "high",
+          "deferral": "high",
+          "utilisation": "high"
+        }
+      }
+    },
     "projection": {
       "inflation_rate": {
         "value": 0.025,
@@ -289,7 +314,7 @@
         "central": 0.025,
         "high": 0.04,
         "unit": "per year, nominal",
-        "source": "Assumption: central = INFLATION_RATE (flat real energy prices); range +/-",
+        "source": "Assumption: central = INFLATION_RATE (flat real energy prices)",
         "as_of": "2026-10-31",
         "status": "_VERIFY"
       },
@@ -326,30 +351,29 @@
             "as_of": "2026-10-31",
             "status": "derived"
           },
-          "buildings_electrification_growth": {
-            "low": 0.0,
-            "central": 0.0,
-            "high": 0.0,
+          "electrification_growth": {
+            "low": 0.0048,
+            "central": 0.0096,
+            "high": 0.0144,
             "unit": "per year, share of 2026 non-DC sales",
-            "source": "Derived: mean notebooks/GridDividend_NewYork.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 (0.0096) minus EV energy growth implied by the EV curve (0.0183); low/high x0.5 / x1.5",
+            "source": "Derived: mean of notebooks/GridDividend_NewYork.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 = 0.0096 (total electrification, EVs and buildings); low/high x0.5 / x1.5",
             "as_of": "2026-10-31",
             "status": "derived"
           },
-          "ev_kwh_per_year": {
-            "low": 3000,
-            "central": 3600,
-            "high": 4200,
-            "unit": "kWh per EV per year",
-            "source": "Assumption: 12,000 miles x 0.30 kWh/mile = 3,600; EV count from notebook EV_ADOPTION_CURVE x territory share",
+          "ev_share_of_electrification": {
+            "value": 0.8,
+            "unit": "share of electrification energy",
+            "source": "NREL Electrification Futures Study: transportation is 1,424 of 1,782 TWh (80%) of the 2050 increase in the High scenario and 810 of 932 TWh (87%) in Medium",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "sourced",
+            "note": "Reconciliation: the notebook ramp is TOTAL electrification (its sources cite EVs and heat pumps). It is split 80% EVs / 20% buildings and other using the EFS High-scenario sector split, so both segments contribute and total electrification equals the v1.0 load forecast. The EV count curve is no longer used for energy (at 3,600 kWh/EV it implied more energy than the whole ramp for Con Edison, RG&E and Pepco)."
           },
           "dc_growth": {
             "low": 0.0,
             "central": 0.05,
             "high": 0.1,
             "unit": "per year",
-            "source": "utilities JSON dc_load_growth_rate (central); low none, high double",
+            "source": "utility JSON dc_load_growth_rate (central); low none, high double",
             "as_of": "2026-10-31",
             "status": "derived"
           },
@@ -382,43 +406,262 @@
           }
         }
       },
+      "programs": {
+        "enabled": true,
+        "label": "Programs as core business: flexible MW and energy efficiency",
+        "params": {
+          "transition_year": {
+            "value": 2028,
+            "unit": "year",
+            "source": "Setting (default 2028)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "amortisation_years": {
+            "value": 10,
+            "unit": "years",
+            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AMORTISATION_YEARS",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "existing_capitalised": {
+            "value": 0.0,
+            "unit": "share of today's surcharge-funded spend capitalised",
+            "source": "Setting: today's programs are expensed through surcharges",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "flex_share_2026": {
+            "value": 0.04,
+            "unit": "flexible MW / system peak, today (BAU held flat)",
+            "source": "DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update (80-160 GW by 2030 = 10-20% of US peak; ~33 GW operating today): 33 GW / ~800 GW US peak = 4%. National figure, not utility-specific",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "flex_share_2030": {
+            "low": 0.1,
+            "central": 0.15,
+            "high": 0.2,
+            "unit": "flexible MW / system peak",
+            "source": "DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update (80-160 GW by 2030 = 10-20% of US peak; ~33 GW operating today): 10-20% of peak by 2030",
+            "as_of": "2026-10-31",
+            "status": "sourced",
+            "note": "National potential applied to this utility; replace with a utility potential study."
+          },
+          "flex_share_2035": {
+            "low": 0.1,
+            "central": 0.175,
+            "high": 0.25,
+            "unit": "flexible MW / system peak",
+            "source": "Extrapolation beyond the DOE 2030 horizon: low holds 10%, central +2.5 pts, high +5 pts",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "flex_share_2050": {
+            "low": 0.1,
+            "central": 0.2,
+            "high": 0.3,
+            "unit": "flexible MW / system peak",
+            "source": "Extrapolation beyond the DOE 2030 horizon: low holds 10%, central 20%, high 30%",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "split_dr": {
+            "value": 0.45,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "split_ev": {
+            "value": 0.25,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (managed EV charging)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "split_storage": {
+            "value": 0.2,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (behind-the-meter and distribution-connected batteries)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "split_der": {
+            "value": 0.1,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (distributed solar and other DER)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_dr": {
+            "low": 80,
+            "central": 60,
+            "high": 40,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Pepco MD Rider R-DLC pays $40-80 per controlled device per year (tariff p. 49); Brattle VPP study net cost ~$43/kW-yr",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "cost_kw_yr_ev": {
+            "low": 100,
+            "central": 60,
+            "high": 30,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for managed-charging incentives and platform",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_storage": {
+            "low": 250,
+            "central": 150,
+            "high": 100,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for distributed battery capacity payments",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_der": {
+            "low": 100,
+            "central": 60,
+            "high": 40,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for other DER dispatch payments",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "capitalised_dr": {
+            "low": 0.5,
+            "central": 0.0,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption: DR incentives are mostly OPEX",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "capitalised_ev": {
+            "low": 0.75,
+            "central": 0.5,
+            "high": 0.25,
+            "unit": "share capitalised",
+            "source": "Assumption: chargers/telemetry part capital",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "capitalised_storage": {
+            "low": 1.0,
+            "central": 0.75,
+            "high": 0.5,
+            "unit": "share capitalised",
+            "source": "Assumption: utility-owned or capitalised contracts",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "capitalised_der": {
+            "low": 0.5,
+            "central": 0.25,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "derate_dr": {
+            "low": 0.69,
+            "central": 0.92,
+            "high": 0.92,
+            "unit": "capacity accreditation",
+            "source": "PJM 2027/2028 BRA report (Dec 2025): Demand Resource class rating 92% (69% in 2026/27) PJM ratings used as a proxy for NYISO capacity accreditation.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "derate_ev": {
+            "low": 0.3,
+            "central": 0.5,
+            "high": 0.7,
+            "unit": "capacity accreditation",
+            "source": "Assumption: no ELCC class for managed charging",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "derate_storage": {
+            "value": 0.59,
+            "unit": "capacity accreditation",
+            "source": "PJM ELCC class ratings for the 2028/2029 BRA: 4-hour storage 59% PJM ratings used as a proxy for NYISO capacity accreditation.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "derate_der": {
+            "value": 0.08,
+            "unit": "capacity accreditation",
+            "source": "PJM 2027/2028 ELCC: fixed-tilt solar 7%, tracking 8% (as cited by NJ Rate Counsel, 5 Mar 2026) PJM ratings used as a proxy for NYISO capacity accreditation.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ee_incremental_savings_pct": {
+            "low": 0.0025,
+            "central": 0.005,
+            "high": 0.01,
+            "unit": "first-year savings above BAU, share of sales per year",
+            "source": "Assumption; leading state portfolios save ~1.5-2.5%/yr in total",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ee_levelised_cost_kwh": {
+            "low": 0.056,
+            "central": 0.028,
+            "high": 0.02,
+            "unit": "$ per kWh saved (levelised, 2026 $)",
+            "source": "LBNL (Hoffman, Leventis, Goldman, 2017): program administrator cost of saved energy averaged $0.028/kWh; residential ~$0.018-0.020/kWh; total cost incl. participants ~2x; low = total cost (~2x), high = residential PA cost",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "ee_measure_life": {
+            "value": 11,
+            "unit": "years",
+            "source": "Assumption for savings-weighted measure life (persistence)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ee_peak_coincidence": {
+            "low": 0.75,
+            "central": 1.0,
+            "high": 1.25,
+            "unit": "x system average kW per MWh",
+            "source": "Derived: kW saved per MWh/yr = coincidence / (8.76 x system load factor); central 1.0 = savings shaped like system load",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ee_capitalised": {
+            "low": 1.0,
+            "central": 0.5,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption (EE regulatory asset, e.g. EmPOWER amortisation)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          }
+        }
+      },
       "deferral": {
         "enabled": true,
         "label": "Deferral and avoidance of growth-driven capex",
         "params": {
-          "avoidance_start": {
-            "low": 0.1,
-            "central": 0.2,
-            "high": 0.35,
-            "unit": "share of growth capex, year 1",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AVOIDANCE_OF_ELIGIBLE_START; high = ACCELERATED scenario",
+          "locational_match": {
+            "low": 0.2,
+            "central": 0.4,
+            "high": 0.6,
+            "unit": "share of new firm MW located where growth capex is needed",
+            "source": "Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it",
             "as_of": "2026-10-31",
-            "status": "derived"
-          },
-          "avoidance_mature": {
-            "low": 0.5,
-            "central": 0.8,
-            "high": 0.9,
-            "unit": "share of growth capex at maturity",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AVOIDANCE_OF_ELIGIBLE_MATURE; range from Parameter Guidance (0.50-0.90)",
-            "as_of": "2026-10-31",
-            "status": "derived"
-          },
-          "ramp_years": {
-            "low": 15,
-            "central": 9,
-            "high": 6,
-            "unit": "years",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AVOIDANCE_RAMP_YEARS; guidance range 5-15; ACCELERATED 6",
-            "as_of": "2026-10-31",
-            "status": "derived"
+            "status": "_VERIFY"
           },
           "deferral_fraction": {
             "low": 0.6,
             "central": 0.3,
             "high": 0.0,
             "unit": "share of avoided capex that re-enters rate base",
-            "source": "notebooks/GridDividend_NewYork.ipynb Chart 7 \"central estimate\" 0.30; CLAUDE.md 0.40-0.60 for dense urban; 0 = permanent avoidance",
+            "source": "notebooks/GridDividend_NewYork.ipynb Chart 7 \"central estimate\" 0.30; CLAUDE.md 0.40-0.60 for dense urban",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
@@ -431,70 +674,23 @@
           }
         }
       },
-      "programs": {
-        "enabled": true,
-        "label": "Programs as core business",
-        "params": {
-          "transition_year": {
-            "value": 2028,
-            "unit": "year",
-            "source": "Setting (default 2028)",
-            "as_of": "2026-10-31",
-            "status": "sourced"
-          },
-          "spend_multiple": {
-            "low": 1.0,
-            "central": 1.5,
-            "high": 2.0,
-            "unit": "x today's surcharge-funded spend",
-            "source": "Assumption; today's spend derived from starting_bill core program lines",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "capitalised_fraction": {
-            "low": 1.0,
-            "central": 0.5,
-            "high": 0.0,
-            "unit": "share of program spend capitalised",
-            "source": "Assumption: capitalised spend earns WACC (higher customer cost); low = all capitalised",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "amortisation_years": {
-            "value": 10,
-            "unit": "years",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AMORTISATION_YEARS",
-            "as_of": "2026-10-31",
-            "status": "sourced"
-          },
-          "cost_per_mw_yr": {
-            "low": 0.3,
-            "central": 0.15,
-            "high": 0.05,
-            "unit": "$M per MW-yr of peak reduction delivered",
-            "source": "Placeholder for a blended EE / electrification / DR portfolio. Anchors: Brattle Ontario (2026) $50/kW-yr DER capacity cost (high case, DR-like resources; cited in notebook Section 1 OPEX_RATIO note); Pepco Rider R-DLC pays $40-80 per controlled device per year (Pepco MD tariff p. 49). Efficiency and electrification deliver peak kW at higher cost, so central $150/kW-yr and low $300/kW-yr are judgement.",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          }
-        }
-      },
       "utilisation": {
         "enabled": true,
         "label": "Utilisation: more kWh over the same wires",
         "params": {
-          "share": {
-            "low": 0.0,
-            "central": 0.15,
-            "high": 0.3,
-            "unit": "share of load growth served from headroom",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 FLEX_LOAD_UTILISATION_SHARE_SS; guidance 0.00-0.30 (Brattle base ~0.33)",
+          "per_flex_share": {
+            "low": 0.75,
+            "central": 1.5,
+            "high": 2.25,
+            "unit": "share of load growth served from headroom per unit of firm flexible MW / peak",
+            "source": "Derived: v1.0 notebooks/GridDividend_NewYork.ipynb Section 1 FLEX_LOAD_UTILISATION_SHARE_SS 0.15 paired with a 10% flexible share (DOE 2030 low); x0.5 / x1.5",
             "as_of": "2026-10-31",
-            "status": "derived"
+            "status": "_VERIFY"
           },
-          "ramp_years": {
-            "value": 9,
-            "unit": "years",
-            "source": "v1.0 get_utilisation_credit() ramp (30% -> 100%)",
+          "max_share": {
+            "value": 0.3,
+            "unit": "cap",
+            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 Parameter Guidance upper bound (0.30)",
             "as_of": "2026-10-31",
             "status": "sourced"
           }
@@ -502,14 +698,14 @@
       },
       "capacity": {
         "enabled": true,
-        "label": "Capacity: MW of peak reduction at the zonal price",
+        "label": "Capacity: firm MW at the zonal price",
         "params": {
           "price_m_per_mw_yr": {
-            "value": 0.07,
+            "value": 0.07244,
             "unit": "$M per MW-yr (2026 anchor)",
-            "source": "shared/capacity_markets/NYISO.json zone G_H_I (as used by v1.0; RG&E is in NYISO Zone B, Rest of State: _VERIFY zone)",
+            "source": "NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYISO monthly reports); mean $6.0367/kW-month x 12 = $0.07244M/MW-yr. v1.0 uses NYISO.json zone G_H_I ($0.070M/MW-yr) for RG&E; that default is unchanged.",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "_VERIFY"
           },
           "price_growth": {
             "low": 0.0,
@@ -517,15 +713,6 @@
             "high": 0.03,
             "unit": "per year, nominal",
             "source": "central = INFLATION_RATE (flat real); high = market file growth (3%); low = flat nominal",
-            "as_of": "2026-10-31",
-            "status": "derived"
-          },
-          "flex_capture_incremental": {
-            "low": 0.16,
-            "central": 0.32,
-            "high": 0.48,
-            "unit": "share of peak growth captured by flexible load (SS minus BAU)",
-            "source": "Derived: notebooks/GridDividend_NewYork.ipynb Section 1 FLEX_LOAD_CAPTURE_SHARED (0.40) - FLEX_LOAD_CAPTURE_BAU (0.08); range x0.5 / x1.5",
             "as_of": "2026-10-31",
             "status": "derived"
           }
@@ -540,14 +727,14 @@
             "central": 0.3,
             "high": 0.1,
             "unit": "share of savings pool (shared savings earnings)",
-            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE (0.30); guidance range 0.10-0.40 (low = larger utility share)",
+            "source": "notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share)",
             "as_of": "2026-10-31",
             "status": "derived"
           },
           "pool_basis": {
             "value": "revenue_requirement",
             "unit": "'revenue_requirement' | 'capex'",
-            "source": "Setting. 'revenue_requirement' = reduction in total customer cost vs BAU (no double count); 'capex' = v1.0 avoided-capex pool with customer credit (upper bound)",
+            "source": "Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wholly to customers); 'capex' = v1.0-style avoided-capex pool (upper bound)",
             "as_of": "2026-10-31",
             "status": "sourced"
           }
@@ -567,15 +754,20 @@
       }
     },
     "capacity_carve_out": {
-      "parent_line": "supply_charge",
-      "price_usd_per_mw_day": 191.78,
+      "parents": [
+        {
+          "line": "supply_charge",
+          "share": 1.0
+        }
+      ],
+      "price_usd_per_mw_day": 198.47,
       "peak_mw": 1050,
       "residential_share": 0.4136,
       "residential_customers": 351481,
       "obligation_scaling": 1.0,
-      "source": "Price: shared/capacity_markets/NYISO.json zone G_H_I $0.070M/MW-yr = $191.78/MW-day. Peak: RGE.json. Residential share and customers: EIA-861 2024. Scaling 1.0 (NYISO installed reserve margin not applied).",
+      "source": "NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYISO monthly reports); mean $6.0367/kW-month x 12 = $0.07244M/MW-yr. v1.0 uses NYISO.json zone G_H_I ($0.070M/MW-yr) for RG&E; that default is unchanged. Peak: RGE.json. Residential share and customers: EIA-861 2024. Scaling 1.0 (NYISO reserve margin not applied).",
       "status": "_VERIFY",
-      "method": "Residential capacity obligation per customer = peak_mw x residential_share x obligation_scaling / residential_customers; $/month = obligation (kW) x price ($/kW-day) x 365/12. Assumes the residential share of the capacity obligation equals its share of sales; residential load is peakier, so this likely understates residential capacity. The derived amount is moved out of the parent line; the total bill is unchanged.",
+      "method": "Residential capacity obligation per customer = peak_mw x residential_share x obligation_scaling / residential_customers; $/month = obligation (kW) x price ($/kW-day) x 365/12. Assumes the residential share of the obligation equals its share of sales (residential load is peakier, so this likely understates it). The amount is moved out of the parent line(s); the total bill is unchanged.",
       "as_of": "2026-10-31"
     }
   }

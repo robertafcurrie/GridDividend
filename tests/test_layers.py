@@ -98,3 +98,44 @@ def test_hook_layers_cannot_be_enabled():
     uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
     with pytest.raises(NotImplementedError):
         LY.project_layers(uj, p, enabled={'roe': True})
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_program_transfer_is_neutral_without_new_resources(key, nb):
+    """Moving today's core programs from surcharges into rates, with no new MW or EE, leaves bills at BAU."""
+    uj, p = _utility(key, nb)
+    ov = {('programs', 'flex_share_2030'): 0.04, ('programs', 'flex_share_2035'): 0.04,
+          ('programs', 'flex_share_2050'): 0.04, ('programs', 'ee_incremental_savings_pct'): 0.0}
+    en = {l: False for l in LY.SAVINGS_LAYERS}
+    en['programs'] = True
+    r = LY.project_layers(uj, p, overrides=ov, enabled=en)
+    np.testing.assert_allclose(r['ss']['bill_total'], r['bau']['bill_total'], rtol=0, atol=1e-9)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_flex_spend_is_mw_times_cost(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    pr, infl = r['assumptions']['programs'], r['assumptions']['projection']['inflation_rate']
+    for t, (_, m) in enumerate(r['mw'].iterrows()):
+        expect = sum(m[f'{k}_incremental_mw'] * 1000 * pr[f'cost_kw_yr_{k}'] for k in LY.FLEX_TYPES) \
+            * (1 + infl) ** t / 1e6
+        got = r['ss']['flex_spend_m'].iloc[t]
+        assert got == pytest.approx(expect if m['year'] >= pr['transition_year'] else 0.0)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_energy_efficiency_lowers_sales_and_average_bill(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    s = r['ss'].set_index('year')
+    assert (s.loc[2035, 'ee_gwh'] > 0) and (s.loc[2035, 'residential_usage_index'] < 1)
+    assert s.loc[2035, 'avg_bill_total'] < s.loc[2035, 'bill_total']
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_scenarios_are_ordered(key, nb):
+    uj, p = _utility(key, nb)
+    cum = [LY.cumulative_savings(LY.project_layers(uj, p, scenario=sc))['undiscounted nominal $']
+           for sc in LY.SCENARIOS]
+    assert cum[0] < cum[1] < cum[2]
