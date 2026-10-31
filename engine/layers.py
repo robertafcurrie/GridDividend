@@ -35,8 +35,13 @@
 #                 connect sooner, spreading fixed wires costs over more kWh
 #                 (each MW of headroom has one use: deferral OR load enabled)
 #   capacity      derated MW (and EE peak) priced at the zonal capacity price
+#   wholesale_energy  flexible load shifted from on-peak to off-peak hours
+#   transmission  transmission cost avoided by peak reduction
+#   losses        marginal distribution losses avoided (energy and peak)
 #   mechanism     utility share of the savings pool: shared savings earnings
-#   hooks (off):  wholesale_energy, roe
+#   roe           allowed ROE vs BAU (a separate lever, outside the pool)
+#
+# The full methodology is in docs/METHODOLOGY.md.
 #
 # Two bill measures, $/month per residential customer, nominal:
 #   bill_total      benchmark usage (residential_kwh_month) held constant
@@ -77,12 +82,19 @@ FLEX_LABEL = {'dr': 'Demand response', 'ev': 'Managed EV charging', 'storage': '
 
 def starting_lines(utility_json, carve_out=True, adjustments=True):
     """
-    Year-zero bill lines ($/month per residential customer, benchmark usage).
-    carve_out: split a derived capacity line out of the parent line(s) where
-      capacity is embedded (forward_assumptions['capacity_carve_out']); the
-      total is unchanged.
-    adjustments: add forward_assumptions['starting_adjustments'].
-    Each line has 'volumetric' (True if it scales with usage).
+    Year-zero bill lines for one utility.
+
+    Inputs: utility_json (parsed utilities/*.json; reads starting_bill and
+      forward_assumptions); carve_out: split a derived capacity line out of the
+      parent line(s) where capacity is embedded (forward_assumptions
+      ['capacity_carve_out']; the total is unchanged); adjustments: add
+      forward_assumptions['starting_adjustments'].
+    Output: list of dicts, one per line included in the benchmark, with id, name,
+      category, bill_section, unit, core (core business under shared savings),
+      program_type, origin ('starting_bill' / 'carve_out' / 'adjustment'),
+      volumetric (True if it scales with usage) and month ($/month per
+      residential customer at benchmark usage, nominal 2026 $). Percentage lines
+      also carry pct and applies_to; their month is filled from the subtotal.
     """
     sb = utility_json['starting_bill']
     kwh = sb['benchmark_kwh_month']
@@ -128,7 +140,12 @@ def starting_lines(utility_json, carve_out=True, adjustments=True):
 
 def capacity_carve_out_month(co):
     """
-    $/month of capacity embedded in the parent line(s):
+    $/month of capacity embedded in the parent line(s), per residential customer.
+
+    Input: co = forward_assumptions['capacity_carve_out'] (peak_mw, MW;
+      residential_share, share; obligation_scaling, factor; residential_customers;
+      price_usd_per_mw_day, $/MW-day).
+    Output: float, $/month (2026 $):
       obligation_kw = peak_mw x residential_share x obligation_scaling / residential_customers x 1000
       $/month       = obligation_kw x price ($/MW-day) / 1000 x 365 / 12
     """
@@ -153,6 +170,12 @@ def _apply_pct(lines):
 
 
 def by_category(lines):
+    """
+    Sum bill lines by category.
+
+    Input: lines, as returned by starting_lines() (each with category and month).
+    Output: {category: $/month} for every category in CATEGORIES (zero if absent).
+    """
     out = {c: 0.0 for c in CATEGORIES}
     for d in lines:
         out[d['category']] += d['month']
@@ -162,7 +185,14 @@ def by_category(lines):
 # ── Assumptions ──────────────────────────────────────────────────────────────
 
 def network_block(fa):
-    """The `network` params of forward_assumptions (legacy: read from system_needs)."""
+    """
+    The network inputs of forward_assumptions.
+
+    Input: fa = utility_json['forward_assumptions'].
+    Output: {param: spec} from fa['network']['params']; for older JSON without a
+      network block, the network inputs read from layers.system_needs
+      (network_bands -> bands). Specs are unresolved (see resolve()).
+    """
     if 'network' in fa:
         return fa['network'].get('params', {})
     sn = fa['layers'].get('system_needs', {}).get('params', {})
@@ -182,8 +212,14 @@ def _param_items(fa):
 
 def scenario_overrides(fa, scenario):
     """
-    {(layer, param): level} for a named scenario in forward_assumptions['scenarios'],
-    plus {('network', param): value or level} from the scenario's own `network` values.
+    Overrides that define a named scenario.
+
+    Inputs: fa = forward_assumptions; scenario = 'Cautious' / 'Central' /
+      'Ambitious' (or None).
+    Output: {(layer, param): level} for every low/central/high assumption, from
+      the scenario's levels (per 'layer.param', then per layer, then
+      default_level), plus {('network', param): value or level} from the
+      scenario's own network values. Central returns only its network values.
     """
     if scenario is None:
         return {}
@@ -204,12 +240,18 @@ def scenario_overrides(fa, scenario):
 
 def resolve(fa, level='central', overrides=None, enabled=None, scenario=None, network=None):
     """
-    Flatten forward_assumptions to {layer: {param: value}} (network inputs under 'network').
-    Lowest to highest: level (every low/central/high assumption); scenario
-    (levels per assumption, and the scenario's `network` values); the notebook
-    override NETWORK_OVERRIDES; overrides {(layer, param): level or value};
-    network {param: level or value} (per-call, e.g. the headroom sweep).
-    enabled {layer: bool} overrides the JSON switches.
+    Flatten forward_assumptions to the values used in one run.
+
+    Inputs: fa = forward_assumptions; level = 'low' / 'central' / 'high' for every
+      range; scenario (see scenario_overrides()); overrides {(layer, param):
+      level or value}; network {param: level or value} (per call, e.g. the
+      headroom sweep); enabled {layer: bool} overrides the JSON switches.
+    Precedence, lowest to highest: level < scenario levels and network values <
+      NETWORK_OVERRIDES (notebook) < overrides < network.
+    Output: {layer: {param: value}} with network inputs under 'network', the
+      projection under 'projection', and '_enabled': {layer: bool}. Units are
+      those of each spec. Raises NotImplementedError if a placeholder (hook)
+      layer is enabled.
     """
     ov = {}
     if scenario:
@@ -244,7 +286,13 @@ def resolve(fa, level='central', overrides=None, enabled=None, scenario=None, ne
 
 
 def assumption_keys(fa, layers_only=False):
-    """(layer, param) for every low/central/high assumption with a spread."""
+    """
+    The assumptions the tornado varies.
+
+    Inputs: fa = forward_assumptions; layers_only: drop the projection block.
+    Output: list of (layer, param) for every low/central/high spec whose low and
+      high differ.
+    """
     keys = []
     for lname, items in _param_items(fa):
         if layers_only and lname == 'projection':
@@ -263,12 +311,20 @@ def _infl(r, t):
 
 def system_path(params, a, on):
     """
-    Layer 1. Demand path, BAU, by year: energy (GWh) by segment, system peak
-    (MW, for capacity markets) and distribution-network peak (MW: non-DC peak +
-    the distribution-connected share of data-centre load), plus new large-load
-    MW eligible for flexible connections. Total electrification energy growth
-    is split between EVs and buildings by ev_share_of_electrification.
-    Off: flat demand.
+    Layer 1 (system needs): BAU demand path by year, 2026-2050.
+
+    Inputs: params (earlier-model utility dict: annual_energy_gwh, GWh;
+      peak_demand_mw, MW; dc_load_mw_start, MW; dc_distribution_share, share);
+      a = resolve() output (system_needs growth rates per year, shares,
+      dc_load_factor, peak_elasticity); on: layer switch (off = flat demand).
+    Output: DataFrame, one row per year: baseline_gwh, buildings_gwh, ev_gwh,
+      dc_gwh, sales_gwh (GWh); dc_mw; peak_mw (system peak, MW, for capacity
+      markets); net_peak_mw (distribution-network peak, MW: non-data-centre peak +
+      the distribution-connected share of data-centre load); ev_peak_mw,
+      elec_peak_mw (peak added by EVs / all electrification, MW); dc_dist_new_mw
+      (new distribution-connected data-centre MW). Electrification energy growth
+      is split between EVs and buildings by ev_share_of_electrification; non-data-
+      centre peak = (P0 - DC0) x (energy / energy0) ^ peak_elasticity.
     """
     s = a['system_needs']
     S0, P0 = params['annual_energy_gwh'], params['peak_demand_mw']
@@ -323,8 +379,13 @@ def _program_spend0(utility_json, params):
 
 def flex_mw(pr, year, active):
     """
-    Nameplate MW by type. BAU holds today's programs (mw_start_*); shared
-    savings interpolates today -> 2035 -> 2050 (mw_2035_*, mw_2050_*) once active.
+    Nameplate flexible MW by resource type in one year.
+
+    Inputs: pr = resolved programs params (mw_start_*, mw_2035_*, mw_2050_*, MW);
+      year; active: shared savings with programs in force.
+    Output: {type: MW} for FLEX_TYPES (dr, ev, storage, der). BAU (not active)
+      holds today's programs; active interpolates linearly 2026 -> 2035 -> 2050.
+      The ramp limit is applied in project_layers().
     """
     out = {}
     for k in FLEX_TYPES:
@@ -351,7 +412,13 @@ def _seed_from(nw, DN, h, lead):
 
 
 def operating_limit(nw):
-    """Operating limit as a multiple of planning capacity: `operating_limit`, else 1 / planning_limit_factor."""
+    """
+    Operating limit as a multiple of planning capacity.
+
+    Input: nw = resolved network inputs.
+    Output: float: nw['operating_limit'] if set, else 1 / planning_limit_factor
+      (1.25 at 0.80), else 1.0. Existing load is served up to this multiple.
+    """
     if nw.get('operating_limit') is not None:
         return float(nw['operating_limit'])
     return 1 / nw['planning_limit_factor'] if nw.get('planning_limit_factor') else 1.0
@@ -440,18 +507,26 @@ def _band_spec(nw, h):
 
 def network_bands(nw, DN0, h):
     """
-    Loading bands from the network block: each band has a share of network
-    capacity and a starting loading (network peak / planning capacity; null =
-    at the planning target 1 / (1 + headroom)). Load shares follow from both.
-    Optional growth_share and flex_share allocate load growth and flexible MW;
-    default pro rata to load. No bands -> one band at the planning target.
+    Loading bands for the network at 2026.
 
-    Constrained sub-band (subband_enabled): `subband_load_share` of network
-    load at `subband_utilisation` (above the planning limit), carved out of
-    the most loaded bands with total load and capacity unchanged (their
-    growth and flex shares move with the load). Existing load in every band is
-    served up to the operating limit (1 / planning_limit_factor x planning
-    capacity); see project_layers.
+    Inputs: nw = resolved network inputs (bands or generated bands,
+      mean_utilisation, sub-band settings); DN0 = 2026 network peak, MW;
+      h = planning_headroom (share).
+    Each band has a share of network capacity and a starting loading (network
+    peak / planning capacity; null = at the planning target 1 / (1 + h)). Load
+    shares follow from both. Optional growth_share and flex_share allocate load
+    growth and flexible MW; default pro rata to load. No bands -> one band at the
+    planning target.
+
+    Constrained sub-band (subband_enabled): subband_load_share of network load at
+    subband_utilisation (above the planning limit), carved out of the most loaded
+    bands with total load and capacity unchanged (their growth and flex shares
+    move with the load). Existing load in every band is served up to the
+    operating limit (see project_layers()).
+
+    Output: list of dicts: name, capacity_share, load_share, loading0, growth_share,
+      flex_share, C0 (planning capacity, MW), subband (bool). Raises ValueError
+      for inconsistent sub-band or mean-utilisation inputs.
     """
     spec = _band_spec(nw, h)
     tgt = 1 / (1 + h)
@@ -500,8 +575,16 @@ def network_bands(nw, DN0, h):
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
                    pool_basis=None, scenario=None, flex_cost_scale=1.0, uplift_mode=None, network=None):
     """
-    BAU and shared-savings projection with an explicit distribution-network
-    capacity constraint.
+    BAU and shared-savings projection, 2026-2050, with an explicit distribution-
+    network capacity constraint.
+
+    Inputs: utility_json (starting_bill, forward_assumptions); params
+      (earlier-model utility dict: rate base, capex, WACC, ROE, equity ratio,
+      property tax, energy, peak, customers); level, scenario, overrides, enabled,
+      network: see resolve(); pool_basis overrides mechanism.pool_basis;
+      flex_cost_scale multiplies every flexible cost per kW-year (used by
+      flex_pays_cost()); uplift_mode 'derived' / 'direct' overrides
+      load_enabled.uplift_mode.
 
     Network: firm capacity starts at network peak x (1 + planning headroom) and
     grows only through reinforcement, ordered when demand x (1 + headroom)
@@ -522,17 +605,22 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     + flexible large-load connections ('derived' mode), or an assumed % of
     capacity ('direct' mode). Each year it is split, never double-used:
     load enabled (waiting load connects sooner, up to enable_share of the
-    headroom) first where the network is constrained, the rest to deferral
+    headroom) first where BAU leaves load waiting, the rest to deferral
     (counted by the planner, so reinforcement is ordered later). With
     flexibility targeting on, up to flex_targeting_share of the headroom goes
     first to bands above their planning limit (in proportion to the load
     above it), the rest pro rata.
 
-    network {param: level or value} sets network-block inputs for this call
-    (highest precedence; see resolve()).
-
-    Returns dict: 'bau', 'ss' (yearly DataFrames), 'mw' (MW by type),
-    'system', 'assumptions', and year-zero details.
+    Output: dict with 'bau' and 'ss' (DataFrames, one row per year: bills in
+      $/month nominal per residential customer, bill_<category> at benchmark
+      usage and avg_bill_<category> for the average residential bill; system
+      figures in $M nominal per year (_m), MW, GWh; Upgrade Delay columns in
+      years, MW and MW-years), 'mw' (MW by type), 'system' (system_path()),
+      'assumptions' (resolve()), 'bands', 'band_detail' {'bau', 'ss'}
+      (per-band rows), year-zero details (starting_lines, program_spend0_m
+      $M/yr, program_spend0_parts, residential_program_allocation), ee_kw_per_mwh
+      (kW per MWh of first-year savings), uplift_mode, benchmark_kwh and
+      operating_limit.
     """
     fa = utility_json['forward_assumptions']
     a = resolve(fa, level, overrides, enabled, scenario, network)
@@ -958,7 +1046,15 @@ def _npv(v, years, r):
 
 
 def bill_table(run, years=MILESTONES, measure='average'):
-    """Monthly residential bill by category, BAU vs shared savings ($/month nominal)."""
+    """
+    Monthly residential bill by category, BAU vs shared savings.
+
+    Inputs: run = project_layers() output; years; measure 'average' (average
+      residential bill, usage lowered by efficiency) or 'benchmark' (benchmark
+      usage).
+    Output: DataFrame indexed by (year, case), one column per category plus
+      total, $/month nominal.
+    """
     pre = 'avg_bill_' if measure == 'average' else 'bill_'
     rows = []
     for case, df in (('BAU', run['bau']), ('Shared savings', run['ss'])):
@@ -970,7 +1066,14 @@ def bill_table(run, years=MILESTONES, measure='average'):
 
 
 def cumulative_savings(run, measure='average'):
-    """Cumulative bill saving per residential customer 2026-2050 ($, nominal)."""
+    """
+    Cumulative bill saving per residential customer, 2026-2050.
+
+    Inputs: run = project_layers() output; measure 'average' or 'benchmark'.
+    Output: {'undiscounted nominal $', 'NPV 3% (2026 $)', 'NPV 7% (2026 $)'}:
+      sum over years of 12 x (BAU - shared-savings monthly bill), $ per customer;
+      NPVs discount year y by (1 + r) ^ (y - 2026).
+    """
     col = MEASURE_COL[measure]
     d = (run['bau'][col] - run['ss'][col]).values * 12
     return {'undiscounted nominal $': float(d.sum()),
@@ -978,7 +1081,16 @@ def cumulative_savings(run, measure='average'):
 
 
 def waterfall(utility_json, params, years=MILESTONES, measure='average', scenario=None):
-    """BAU -> shared-savings bill, one bar per layer (LAYERS order). System needs bar is zero."""
+    """
+    BAU to shared-savings bill, one step per layer.
+
+    Inputs: utility_json, params; years; measure; scenario. Layers are switched on
+      one at a time in LAYERS order (layers disabled in the JSON stay off).
+    Output: DataFrame indexed by year: 'BAU' ($/month nominal), one column per
+      layer (change in the shared-savings bill when that layer is added,
+      $/month; system_needs is zero because it applies to both cases), and
+      'Shared savings' ($/month). The steps sum to Shared savings - BAU.
+    """
     col = MEASURE_COL[measure]
     fa = utility_json['forward_assumptions']
     base_on = {l: bool(fa['layers'].get(l, {}).get('enabled', False)) and not fa['layers'].get(l, {}).get('hook')
@@ -1002,7 +1114,14 @@ def waterfall(utility_json, params, years=MILESTONES, measure='average', scenari
 
 
 def scenario_table(utility_json, params, years=(2026, 2035, 2050), measure='average'):
-    """Cautious / Central / Ambitious: BAU and shared-savings bills and cumulative saving."""
+    """
+    Cautious / Central / Ambitious summary.
+
+    Inputs: utility_json, params; years; measure.
+    Output: DataFrame indexed by scenario: 'BAU <year>' and 'Shared savings
+      <year>' ($/month nominal) and the cumulative_savings() measures ($ per
+      residential customer).
+    """
     col = MEASURE_COL[measure]
     rows = []
     for sc in SCENARIOS:
@@ -1017,7 +1136,16 @@ def scenario_table(utility_json, params, years=(2026, 2035, 2050), measure='aver
 
 
 def tornado(utility_json, params, years=(2035, 2050), measure='average'):
-    """One-at-a-time sensitivity of the SAVING (BAU minus shared-savings bill), $/month nominal."""
+    """
+    One-at-a-time sensitivity of the saving (BAU minus shared-savings bill).
+
+    Inputs: utility_json, params; years; measure. Every assumption_keys() entry is
+      set to low and to high in turn, everything else central (no scenario).
+    Output: (DataFrame, central) where the DataFrame has layer, assumption,
+      'low <year>' and 'high <year>' (change in the monthly saving vs central,
+      $/month nominal) and 'swing <year>' (|high - low|), sorted by the last
+      year's swing; central = {year: central saving, $/month}.
+    """
     col = MEASURE_COL[measure]
 
     def sav(run, y):
@@ -1041,7 +1169,14 @@ def tornado(utility_json, params, years=(2035, 2050), measure='average'):
 
 
 def mw_table(run, years=(2030, 2035, 2050)):
-    """MW by resource type (shared savings and incremental over today's programs)."""
+    """
+    MW by resource type.
+
+    Inputs: run = project_layers() output; years.
+    Output: DataFrame indexed by year: nameplate MW today and in shared savings
+      per type, EE peak MW, flexible connections MW, flexible share of peak
+      (shared savings, share), firm MW (derated flexible + EE) and BAU peak MW.
+    """
     m = run['mw']
     rows = []
     for y in years:
@@ -1060,7 +1195,16 @@ def mw_table(run, years=(2030, 2035, 2050)):
 
 
 def connection_table(run, years=(2030, 2035, 2050)):
-    """Network capacity outcomes, BAU vs shared savings."""
+    """
+    Network capacity outcomes, BAU vs shared savings.
+
+    Inputs: run = project_layers() output; years.
+    Output: DataFrame indexed by year: MW waiting for upgrade, MW connected
+      sooner, Upgrade Delay for Interconnection (years, load requested that
+      year), GWh not served on time, effective capacity uplift (share),
+      headroom created and its split to load enabled / deferral (MW), and
+      cumulative reinforcement deferred (MW).
+    """
     b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
     rows = []
     for y in years:
@@ -1083,14 +1227,19 @@ def connection_table(run, years=(2030, 2035, 2050)):
 
 def value_stack(run, params, years=(2030, 2035, 2050)):
     """
-    Flexible resources only (DR, managed EV, storage, other DER), per year, $ per
-    kW-year of incremental nameplate (nominal):
+    Value stack of flexible resources (DR, managed EV, storage, other DER).
+
+    Inputs: run = project_layers() output; params (wacc, property_tax_rate); years.
+    Output: DataFrame indexed by year, $ per kW-year of incremental nameplate,
+      nominal:
       cost         = flexible spend / kW
-      capacity     = derated flexible MW x capacity price
-      deferral     = flexible share of firm MW x RR value of the avoided wires
-                     rate base (BAU - SS wires rate base) x (WACC + property tax + depreciation)
+      capacity     = min(derated flexible MW, peak reduction) x capacity price
+      deferral     = flexible share of firm MW x (BAU - SS wires rate base)
+                     x (WACC + property tax + depreciation rate)
       load enabled = wires RR carried by the extra kWh served (BAU-unserved load
-                     connected sooner), net of its incremental cost
+                     connected sooner), net of incremental O&M and connection capex
+      total        = capacity + deferral + load enabled
+      The value-stream layers (wholesale, transmission, losses) are not included.
     """
     s, b = run['ss'], run['bau']
     wacc, ptr = params['wacc'], params['property_tax_rate']
@@ -1118,7 +1267,13 @@ def value_stack(run, params, years=(2030, 2035, 2050)):
 
 
 def weighted_flex_cost(utility_json, scenario=None, year=2035):
-    """Incremental-MW-weighted flexible cost per kW-year, 2026 $, at the resolved assumptions."""
+    """
+    Incremental-MW-weighted flexible cost per kW-year.
+
+    Inputs: utility_json; scenario; year (weights = shared-savings MW above
+      today's in that year, on the target path).
+    Output: float, $/kW-year in 2026 $ (NaN if there are no incremental MW).
+    """
     pr = resolve(utility_json['forward_assumptions'], scenario=scenario)['programs']
     w = {k: max(0.0, float(np.interp(year, [2026, 2035, 2050],
                                      [pr[f'mw_start_{k}'], pr[f'mw_2035_{k}'], pr[f'mw_2050_{k}']]))
@@ -1132,10 +1287,16 @@ def weighted_flex_cost(utility_json, scenario=None, year=2035):
 def flex_pays_cost(utility_json, params, target='npv3', scenario=None, measure='average',
                    lo=0.0, hi=20.0, tol=1e-3):
     """
-    Cost at which flexibility pays for itself: the incremental-MW-weighted
-    flexible cost per kW-year (2026 $) at which the shared-savings bill equals
-    BAU. target: a year -> bills equal that year; 'npv3' -> cumulative saving at
-    3% NPV equal to zero. All flexible costs are scaled together (bisection).
+    Cost at which flexibility pays for itself.
+
+    Inputs: utility_json, params; target = a year (the shared-savings bill equals
+      BAU that year) or 'npv3' (cumulative 2026-2050 saving at 3% NPV equal to
+      zero); scenario; measure; lo, hi = bracket of flex_cost_scale; tol.
+    All flexible costs per kW-year are scaled together and the scale found by
+    bisection; efficiency costs are unchanged.
+    Output: (cost, note): cost = the MW-weighted flexible cost per kW-year
+      (2026 $) at that scale, or None; note explains edge cases ('bisection',
+      free flexibility still costs more, or pays at every cost tested).
     """
     col = MEASURE_COL[measure]
     base = weighted_flex_cost(utility_json, scenario)
@@ -1162,7 +1323,14 @@ def flex_pays_cost(utility_json, params, target='npv3', scenario=None, measure='
 
 
 def earnings_table(run):
-    """Utility earnings ($M nominal): equity return + shared savings earnings, BAU vs shared savings."""
+    """
+    Utility earnings, BAU vs shared savings.
+
+    Input: run = project_layers() output.
+    Output: DataFrame by year, $M nominal: BAU equity return, SS equity return
+      (rate base incl. program regulatory asset x equity ratio x ROE, plus any ROE
+      change), SS shared savings earnings, SS total earnings.
+    """
     b, s = run['bau'], run['ss']
     df = pd.DataFrame({'year': b['year'],
                        'BAU equity return': b['equity_return_m'],
@@ -1176,8 +1344,13 @@ def earnings_table(run):
 
 def constrained_table(run, years=(2026, 2030, 2035, 2040, 2050)):
     """
-    MW of network load in constrained bands (loading above constrained_loading),
-    MW waiting, and MW served above the planning limit, BAU vs shared savings.
+    Load in constrained bands, BAU vs shared savings.
+
+    Inputs: run = project_layers() output; years.
+    Output: DataFrame indexed by year: MW of network load in constrained bands
+      (load above constrained_loading x (capacity + counted headroom)), number of
+      constrained bands, MW waiting for upgrade and MW served above the planning
+      limit, BAU and shared savings.
     """
     b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
     rows = []
@@ -1195,7 +1368,14 @@ def constrained_table(run, years=(2026, 2030, 2035, 2040, 2050)):
 
 
 def band_table(run, years=(2026, 2035, 2050)):
-    """Per-band demand, firm capacity, flexible headroom, MW waiting for upgrade and loading, BAU and shared savings."""
+    """
+    Per-band detail.
+
+    Inputs: run = project_layers() output; years.
+    Output: DataFrame indexed by (year, case, band): demand_mw, capacity_mw,
+      operating_limit_mw, headroom_mw, served_mw, upgrade_wait_mw,
+      above_planning_limit_mw (MW), loading (share) and constrained (bool).
+    """
     out = []
     for case, lbl in (('bau', 'BAU'), ('ss', 'Shared savings')):
         d = run['band_detail'][case]
@@ -1212,10 +1392,15 @@ def access_summary(run):
     """
     Access benefits of shared savings, reported separately from the bill: they
     go to the customers being connected, not to existing residential customers.
-    Upgrade Delay for Interconnection = years a new customer in a constrained
-    area waits for the grid upgrade before connecting (MW-weighted over the MW
-    affected, i.e. MW that waited at least a year; load still waiting in 2050 is
-    counted to the end of 2050).
+
+    Input: run = project_layers() output.
+    Output: dict: MW connected sooner (2035, 2050, peak year; MW); Upgrade Delay
+      for Interconnection, BAU and SS (average years per MW affected, i.e. MW
+      that waited at least a year; load still waiting in 2050 is counted to the
+      end of 2050) and SS per MW affected in BAU (like-for-like); MW affected,
+      BAU and SS; MW-years avoided; connection cost avoided by new customers
+      ($M undiscounted nominal and NPV 3%, 2026 $); electrification GWh brought
+      forward (cumulative); flexible connections MW in 2050.
     """
     b, s = run['bau'], run['ss']
     yrs = s['year'].values
@@ -1240,9 +1425,12 @@ def access_summary(run):
 
 def upgrade_delay_table(run, years=(2026, 2028, 2030, 2032, 2035, 2040, 2050)):
     """
-    Upgrade Delay for Interconnection by year, BAU vs shared savings: average
-    years waited by load requested that year (MW affected only), MW affected,
-    MW waiting for upgrade, and MW-years of delay avoided (that calendar year).
+    Upgrade Delay for Interconnection by year, BAU vs shared savings.
+
+    Inputs: run = project_layers() output; years.
+    Output: DataFrame indexed by year: average years waited by load requested
+      that year (MW affected only), MW affected (requested that year), MW
+      waiting for upgrade, and MW-years of delay avoided (that calendar year).
     """
     b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
     rows = []
@@ -1258,19 +1446,34 @@ def upgrade_delay_table(run, years=(2026, 2028, 2030, 2032, 2035, 2040, 2050)):
 
 
 def access_table(utility_json, params, overrides=None, scenarios=SCENARIOS, network=None):
-    """access_summary() for each scenario (rows); network {param: value} applies to every scenario."""
+    """
+    access_summary() for each scenario.
+
+    Inputs: utility_json, params; overrides; scenarios; network {param: value}
+      applied to every scenario.
+    Output: DataFrame, one row per scenario, access_summary() columns.
+    """
     return pd.DataFrame({sc: access_summary(project_layers(utility_json, params, scenario=sc, overrides=overrides,
                                                            network=network))
                          for sc in scenarios}).T
 
 
 def no_ramp_overrides():
-    """Overrides that remove the maximum annual MW growth for every resource type."""
+    """
+    Overrides that remove the maximum annual MW growth for every resource type.
+
+    Output: {('programs', 'ramp_pct_peak_<type>'): None} for FLEX_TYPES.
+    """
     return {('programs', f'ramp_pct_peak_{k}'): None for k in FLEX_TYPES}
 
 
 def mw_path_table(utility_json, params, scenario='Central', years=(2030, 2035, 2040, 2050)):
-    """Shared-savings MW by type, target path (no ramp limit) vs with the ramp limit."""
+    """
+    Shared-savings flexible MW, target path vs with the ramp limit.
+
+    Inputs: utility_json, params; scenario; years.
+    Output: DataFrame indexed by (path, year): nameplate MW per type and total.
+    """
     runs = {'target path': project_layers(utility_json, params, scenario=scenario, overrides=no_ramp_overrides()),
             'with ramp limit': project_layers(utility_json, params, scenario=scenario)}
     rows = []
@@ -1286,14 +1489,21 @@ def mw_path_table(utility_json, params, scenario='Central', years=(2030, 2035, 2
 # ── System-wide savings and the headroom sweep ───────────────────────────────
 
 def supply_rate_kwh(run):
-    """Today's residential supply energy rate, $/kWh (supply_energy lines at benchmark usage)."""
+    """
+    Today's residential supply energy rate.
+
+    Input: run = project_layers() output.
+    Output: float, $/kWh (supply_energy lines at benchmark usage / benchmark kWh, 2026 $).
+    """
     sup = sum(d['month'] for d in run['starting_lines'] if d['category'] == 'supply_energy')
     return sup / run['benchmark_kwh']
 
 
 def system_summary(run):
     """
-    System-wide results, BAU minus shared savings, $M nominal unless stated.
+    System-wide results, BAU minus shared savings, all customers.
+
+    Input: run = project_layers() output.
     Customer savings = what all customers pay for delivery (revenue requirement,
     net of shared savings earnings and including any ROE change) + program
     surcharges + capacity, plus the energy no longer bought because of
@@ -1302,8 +1512,10 @@ def system_summary(run):
     commercial and industrial share), plus the value-stream layers: wholesale
     energy (load shifted to off-peak hours), avoided transmission and avoided
     marginal distribution losses. Efficiency energy is counted once (the
-    wholesale layer values only load shifting). Each component is reported
-    as its own line. Wires capex avoided = BAU capex - SS capex - connection capex.
+    wholesale layer values only load shifting). Wires capex avoided = BAU capex
+    - SS capex - connection capex.
+    Output: dict of labelled measures; each key states its unit and basis ($B
+      undiscounted nominal or NPV 3% in 2026 $, $M, MW, MW-years, years).
     """
     b, s = run['bau'], run['ss']
     yrs = s['year'].values
@@ -1361,11 +1573,16 @@ DELAY_CASES = {'short': {'upgrade_delay_ordinary_years': 'low', 'upgrade_delay_l
 def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND, delay_cases=tuple(DELAY_CASES),
                    scenario='Central', network=None, measure='average'):
     """
-    Headroom sweep: mean starting planning utilisation x share of load in the
-    constrained sub-band (0 = no sub-band) x Upgrade Delay case (short /
-    central / long: the upgrade delays and backlog clearance at low / central /
-    high), everything else at the scenario. network {param: value} adds fixed
-    inputs (e.g. flex_targeting_enabled). One row per point.
+    Headroom sweep.
+
+    Inputs: utility_json, params; means (mean starting planning utilisation,
+      shares); shares (share of network load in the constrained sub-band; 0 =
+      no sub-band); delay_cases (keys of DELAY_CASES: short / central / long =
+      upgrade delays and backlog clearance at low / central / high); scenario;
+      network {param: value} adds fixed inputs (e.g. flex_targeting_enabled);
+      measure.
+    Output: DataFrame, one row per (delay case, mean, share): '2050 monthly
+      saving ($, nominal)' plus every system_summary() measure.
     """
     col = MEASURE_COL[measure]
     rows = []
@@ -1384,14 +1601,17 @@ def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND
 
 def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050), measure='average'):
     """
-    Each savings layer's contribution, adding layers one at a time in LAYERS
-    order (the waterfall order): customer savings ($B, undiscounted nominal and
-    NPV 3%, 2026 $), the monthly bill in each year ($/month nominal, negative =
-    lower bill), shared savings earnings ($B) and the utility's equity return
-    on rate base ($B, undiscounted nominal). Rows sum to the full shared-savings case.
-    In that order all earnings fall on the mechanism step, so 'earnings
-    attributable' repeats the pass with the mechanism on from the start: each
-    layer's change in shared savings earnings (it sums to the same total).
+    Each savings layer's contribution to the full shared-savings case.
+
+    Inputs: utility_json, params; scenario; years; measure. Layers are added one
+      at a time in LAYERS order (the waterfall order).
+    Output: DataFrame indexed by layer: customer savings ($B, undiscounted nominal
+      and NPV 3%, 2026 $), the change in the monthly bill in each year ($/month
+      nominal, negative = lower bill), shared savings earnings ($B), and the
+      utility's equity return on rate base ($B, undiscounted nominal). Rows sum
+      to the full case. In that order all earnings fall on the mechanism step,
+      so 'earnings attributable' repeats the pass with the mechanism on from the
+      start: each layer's change in shared savings earnings (same total).
     """
     col = MEASURE_COL[measure]
     fa = utility_json['forward_assumptions']

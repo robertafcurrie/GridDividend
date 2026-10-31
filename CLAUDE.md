@@ -14,6 +14,7 @@ The **layered model** (`engine/layers.py`, Section 13 of each state notebook) is
 - Label every dollar figure: nominal or 2026 $; undiscounted or NPV (and the rate).
 - Do not mention any private consulting work in comments or docs.
 - Work on `main`; commit only when asked; don't push unless asked.
+- Keep the documentation in step with the code: update `docs/METHODOLOGY.md` when a calculation changes, rerun `scripts/build_assumptions_register.py` after any JSON change, and add a `CHANGELOG.md` entry (what changed, effect on results) for each commit.
 
 ## Status values
 
@@ -49,18 +50,25 @@ notebooks/
   GridDividend_Maryland.ipynb   Pepco MD (adds Section 12, Maryland-specific checks)
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
+scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
+tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
 tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json (pinned layer outputs)
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
-docs/                      legacy chart images
+docs/METHODOLOGY.md        full methodology of the layered model (policy reader; technical subsections; glossary)
+docs/ASSUMPTIONS.md, docs/assumptions_register.csv   generated assumptions register (do not edit by hand)
+docs/utilities/*.md        per-utility data notes (starting point, sources, proxies, _VERIFY gaps)
+docs/*.png                 legacy chart images
+CHANGELOG.md               dated entry per commit and its effect on results
 ```
 
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (152 tests)
+python -m pytest tests/                       # full suite (154 tests)
+python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \
   --ExecutePreprocessor.kernel_name=python3 --ExecutePreprocessor.timeout=1800 GridDividend_Virginia.ipynb
 ```
@@ -299,7 +307,7 @@ The self-contained v1.0 notebook (36 cells). Cell indices are 0-based (matching 
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.
-- **About half the layered inputs are `_VERIFY`** (Con Edison 47%, Dominion 43%, Pepco 50%, RG&E 59% of status-tagged inputs). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
+- **About half the layered inputs are `_VERIFY`** (Con Edison 47%, Dominion 44%, Pepco 50%, RG&E 59% of status-tagged inputs; `docs/ASSUMPTIONS.md` has the counts). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
 - **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited. Prefer published grid-utilization data wherever it exists (`_grid_utilization_VERIFY`).
 - **Avoided transmission is a range** (PJM NITS is an average embedded cost), and **ROE is a separate lever** outside the pool.
 - **RG&E data is provisional** until the final order in Case 25-E-0379. **Property tax rates are estimates.**
@@ -322,6 +330,11 @@ The self-contained v1.0 notebook (36 cells). Cell indices are 0-based (matching 
 
 These would change results, so they need a decision first:
 
+- **Efficiency peak MW in capacity (layered model).** In `project_layers()`, `sys_peak = P - (DN - served) - ee_mw` subtracts efficiency MW twice in shared savings (`DN - served` already includes it), and `mw_red` subtracts it again, so billed capacity MW are `peak - waiting - firm flex - 3 x EE MW` with the capacity layer on (once with it off). First-order effect 2 x EE MW x capacity price: about $3.2B (Con Edison), $4.3B (Dominion), $1.0B (Pepco), $0.2B (RG&E) of Central customer savings, undiscounted nominal. See `docs/METHODOLOGY.md` 3.6 and 10.2.
+- **Flexible connections in the access block (layered model).** Flexible-connection MW count as deferral headroom and again, in full, as connection cost avoided by new customers (about 90% of that measure). Presentation only: the access block is not in customer savings.
+- **Earnings attributable (layered model).** `layer_contributions()` attributes earnings in waterfall order with carry-forward on, so programs, deferral and load enabled get zero. An order-independent split would change reported figures.
+- **Efficiency as MW connected sooner (layered model).** Efficiency that lowers demand in waiting bands counts as MW connected sooner and attracts connection capex and O&M (small).
+- **Status labels.** `transition_year`, `existing_capitalised`, `uplift_mode`, `customer_funded_share`, `pool_basis` (tagged `sourced`) and `enable_share` (`_VERIFY`) are settings by their own sources; relabelling changes the status counts, not results.
 - **v1.0 notebook sync.** `GridDividend_v1.0.ipynb` carries its own engine copy (proposal under "v1.0 notebook vs engine").
 - **Dominion ACCELERATED / COMBINED shares.** These scenarios set absolute NWS eligibility (35% / 55%) calibrated to New York, above Dominion's 22% / 35%.
 - **EV territory share.** Dominion uses the New York-calibrated `customers / 8,000,000`; Pepco sets `ev_territory_share`.

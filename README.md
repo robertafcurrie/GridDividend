@@ -20,6 +20,13 @@ Each utility starts from today's residential bill, line by line. The model then 
 
 Four utilities are modelled: **Con Edison** and **RG&E** (New York), **Dominion Energy Virginia**, and **Pepco** (Maryland).
 
+## Documentation
+
+- [**Methodology**](docs/METHODOLOGY.md): how the model works, layer by layer, for policy readers (technical detail in marked subsections), with outputs, dollar bases, validation, limitations and a glossary.
+- [**Assumptions register**](docs/ASSUMPTIONS.md): every input for every utility, with value or low / central / high, units, status, source and as-of date (also as [CSV](docs/assumptions_register.csv)). It is generated from the utility JSON by `scripts/build_assumptions_register.py`, and a test keeps it in sync.
+- **Utility data notes:** [Con Edison](docs/utilities/ConEd.md), [RG&E](docs/utilities/RGE.md), [Dominion Energy Virginia](docs/utilities/Dominion_VA.md), [Pepco Maryland](docs/utilities/Pepco_MD.md). Each covers the starting point, key sources, proxies and the main gaps to close.
+- [**Changelog**](CHANGELOG.md): what changed in each commit, and its effect on results.
+
 ---
 
 ## The layers
@@ -130,7 +137,7 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel
 ## Caveats
 
 - **Not a forecast.** Results show direction and order of magnitude.
-- **About half the inputs are still `_VERIFY`.** By utility: Con Edison 47%, Dominion 43%, Pepco 50%, RG&E 59% of the status-tagged inputs in `starting_bill` and `forward_assumptions`. Each one carries the reason and what would confirm it.
+- **About half the inputs are still `_VERIFY`.** By utility: Con Edison 47%, Dominion 44%, Pepco 50%, RG&E 59% of the status-tagged inputs in `starting_bill` and `forward_assumptions` (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
 - **Proxies.** Con Edison, RG&E and Pepco use Dominion's measured network loading as a `_VERIFY` proxy until their own feeder data is found. New York uses PJM's price spreads for wholesale energy, and the other utilities use Con Edison's connection timelines for ordinary load.
 - **Avoided transmission is a range.** PJM's network service rates are average costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run, so the avoidable share runs from 0 to 1.
 - **ROE is a separate lever.** Central assumes no change in allowed ROE. Changing it moves bills and the utility's equity return, not shared savings earnings.

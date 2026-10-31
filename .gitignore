@@ -19,4 +19,4 @@ reports/
 .DS_Store
 Thumbs.db
 charts_article/
-docs/
+docs/*.png

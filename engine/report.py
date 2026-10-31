@@ -109,14 +109,22 @@ def _bill_milestone_years(years, dense_until=2035, sparse_step=5):
 
 def compute_insights(bau_df, scenario_df, scenario_label, years,
                       bau_freeze_df=None, scenario_freeze_df=None):
-    """Deterministic derived facts for one scenario vs BAU. Numbers only — no
-    prose. See render_report_html() for the templated sentences built from this.
+    """
+    Deterministic derived facts for one earlier-model scenario vs BAU. Numbers
+    only, no prose; render_report_html() builds the sentences.
 
-    bau_freeze_df / scenario_freeze_df are optional: the same rate-freeze
-    overlay pair already plotted in the Section 5 bill chart (results[k]
-    ['bau_freeze'] / ['shared_freeze']), not a named freeze scenario. When
-    supplied, freeze_insight is populated with the relief/catch-up/reconverge
-    facts shown in that chart's near-term panel.
+    Inputs: bau_df, scenario_df (engine.model.project() / run_named_scenario()
+      frames, one row per year); scenario_label; years (list);
+      bau_freeze_df / scenario_freeze_df (optional): the rate-freeze overlay pair
+      plotted in the Section 5 bill chart (results[k]['bau_freeze'] /
+      ['shared_freeze']), not a named freeze scenario. When supplied,
+      freeze_insight holds the relief / catch-up / reconverge facts.
+    Output: dict: start and final average monthly bills and the final-year gap
+      ($/month nominal, and as a share of the BAU annual bill); cumulative
+      bill savings, capex avoided, NWS opex, grid spend, utility revenue and
+      earnings, and the pool split between customers and utility ($B,
+      undiscounted nominal); effective utility share; freeze_insight;
+      first_10_year and nws_ceiling_year (years).
     """
     b_final = bau_df[bau_df['year'] == years[-1]].iloc[0]
     s_final = scenario_df[scenario_df['year'] == years[-1]].iloc[0]
@@ -354,19 +362,21 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
                         generated_at, git_sha, model_config=None,
                         bau_freeze_df=None, scenario_freeze_df=None,
                         pool_basis_note=False, layered_html=None):
-    """Self-contained HTML string for one utility/scenario. System font stack
-    only — no embedded custom font, so this works portably with zero new deps
-    and no third-party font redistribution.
+    """
+    Self-contained HTML report for one utility and earlier-model scenario.
 
-    bau_freeze_df / scenario_freeze_df are optional: the same rate-freeze
-    overlay pair already drawn in the embedded Section 5 chart. When given,
-    the Customer Bills table gains BAU+Freeze/EASE+Freeze columns for the
-    near-term rows, matching what the chart already shows.
-
-    Optional, off unless supplied (existing reports render identically):
-    utility_json['report_context'] adds a regulator / case / statute sentence;
-    pool_basis_note=True states the SAVINGS_POOL_BASIS in the lede and caveats,
-    labelling the default 'capex' basis as an upper bound."""
+    Inputs: utility_key; utility_json; utility_params; scenario_label; years;
+      bau_df, scenario_df, insights (compute_insights()); chart_png_path (embedded
+      as base64); generated_at, git_sha (footer); model_config (Section 1
+      parameters); bau_freeze_df / scenario_freeze_df (optional: adds
+      BAU+Freeze / EASE+Freeze columns to the near-term bill rows, matching the
+      embedded chart); pool_basis_note=True states the SAVINGS_POOL_BASIS in the
+      lede and caveats, labelling the default 'capex' basis as an upper bound;
+      layered_html (render_layered_section() output, appended).
+    utility_json['report_context'] (optional) adds a regulator / case / statute
+    sentence. System font stack only, no embedded fonts.
+    Output: str, a complete HTML document. Every $ figure states its basis.
+    """
     short_name = utility_json.get('short_name', utility_key)
     milestones = _milestone_years(years)
     bill_milestones = _bill_milestone_years(years)
@@ -748,12 +758,18 @@ DELAY_STYLE = {'short': ':', 'central': '-', 'long': '--'}
 
 def headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'capex', 'delay')):
     """
-    Matplotlib Figure (no pyplot state) for layers.headroom_sweep(): each panel
-    plots a metric against mean starting utilisation, one line per sub-band
-    share (ordinal blue ramp, legend), at the central Upgrade Delay case. The
-    'delay' panel plots MW-years of Upgrade Delay avoided against the sub-band
-    share at 80% mean utilisation, one line per delay case (short dotted,
-    central solid, long dashed). Central scenario.
+    Matplotlib Figure (no pyplot state) for layers.headroom_sweep().
+
+    Inputs: sw = headroom_sweep() DataFrame; name (utility short name); panels,
+      any of 'saving' (2050 monthly saving, $/month nominal), 'customer_npv'
+      (customer savings, $B NPV 3%, 2026 $), 'capex' (wires capex avoided, $B
+      undiscounted nominal), 'delay' (MW-years of Upgrade Delay avoided).
+    Each panel plots its metric against mean starting utilisation, one line per
+    sub-band share (ordinal blue ramp, legend), at the central Upgrade Delay case.
+    The 'delay' panel plots MW-years avoided against the sub-band share at 80%
+    mean utilisation, one line per delay case (short dotted, central solid, long
+    dashed). Central scenario.
+    Output: matplotlib.figure.Figure.
     """
     from matplotlib.figure import Figure
     from matplotlib.ticker import FuncFormatter
@@ -819,9 +835,17 @@ def _tbl(header, rows):
 
 def render_layered_section(utility_key, utility_json, utility_params):
     """
-    HTML block: layered bill projection (engine/layers.py) for one utility.
-    Leads with the monthly bill difference, then cumulative and NPV savings.
-    Every $ figure is labelled with its basis.
+    HTML block: the layered model (engine/layers.py) for one utility.
+
+    Inputs: utility_key; utility_json (starting_bill, forward_assumptions);
+      utility_params (earlier-model utility dict). Runs every scenario; the
+      notebook's NETWORK_OVERRIDES apply.
+    Output: str, HTML <section>: a methodology note (scenario, dollar basis, pool
+      setting, link to docs/METHODOLOGY.md), then the monthly bill difference,
+      cumulative and NPV savings, starting bill, scenarios, waterfall,
+      system-wide results, layer contributions, ROE lever, value stack, network,
+      bands, sub-band, Upgrade Delay, headroom sweep, access, MW paths and
+      earnings. Every $ figure is labelled with its basis.
     """
     from . import layers as LY
     uj, p = utility_json, utility_params
@@ -830,6 +854,39 @@ def render_layered_section(utility_key, utility_json, utility_params):
     runs = {sc: LY.project_layers(uj, p, scenario=sc) for sc in LY.SCENARIOS}
     c = runs['Central']
     col = 'avg_bill_total'
+    # Methodology note: scenario, dollar basis and pool setting used
+    a_c = c['assumptions']
+    mech = a_c['mechanism']
+    pool_desc = {'revenue_requirement': 'the reduction in what customers pay versus BAU (distribution revenue '
+                                        'requirement, program surcharges and capacity cost)',
+                 'capex': 'avoided wires capex net of new program spend, plus capacity cost avoided'}
+    in_pool = [lbl for k, lbl in (('wholesale_energy', 'wholesale energy'), ('transmission', 'avoided transmission'),
+                                  ('losses', 'avoided distribution losses'))
+               if a_c['_enabled'].get(k) and a_c.get(k, {}).get('in_pool', True)]
+    roe_c = a_c.get('roe', {})
+    ov_note = (' Notebook network overrides in force: ' + ', '.join(f'{k} = {v}' for k, v in LY.NETWORK_OVERRIDES.items())
+               + '.') if LY.NETWORK_OVERRIDES else ''
+    method = (
+        f"<p class=\"section-intro\"><strong>Methodology.</strong> The layered model starts from today's residential "
+        f"bill, line by line, and projects each line 2026&ndash;2050 under business as usual (BAU) and under shared "
+        f"savings. The difference is built from switchable layers: programs as core business, deferral of network "
+        f"reinforcement, load enabled, capacity, wholesale energy, avoided transmission, avoided distribution losses, "
+        f"the shared savings mechanism and the ROE lever. The distribution network has explicit capacity in loading "
+        f"bands, including a constrained sub-band above the planning limit, and new load in constrained areas waits "
+        f"the Upgrade Delay for Interconnection. Full methodology: "
+        f"<a href=\"{GITHUB_URL}/blob/main/docs/METHODOLOGY.md\">docs/METHODOLOGY.md</a>; every input with its "
+        f"source and status: <a href=\"{GITHUB_URL}/blob/main/docs/ASSUMPTIONS.md\">docs/ASSUMPTIONS.md</a>.</p>"
+        f"<p class=\"section-intro\"><strong>Settings used.</strong> Scenario: <strong>Central</strong> for every "
+        f"figure unless marked; Cautious and Ambitious give the range. Dollar basis: nominal dollars; cumulative "
+        f"figures are undiscounted unless marked NPV, which is in 2026 dollars at 3% (and 7% where shown). Savings "
+        f"pool: {pool_desc.get(mech['pool_basis'], mech['pool_basis'])} (<code>{mech['pool_basis']}</code>)"
+        + (f", plus {', '.join(in_pool[:-1]) + ' and ' + in_pool[-1] if len(in_pool) > 1 else in_pool[0]}"
+           if in_pool else '')
+        + f"; the utility's share is {mech['utility_share']:.0%} (its shared savings earnings) and customers keep the "
+        f"rest. Negative pools are carried forward against later positive pools. ROE lever: "
+        + (f"{roe_c['roe_delta'] * 1e4:+.0f} bp" if roe_c.get('roe_delta') else 'no change in allowed ROE')
+        + f" in Central, outside the pool. Programs become core business "
+        f"from {int(a_c['programs']['transition_year'])}.{ov_note}</p>")
     at = lambda df, y: float(df.loc[df['year'] == y, col].iloc[0])
     lead = []
     for y in (2035, 2050):
@@ -1001,6 +1058,7 @@ def render_layered_section(utility_key, utility_json, utility_params):
     <p class="section-intro">GridDividend layer engine (engine/layers.py), separate from the projections above. Bills are the
       <strong>average residential bill</strong> ($/month, nominal; energy efficiency lowers usage). Scenarios: Cautious /
       Central / Ambitious (forward_assumptions in the utility data file). Directional illustration, not a forecast.</p>
+    {method}
     <ul class="lede">{''.join(f'<li>{x}</li>' for x in lead)}</ul>
     <h2>Starting Bill by Category</h2>
     <p class="section-intro">Today's residential bill at {kwh:,} kWh/month, $/month nominal (starting_bill, with derived
@@ -1022,7 +1080,8 @@ def render_layered_section(utility_key, utility_json, utility_params):
     <h2>Contribution by Layer, Central</h2>
     <p class="section-intro">Layers added one at a time in waterfall order. Customer savings in $B; monthly bill change in
       $/month nominal (negative = lower bill); shared savings earnings attributable to each layer (computed with the
-      mechanism on throughout). Not on the bill and reported separately: access benefits (below); next candidates, not yet
+      mechanism on throughout, in this order: negative pools carried forward from the programs layer absorb the next
+      layers' savings, so earlier layers can show zero). Not on the bill and reported separately: access benefits (below); next candidates, not yet
       modelled: resilience, capacity price suppression, the economic value of faster connections and emissions.</p>
     {_tbl(['Layer', 'Customer savings ($B undiscounted nominal)', 'Customer savings ($B NPV 3%, 2026 $)', 'Bill 2035',
            'Bill 2050', 'Shared savings earnings ($B undiscounted nominal)', 'Shared savings earnings ($B NPV 3%, 2026 $)'],
@@ -1048,8 +1107,8 @@ def render_layered_section(utility_key, utility_json, utility_params):
     {_tbl(['Network', 'Year', 'BAU MW in constrained bands', 'Shared savings MW in constrained bands',
            'BAU MW waiting for upgrade', 'Shared savings MW waiting for upgrade'], con_rows)}
     <h2>Constrained Sub-Band: Load Above the Planning Limit</h2>
-    <p class="section-intro">On in the Central scenario (Cautious and Ambitious keep it off in their scenario network
-      values): {sub_desc}. Existing load stays connected up to the operating limit; the backlog above the planning limit is
+    <p class="section-intro">On in every scenario (a scenario's network values or the notebook override can switch it
+      off): {sub_desc}. Existing load stays connected up to the operating limit; the backlog above the planning limit is
       cleared at the backlog clearance rate, and new load in the sub-band waits the Upgrade Delay for Interconnection. MW
       above the planning limit and MW waiting for upgrade are separate measures, BAU and shared savings. Flexibility
       targeted = flexible headroom sited first where load is above the planning limit.</p>
