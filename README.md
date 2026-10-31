@@ -1,8 +1,8 @@
 # GridDividend
 
-**An open-source policy simulation framework for electric utility shared savings.**
+**An open-source policy simulation of shared savings for electric distribution utilities.**
 
-*Dr Robert A. F. Currie, May 2026*
+*Dr Robert A. F. Currie, October 2026*
 
 AI has been used extensively in the creation of this tool.
 
@@ -10,91 +10,141 @@ AI has been used extensively in the creation of this tool.
 
 ## What it does
 
-GridDividend models what happens to customer electricity bills and utility finances when a regulatory framework replaces traditional infrastructure build-out with a **shared savings mechanism**: Non-Wires Solutions (NWS) — batteries, demand response, managed EV charging — defer capital investment, and the resulting savings are split between the utility (as an earnings incentive) and customers (as bill reductions).
+GridDividend shows the **potential of shared savings** and the **conditions that unlock it**. Under shared savings, flexibility and efficiency become core utility business. Demand response, managed EV charging, distributed storage, other DER and energy efficiency then defer network investment, lower capacity and energy costs, and connect new customers sooner. The utility earns a share of the savings it creates (its **shared savings earnings**); customers keep the rest.
 
-Generated per-utility reports call this the **EASE Case** — shorthand for what bills and utility finances would look like if a jurisdiction enacted **The Electricity Affordability, Savings, and Efficiency Act (the "EASE Act")**, the model's working name for legislation enabling this shared-savings mechanism — contrasted against **BAU** (business as usual, no such reform). The EASE Case is a **directional illustration of order of magnitude, not a guarantee of results**: it identifies a direction of travel for the policy, not a prediction, and it does not replace the detailed, state-by-state modelling and legislative design work that actual reform would require.
+Each utility starts from today's residential bill, line by line. The model then projects it 2026–2050 under business as usual (BAU) and under shared savings, one layer at a time. Results are **ranges** across three scenarios, not forecasts:
 
-The model runs **2026–2050** projections across five scenarios per utility, plus a BAU baseline:
+- **Cautious:** today's programs, grown modestly.
+- **Central:** flexibility anchored to state targets and studies.
+- **Ambitious:** what supportive policy could unlock (DOE's national range, lower costs, more flexible connections).
 
-| Scenario | Description |
-|----------|-------------|
-| BAU | Business As Usual — traditional CAPEX build-out, no reform |
-| BASE | Standard shared savings programme — NWS avoidance + 30/70 savings split. Reported as the **EASE Case** |
-| ACCELERATED | Faster NWS ramp, 2× standard pace — tests aggressive programme delivery |
-| FREEZE_PLUS | BASE programme with a 4-year rate freeze — lower early bills, gradual catch-up |
-| COMBINED | ACCELERATED programme with a 3-year freeze — maximum near-term customer benefit |
-| FRONTLOADED | BASE programme with 3-year full customer passthrough — utility earns 0% in years 1–3 |
-
-`BASE` is the scenario used in generated summary reports; it's what "EASE Case" refers to there. The other named scenarios explore near-term/long-term trade-offs and aren't (yet) surfaced in the per-utility HTML reports.
-
-Currently models three utilities across two states — New York (Con Edison and RG&E) and Virginia (Dominion Energy Virginia): **Con Edison** (Case 25-E-0072, approved Jan 2026), **RG&E** (Case 25-E-0379, temporary rates Jun 2026), and **Dominion Energy Virginia** (SCC Case PUR-2025-00058, rates effective Jan 2026).
+Four utilities are modelled: **Con Edison** and **RG&E** (New York), **Dominion Energy Virginia**, and **Pepco** (Maryland).
 
 ---
 
-## Key result
+## The layers
 
-Under shared savings, a typical Con Edison residential customer (600 kWh/month) avoids hundreds of dollars per year in bill increases that BAU regulation would otherwise impose. Cumulative savings reach **$12,907 per customer** by 2050 ($52B aggregate across Con Edison's 3.7M customers).
+Each layer has its own switch and low / central / high inputs, each with a source, an as-of date and a status.
 
-The rate freeze (FREEZE_PLUS) reshapes the timing of savings — bills are lower in years 1–4, then gradually recover — but converges with BASE by 2034. The 25-year cumulative saving is identical. Structural reform delivers a permanently lower trajectory; a rate freeze is a timing mechanism, not a cost reduction.
+1. **System needs:** load growth (baseline, electrification, data centres), peak, and growth vs asset-condition capex. Applies to both cases.
+2. **Programs as core business:** program surcharges leave the bill; flexible MW by type and energy efficiency are paid for in rates.
+3. **Deferral:** flexible headroom counted by the network planner, so reinforcement is ordered later.
+4. **Load enabled:** headroom lets load waiting for the network connect sooner (residential bill effect only).
+5. **Capacity:** firm MW avoided at the zonal capacity price.
+6. **Wholesale energy:** flexible load shifted from on-peak to off-peak hours.
+7. **Avoided transmission:** transmission cost avoided by peak reduction.
+8. **Avoided distribution losses:** marginal losses avoided by efficiency and peak reduction.
+9. **Shared savings mechanism:** the utility's share of the savings pool.
+10. **ROE lever:** the allowed return in shared savings relative to BAU, a separate lever outside the pool.
 
-**Dominion Energy Virginia** (SCC Case PUR-2025-00058, rates effective January 2026)
-- Starting bill: $155/month (1,000 kWh/month Virginia SCC benchmark)
-- BAU 2050: $350/month
-- Shared savings 2050: $232/month
-- Annual saving 2050: $1,410/year
-- ⚠️ Five parameters require verification from SCC filing before results should be cited — see `utilities/Dominion_VA.json`
+**The network.** The distribution network has explicit capacity in loading bands, including a constrained sub-band of load above the planning limit (from Dominion's grid-utilization filing).
+
+**Upgrade Delay for Interconnection.** This is the time a new customer in a constrained area waits for the grid upgrade before connecting, measured in BAU and in shared savings.
+
+**Access benefits.** These go to the customers being connected and are reported separately from the bill:
+- MW connected sooner.
+- MW-years of Upgrade Delay avoided.
+- Connection cost avoided.
+- Electrification brought forward.
 
 ---
 
-## Three mechanisms
+## The opportunity
 
-Every EASE Case scenario draws savings from three distinct mechanisms. Each mechanism's savings are split the same way — utility retains 30% as an incentive (consistent with NY PSC NWS incentive precedent), 70% passes through to customer bills — via `UTILITY_SAVINGS_SHARE`, not a fourth mechanism of its own.
+Figures are Central, with the Cautious–Ambitious range in brackets. All $ are nominal.
 
-1. **NWS avoidance** — Flexible DER defers growth-driven infrastructure spending, shrinking the rate base and the return earned on it. Avoidance ramps from ~20% of eligible CAPEX in 2026 to ~80% at programme maturity, consistent with GB flexibility market outcomes (UKPN DSO, 2024/25) and the Brattle Ontario NWS study (2026).
+| | Con Edison | Dominion VA | Pepco MD | RG&E |
+|---|---|---|---|---|
+| **Customer savings 2026–2050, $B undiscounted** | **16.6** (5.4–34.5) | **17.1** (5.7–44.2) | **4.7** (2.5–6.5) | **1.3** (0.5–2.9) |
+| Customer savings, $B NPV 3% (2026 $) | 10.2 (3.4–21.2) | 10.6 (3.6–27.3) | 2.9 (1.6–4.1) | 0.8 (0.3–1.8) |
+| Average residential bill, $/month lower in 2035 | 7.71 (2.33–14.31) | 5.96 (2.55–14.04) | 9.52 (5.73–12.37) | 2.22 (0.95–4.85) |
+| Average residential bill, $/month lower in 2050 | 19.18 (4.84–33.74) | 11.36 (4.09–28.08) | 17.55 (7.35–25.43) | 4.92 (1.39–11.88) |
+| New flexible MW by 2050 | 3,576 (466–3,729) | 2,863 (341–6,854) | 327 (169–660) | 545 (7–545) |
+| Upgrade Delay avoided, MW-years (MW waiting in BAU) | 178 (31–215) of 141 MW | 501 (41–635) of 373 MW | 36 (11–49) of 23 MW | 24 (1–26) of 17 MW |
+| Shared savings earnings, $B undiscounted | 3.21 (0.37–6.98) | 2.96 (0.17–9.72) | 0.48 (0.07–0.96) | 0.06 (0.00–0.27) |
 
-2. **Pass-through savings** — Flexible demand also shaves system-wide peak demand, so the utility buys less capacity in the wholesale capacity market. That saving flows through on the supply portion of the bill.
+**What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
+- The energy efficiency saves, valued at today's residential supply rate.
+- Wholesale energy, avoided transmission and avoided losses.
 
-3. **Utilisation credit** — Managed flexible load uses existing system headroom without triggering proportional new build, spreading fixed costs over more kWh. Source: Brattle/Utilize Coalition, *The Untapped Grid* (2026).
+Each component is reported separately in `system_summary()`.
+
+**Upgrade Delay.** Flexibility shortens the average delay:
+- Dominion: from 1.75 years to 0.40 at Central.
+- Con Edison: from 1.59 years to 0.32.
+
+In Ambitious it removes almost all of it.
+
+The notebooks and reports also show:
+- The waterfall by layer.
+- Each layer's contribution to savings, bills and earnings.
+- The value stack per kW-year, and the cost at which flexibility pays for itself.
+- A headroom sweep: how the potential depends on existing network headroom and on upgrade delays.
 
 ---
 
-## How to use
+## What drives the range
 
-**Option A — Conda (recommended if you have Anaconda/Miniconda):**
+The largest single driver is a policy choice: how much energy efficiency becomes core utility business.
+
+| Policy levers | External drivers |
+|---|---|
+| Efficiency ambition (savings rate): top driver for Con Edison, Dominion and RG&E, second for Pepco | Load growth, especially data centres |
+| Flexible MW targets by resource type, and the ramp to reach them | Capacity, energy and transmission price growth |
+| Locational targeting of flexibility and flexible connections | Network upgrade cost per MW |
+| Utility share of savings | Efficiency and flexibility costs |
+| ROE lever: ±60 bp moves Con Edison's 2050 saving by about ±$4.60/month | Existing network headroom and upgrade delays (see the headroom sweep) |
+
+---
+
+## How to run it
+
 ```bash
 git clone https://github.com/robertafcurrie/GridDividend.git
 cd GridDividend
-conda activate base          # or any environment with the packages below
-jupyter notebook GridDividend_v1.0.ipynb
+pip install -r requirements.txt          # pandas, numpy, matplotlib
+jupyter notebook notebooks/GridDividend_Virginia.ipynb   # or _NewYork, _Maryland
+pip install pytest && python -m pytest tests/            # full suite
 ```
 
-**Option B — pip:**
+The layered model is **Section 13** of each state notebook. Each run also writes HTML reports to `reports/`. To run the notebooks headlessly:
+
 ```bash
-git clone https://github.com/robertafcurrie/GridDividend.git
-cd GridDividend
-pip install -r requirements.txt
-jupyter notebook GridDividend_v1.0.ipynb
+cd notebooks
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=python3 GridDividend_Virginia.ipynb
 ```
 
-Then edit any parameter in **Section 1** and choose **Kernel → Restart & Run All**.
+### Configuring it
 
-The notebook is entirely self-contained — no external data files are required.
-
-Each run also writes a self-contained HTML summary report per utility — `reports/{Utility}_BASE_{years}.html` — an EASE Case vs. BAU one-pager with the bill chart, key tables, and modelling assumptions. Toggle via `GENERATE_SUMMARY_REPORT` / `REPORT_SCENARIOS` in Section 1; see `engine/report.py`.
+- **Utility data:** `utilities/*.json`.
+  - `starting_bill`: today's bill, line by line.
+  - `forward_assumptions`: layers, scenarios and the `network` block.
+  - Every input has `source`, `as_of` and `status`.
+- **Scenarios:** `forward_assumptions['scenarios']` sets the levels for Cautious / Central / Ambitious. Each scenario can also set its own `network` values.
+- **Notebook what-ifs:** set `NETWORK_OVERRIDES` at the top of Section 13 to change any network input without editing the JSON, for example `{'subband_enabled': False}` or `{'mean_utilisation': 0.9}`.
+- **Override order** (highest wins): notebook override > scenario values > JSON.
+- **In code:** `engine.layers.project_layers()` takes `overrides`, `enabled` and `network` arguments.
 
 ---
 
-## Model caveats
+## Caveats
 
-This is a **strategic policy simulation**, not a utility planning model or rate-case replica. Key limitations:
+- **Not a forecast.** Results show direction and order of magnitude.
+- **About half the inputs are still `_VERIFY`.** By utility: Con Edison 47%, Dominion 43%, Pepco 50%, RG&E 59% of the status-tagged inputs in `starting_bill` and `forward_assumptions`. Each one carries the reason and what would confirm it.
+- **Proxies.** Con Edison, RG&E and Pepco use Dominion's measured network loading as a `_VERIFY` proxy until their own feeder data is found. New York uses PJM's price spreads for wholesale energy, and the other utilities use Con Edison's connection timelines for ordinary load.
+- **Avoided transmission is a range.** PJM's network service rates are average costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run, so the avoidable share runs from 0 to 1.
+- **ROE is a separate lever.** Central assumes no change in allowed ROE. Changing it moves bills and the utility's equity return, not shared savings earnings.
+- **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited.
+- **RG&E data is provisional** until the final order in Case 25-E-0379.
+- **Dollar bases.** Every $ figure is labelled: nominal or 2026 $, undiscounted or NPV (3%, sometimes 7%). Customer savings include efficiency energy valued at the residential supply rate for all customer classes, which likely overstates the commercial and industrial share.
 
-- **Spatially aggregate.** NWS is modelled as a system-wide percentage of eligible CAPEX. Real outcomes depend on feeder-level constraint types and DER siting. Individual feeders will range from zero NWS benefit (fault-current or asset-condition driven) to near-complete deferral (growth-driven, thermally constrained, demand-coincident).
-- **No real grid-utilization data.** NWS-eligible CAPEX share and avoidance rates are estimates from rate-case filings and industry benchmarks, not measured from actual utility hosting-capacity, feeder-loading, or grid-utilization data, for any of the three utilities modelled. Where a utility publishes real grid-utilization data, we'd want to use it in place of these assumptions — see `_grid_utilization_VERIFY` in `utilities/Dominion_VA.json` for where this is flagged most explicitly.
-- **Not a forecast.** Results show direction and order of magnitude. Key sensitivities are the NWS avoidance rate at maturity and the electrification ramp — see Section 8 (Sensitivity Analysis).
-- **RG&E data is provisional.** The PSC set temporary rates in June 2026; the final order on Case 25-E-0379 is still pending. Parameters should be updated when the order issues.
-- **Dominion Energy Virginia** parameters include five values flagged for verification from the SCC rate case filing (total revenue, property tax rate, NWS eligible CAPEX share, grid-utilization data, and distribution upgrade cost per MW). Results for Dominion VA should be treated as illustrative until those parameters are confirmed.
+---
 
-Full caveats are in **Section 10** of the notebook (14 items, including discussion of permanent avoidance vs temporary deferral and the legislative design implications for clawback provisions).
+## The earlier model (v1.0 and CORRECTED)
+
+Sections 1–12 of each notebook and `GridDividend_v1.0.ipynb` hold the earlier model, kept so its results reproduce exactly. It modelled shared savings as a system-wide share of eligible capex avoided by NWS, plus a capacity pass-through and a utilisation credit. Its scenarios were BAU, BASE (the "EASE Case" in its reports), ACCELERATED, FREEZE_PLUS, COMBINED and FRONTLOADED.
+
+The `CORRECTED` preset switches on the recommended methodology fixes; it is not the default. Pinned tests check the v1.0 results for Con Edison, Dominion and Pepco. New analysis uses the layered model.
 
 ---
 

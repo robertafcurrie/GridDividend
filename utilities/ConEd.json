@@ -404,7 +404,7 @@
         "source": "Con Edison PSC No. 10 Statements of MFC, Feb-Oct 2026, SC 1",
         "as_of": "2026-10-01",
         "status": "derived",
-        "notes": "Utility's supply procurement, credit/collection and uncollectible costs. Mean of 9 statements (Jan 2026 not parsed; Nov 2026 link on coned.com points to an O&R statement)."
+        "notes": "Utility's supply procurement, credit/collection and uncollectible costs. Mean of 9 statements (Jan 2026 not parsed; the Nov 2026 link on coned.com points to an O&R statement, still the case when rechecked on 31 Oct 2026)."
       },
       {
         "id": "cess_rec",
