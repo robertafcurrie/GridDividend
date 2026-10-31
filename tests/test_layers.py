@@ -102,7 +102,12 @@ def test_hook_layers_cannot_be_enabled():
 
 @pytest.mark.parametrize('key,nb', UTILS)
 def test_program_transfer_is_neutral_without_new_resources(key, nb):
-    """Moving today's core programs from surcharges into rates, with no new MW or EE, leaves bills at BAU."""
+    """
+    Moving today's core programs from surcharges into rates, with no new MW or EE, leaves bills at BAU.
+    Checked with no load waiting (sub-band off): in shared savings core programs are recovered per kWh
+    served, so load waiting for an upgrade raises the per-kWh rider slightly, while the BAU surcharge does
+    not depend on served kWh.
+    """
     uj, p = _utility(key, nb)
     pr = uj['forward_assumptions']['layers']['programs']['params']
     ov = {('programs', 'ee_incremental_savings_pct'): 0.0, ('programs', 'flex_conn_share'): 0.0}
@@ -111,7 +116,7 @@ def test_program_transfer_is_neutral_without_new_resources(key, nb):
             ov[('programs', f'mw_{y}_{k}')] = pr[f'mw_start_{k}']['value']
     en = {l: False for l in LY.SAVINGS_LAYERS}
     en['programs'] = True
-    r = LY.project_layers(uj, p, overrides=ov, enabled=en)
+    r = LY.project_layers(uj, p, overrides=ov, enabled=en, network={'subband_enabled': False})
     np.testing.assert_allclose(r['ss']['bill_total'], r['bau']['bill_total'], rtol=0, atol=1e-9)
 
 
@@ -154,7 +159,8 @@ def test_headroom_used_never_exceeds_headroom_created(key, nb, scenario):
         tol = 1e-9
         assert (s['headroom_enable_mw'] + s['headroom_defer_mw'] <= s['headroom_created_mw'] + tol).all()
         assert (s['headroom_used_mw'] <= s['headroom_created_mw'] + tol).all()
-        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + tol).all()
+        # where BAU leaves load waiting, efficiency also frees capacity for it
+        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + s['ee_mw'] + tol).all()
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -164,10 +170,13 @@ def test_network_served_never_exceeds_demand_or_capacity(key, nb):
     for case in ('bau', 'ss'):
         d = r[case]
         assert (d['served_mw'] <= d['network_demand_mw'] + 1e-9).all()
-        assert (d['served_mw'] <= d['network_capacity_mw'] + d['headroom_created_mw'] + 1e-9).all()
+        # existing load above the planning limit is served up to the operating limit
+        assert (d['served_mw'] <= r['operating_limit'] * d['network_capacity_mw'] + d['headroom_created_mw'] + 1e-9).all()
 
 
 _FIXTURE = os.path.join(ROOT, 'tests', 'fixtures', 'layers_single_pool_ebb0c04.json')
+# Columns renamed since the fixtures were written (values unchanged)
+RENAMED = {'waiting_mw': 'upgrade_wait_mw', 'delay_mw_yr_avoided': 'upgrade_delay_mw_yr_avoided'}
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -182,7 +191,8 @@ def test_one_band_equals_single_pool_model(key, nb):
                               overrides=TIGHT_NETWORK if name.endswith('_tight') else None)
         for col, d in ref.items():
             for case in ('bau', 'ss'):
-                np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{name} {col} {case}')
+                np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
+                                              err_msg=f'{name} {col} {case}')
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -192,11 +202,11 @@ def test_bands_sum_to_network_totals(key, nb):
     assert len(r['bands']) > 1
     assert sum(b['load_share'] for b in r['bands']) == pytest.approx(1.0)
     for case in ('bau', 'ss'):
-        g = r['band_detail'][case].groupby('year')[['demand_mw', 'capacity_mw', 'waiting_mw', 'headroom_mw']].sum()
+        g = r['band_detail'][case].groupby('year')[['demand_mw', 'capacity_mw', 'upgrade_wait_mw', 'headroom_mw']].sum()
         d = r[case].set_index('year')
         np.testing.assert_allclose(g['demand_mw'], d['network_demand_mw'], rtol=1e-12)
         np.testing.assert_allclose(g['capacity_mw'], d['network_capacity_mw'], rtol=1e-12)
-        np.testing.assert_allclose(g['waiting_mw'], d['waiting_mw'], rtol=1e-9, atol=1e-9)
+        np.testing.assert_allclose(g['upgrade_wait_mw'], d['upgrade_wait_mw'], rtol=1e-9, atol=1e-9)
         np.testing.assert_allclose(g['headroom_mw'], d['headroom_created_mw'], rtol=1e-12, atol=1e-12)
 
 
@@ -219,7 +229,7 @@ def test_access_zero_with_layers_off(key, nb):
     uj, p = _utility(key, nb)
     r = LY.project_layers(uj, p, enabled={l: False for l in LY.SAVINGS_LAYERS})
     a = LY.access_summary(r)
-    assert a['Total delay avoided (MW-years)'] == 0
+    assert a[f'{LY.UD} avoided (MW-years)'] == 0
     assert a['Connection cost avoided by new customers ($M, undiscounted nominal)'] == 0
 
 
@@ -232,18 +242,26 @@ SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 @pytest.mark.parametrize('key,nb', UTILS)
 @pytest.mark.parametrize('source', ['current_json', 'legacy_json'])
 def test_network_defaults_reproduce_1b09e20(key, nb, source):
-    """Network block at its defaults (current JSON), and the 1b09e20 JSON without one, reproduce 1b09e20 exactly."""
+    """
+    The 1b09e20 JSON (no network block) reproduces 1b09e20 exactly. With the
+    current JSON, Cautious and Ambitious reproduce it as they stand, and Central
+    does with the constrained sub-band switched off (it is on for Central since
+    the sub-band became a Central default).
+    """
     from engine.report import TIGHT_NETWORK
     fx = json.load(open(_FIXTURE_1B09))[key]
     uj, p = _utility(key, nb)
     if source == 'legacy_json':
         uj = {**uj, 'forward_assumptions': fx['forward_assumptions']}
     for name, ref in fx['runs'].items():
-        r = LY.project_layers(uj, p, scenario=name.replace('_tight', ''),
-                              overrides=TIGHT_NETWORK if name.endswith('_tight') else None)
+        scn = name.replace('_tight', '')
+        nw = {'subband_enabled': False} if (source == 'current_json' and scn == 'Central') else None
+        r = LY.project_layers(uj, p, scenario=scn, overrides=TIGHT_NETWORK if name.endswith('_tight') else None,
+                              network=nw)
         for col, d in ref.items():
             for case in ('bau', 'ss'):
-                np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{name} {col} {case}')
+                np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
+                                              err_msg=f'{name} {col} {case}')
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -275,15 +293,16 @@ def test_served_never_exceeds_operating_limit(key, nb):
         sub = r['bands'][0]
         if nw.get('subband_utilisation', 1.125) > r['operating_limit']:
             assert b0['served_mw'] == pytest.approx(r['operating_limit'] * sub['C0'])
-            assert b0['waiting_mw'] > 0
+            assert b0['upgrade_wait_mw'] > 0
 
 
 def test_full_utilisation_long_lead_gives_bau_queue():
     uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
-    base = LY.project_layers(uj, p)
-    assert base['bau']['waiting_mw'].max() == 0
-    r = LY.project_layers(uj, p, network={'mean_utilisation': 1.0, 'reinforcement_lead_years': 'high'})
-    assert r['bau']['waiting_mw'].max() > 0
+    base = LY.project_layers(uj, p, network={'subband_enabled': False})
+    assert base['bau']['upgrade_wait_mw'].max() == 0
+    r = LY.project_layers(uj, p, network={'subband_enabled': False, 'mean_utilisation': 1.0,
+                                          'reinforcement_lead_years': 'high'})
+    assert r['bau']['upgrade_wait_mw'].max() > 0
     assert all(b['loading0'] == pytest.approx(1.0) for b in r['bands'])
 
 
@@ -291,15 +310,16 @@ def test_full_utilisation_long_lead_gives_bau_queue():
 def test_subband_gives_bau_queue_and_keeps_totals(key, nb):
     """Sub-band: load above the planning limit at 2026, new load waits in BAU; total load and capacity unchanged."""
     uj, p = _utility(key, nb)
-    off, on = LY.project_layers(uj, p), LY.project_layers(uj, p, network={'subband_enabled': True})
+    off = LY.project_layers(uj, p, network={'subband_enabled': False})
+    on = LY.project_layers(uj, p, network={'subband_enabled': True})
     sub = on['bands'][0]
     assert sub['name'] == 'Above planning limit' and sub['load_share'] == pytest.approx(0.043)
     assert sub['loading0'] == pytest.approx(1.125)
     assert sum(b['load_share'] for b in on['bands']) == pytest.approx(1.0)
     assert sum(b['C0'] for b in on['bands']) == pytest.approx(sum(b['C0'] for b in off['bands']))
     assert on['bau']['above_planning_limit_mw'].iloc[0] > 0
-    assert on['bau']['waiting_mw'].max() > 0
-    assert LY.access_summary(on)['Total delay avoided (MW-years)'] > 0
+    assert on['bau']['upgrade_wait_mw'].max() > 0
+    assert LY.access_summary(on)[f'{LY.UD} avoided (MW-years)'] > 0
 
 
 @pytest.mark.parametrize('mean', [0.6, 0.75, 0.9, 1.0])
@@ -309,7 +329,7 @@ def test_mean_utilisation_shift(mean):
         bands = LY.project_layers(uj, p, network={'mean_utilisation': mean, 'band_mode': mode})['bands']
         cw = sum(b['capacity_share'] * b['loading0'] for b in bands) / sum(b['capacity_share'] for b in bands)
         assert cw == pytest.approx(mean, abs=1e-9)
-        assert max(b['loading0'] for b in bands) <= 1.0 + 1e-12
+        assert max(b['loading0'] for b in bands if not b['subband']) <= 1.0 + 1e-12
 
 
 def test_network_override_order():
@@ -335,7 +355,59 @@ def test_network_override_order():
 def test_headroom_sweep_grid():
     uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
     sw = LY.headroom_sweep(uj, p, means=(0.7, 0.8), shares=(0.0, 0.043))
-    assert len(sw) == 4
+    col = f'{LY.UD} avoided (MW-years)'
+    assert len(sw) == 4 * len(LY.DELAY_CASES)
     zero = sw[sw['sub-band share'] == 0]
-    assert (zero['Delay avoided (MW-years)'] == 0).all()
-    assert (sw[sw['sub-band share'] > 0]['Delay avoided (MW-years)'] > 0).all()
+    assert (zero[col] == 0).all()
+    assert (sw[sw['sub-band share'] > 0][col] > 0).all()
+    c = sw[(sw['sub-band share'] > 0) & (sw['mean utilisation'] == 0.8)].set_index('delay case')[col]
+    assert c['short'] < c['central'] < c['long']
+
+
+# ── Upgrade Delay for Interconnection ─────────────────────────────────────────
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_subband_on_in_central_only(key, nb):
+    uj, p = _utility(key, nb)
+    for sc, on in (('Central', True), (None, True), ('Cautious', False), ('Ambitious', False)):
+        r = LY.project_layers(uj, p, scenario=sc)
+        assert any(b['subband'] for b in r['bands']) is on
+        assert (r['bau']['upgrade_wait_mw'].max() > 0) is on
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_upgrade_delay_mw_years_identity(key, nb):
+    """MW-years by request year (first in, first out) = sum of MW waiting over the years; avoided = BAU - SS."""
+    uj, p = _utility(key, nb)
+    for nw in (None, {'subband_load_share': 0.15, 'flex_targeting_enabled': True}):
+        r = LY.project_layers(uj, p, network=nw)
+        for case in ('bau', 'ss'):
+            d = r[case]
+            assert d['upgrade_delay_mw_yr'].sum() == pytest.approx(d['upgrade_wait_mw'].sum(), rel=1e-9, abs=1e-6)
+        assert r['ss']['upgrade_delay_mw_yr_avoided'].sum() == pytest.approx(
+            r['bau']['upgrade_delay_mw_yr'].sum() - r['ss']['upgrade_delay_mw_yr'].sum(), rel=1e-9, abs=1e-6)
+
+
+def test_upgrade_delay_inputs_drive_the_wait():
+    """With the backlog cleared at once, BAU waits never exceed the upgrade delay; longer delays and slower clearance wait longer."""
+    uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
+    run = lambda **nw: LY.project_layers(uj, p, network=nw)
+    r = run(upgrade_delay_ordinary_years=2, upgrade_delay_large_years=2, backlog_clearance_pct=1.0)
+    b = r['bau']
+    later = b[(b['year'] >= 2028) & (b['year'] <= 2045) & (b['upgrade_delay_mw_affected'] > 0)]
+    assert len(later) > 0 and (later['upgrade_delay_yr'] <= 2.0 + 1e-9).all() and (later['upgrade_delay_yr'] > 0).all()
+    mwyr = lambda r_: r_['bau']['upgrade_delay_mw_yr'].sum()
+    assert mwyr(run(upgrade_delay_ordinary_years='low', upgrade_delay_large_years='low')) < mwyr(run()) < \
+        mwyr(run(upgrade_delay_ordinary_years='high', upgrade_delay_large_years='high'))
+    above = lambda r_: r_['bau']['above_planning_limit_mw'].sum()
+    assert above(run(backlog_clearance_pct='high')) < above(run()) < above(run(backlog_clearance_pct='low'))
+    assert mwyr(run(constrained_build_priority=False)) >= mwyr(run()) - 1e-9
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('scenario', LY.SCENARIOS)
+def test_flexibility_never_lengthens_upgrade_delay(key, nb, scenario):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p, scenario=scenario, network={'subband_enabled': True})
+    assert r['ss']['upgrade_delay_mw_yr'].sum() <= r['bau']['upgrade_delay_mw_yr'].sum() + 1e-9
+    assert r['ss']['upgrade_delay_mw_affected'].sum() <= r['bau']['upgrade_delay_mw_affected'].sum() + 1e-9

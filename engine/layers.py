@@ -3,13 +3,16 @@
 # project(), run_named_scenario() or any v1.0 / CORRECTED result.
 #
 # The distribution network has explicit firm capacity: it grows only through
-# reinforcement (lead time, maximum build rate); load above capacity waits.
+# reinforcement (lead time, maximum build rate); load above capacity waits for
+# the upgrade (the Upgrade Delay for Interconnection: the time a new customer in
+# a constrained area waits for the grid upgrade before connecting).
 # The network is split into loading bands (groups of substations from most to
-# least loaded, `system_needs.network_bands`); constraints, delay, deferral and
+# least loaded, `network.bands`); constraints, upgrade delay, deferral and
 # load enabled are computed per band and summed. No bands = one band at the
 # planning target (the single-pool model). Every headroom input lives in the
 # `network` block of forward_assumptions (bands, planning limit, constrained
-# sub-band, lead time, build rate, seed pipeline, flexibility targeting), set
+# sub-band, upgrade delays and backlog clearance, lead time, build rate, seed
+# pipeline, flexibility targeting), set
 # at three levels, highest wins: notebook override (NETWORK_OVERRIDES) >
 # scenario `network` values > the utility JSON.
 #
@@ -56,6 +59,7 @@ CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 's
               'capacity', 'transmission', 'taxes_and_fees')
 DIST_CATS = ('distribution_base', 'distribution_rider')
 FLEX_TYPES = ('dr', 'ev', 'storage', 'der')
+UD = 'Upgrade Delay for Interconnection'
 # Network inputs formerly in system_needs (older forward_assumptions without a
 # `network` block are read from there; network_bands -> bands)
 _LEGACY_NETWORK = {'planning_headroom': 'planning_headroom', 'reinforcement_lead_years': 'reinforcement_lead_years',
@@ -352,6 +356,51 @@ def operating_limit(nw):
     return 1 / nw['planning_limit_factor'] if nw.get('planning_limit_factor') else 1.0
 
 
+def _split_delay(y, mw, d):
+    """Capacity ordered in year y arriving after d years (fractional d split between the two whole years)."""
+    k = int(np.floor(d))
+    f = d - k
+    return [(y + k + j, m) for j, m in ((0, mw * (1 - f)), (1, mw * f)) if m > 0]
+
+
+def _delay_cohorts(D, W):
+    """
+    Upgrade Delay for Interconnection by request year (first in, first out).
+    New load requested in year t = demand growth (load already waiting at the
+    start counts as requested in 2026); it connects as the MW waiting falls.
+    Returns MW-years waited, MW affected (waited at least one year) and MW still
+    waiting in 2050 (censored: their wait is counted to the end of 2050), each
+    by request year. Total MW-years equals the sum of MW waiting over the years.
+    """
+    n = len(D)
+    mwyr, aff, cens = np.zeros(n), np.zeros(n), np.zeros(n)
+    q = []
+    for t in range(n):
+        A = W[0] if t == 0 else max(0.0, D[t] - D[t - 1])
+        if A > 1e-12:
+            q.append([t, A])
+        excess = sum(m for _, m in q) - W[t]
+        if excess < -1e-9:                      # waiting rose without new requests
+            q.append([t, -excess])
+            excess = 0.0
+        while excess > 1e-12 and q:
+            y0, m = q[0]
+            take = min(m, excess)
+            if t > y0:
+                mwyr[y0] += (t - y0) * take
+                aff[y0] += take
+            excess -= take
+            if take >= m - 1e-12:
+                q.pop(0)
+            else:
+                q[0][1] = m - take
+    for y0, m in q:
+        mwyr[y0] += (n - y0) * m
+        aff[y0] += m
+        cens[y0] += m
+    return mwyr, aff, cens
+
+
 def _band_spec(nw, h):
     """
     Band list before the sub-band: explicit (`bands`) or generated (`n_bands`
@@ -457,11 +506,16 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     grows only through reinforcement, ordered when demand x (1 + headroom)
     exceeds capacity in service + pipeline (+ headroom counted for deferral),
     arriving after the lead time, capped at a maximum build rate. Served load
-    = min(demand, capacity [+ flexible headroom]); the rest waits. Existing
-    load (2026) is served up to the operating limit (planning capacity /
-    planning_limit_factor): in a band above the planning limit, existing load
-    stays connected and new load waits until reinforcement (ordered from 2026,
-    subject to lead time and build rate) brings capacity up to it.
+    = min(demand, capacity [+ flexible headroom]); the rest waits for the
+    upgrade. Existing load (2026) is served up to the operating limit (planning
+    capacity / planning_limit_factor). In constrained areas (bands that start
+    above the planning limit: the sub-band) the Upgrade Delay for
+    Interconnection inputs replace the reactive planner: the backlog above the
+    planning limit is cleared at backlog_clearance_pct a year, and capacity for
+    new load arrives after the upgrade delay (ordinary / large loads), with or
+    without build-rate priority. Without those inputs the reactive planner
+    applies there too. The delay itself is measured per request year, first in
+    first out (columns upgrade_delay_*).
 
     Flexible headroom (shared savings) = firm flexible MW x locational match
     + flexible large-load connections ('derived' mode), or an assumed % of
@@ -529,6 +583,22 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     seed = _seed_from(nw, DN, h, lead) if on['system_needs'] else []
     seeds = [[(yy, m * bd['growth_share']) for (yy, m) in seed] for bd in bands]
     thr = nw.get('constrained_loading', 1.0)
+    # Constrained areas (bands that start above their planning limit: the
+    # sub-band). Upgrade Delay for Interconnection inputs replace the reactive
+    # planner there: capacity for new load is ordered on request and in service
+    # after the upgrade delay (ordinary / large loads, weighted by the large-load
+    # share of network growth that year); the existing overload is cleared at
+    # backlog_clearance_pct of the outstanding backlog per year (in service the
+    # next year); without build-rate priority both are capped at max_build_pct.
+    ud_in = (nw.get('upgrade_delay_ordinary_years'), nw.get('upgrade_delay_large_years'),
+             nw.get('backlog_clearance_pct'))
+    ud_on = all(v is not None for v in ud_in) and on['system_needs']
+    d_ord, d_lrg, clear_pct = ud_in
+    prio = bool(nw.get('constrained_build_priority', True))
+    con_area = [bool(bd.get('subband')) and ud_on for bd in bands]
+    lrg = sysdf['dc_dist_new_mw'].values + pr['ev_hub_share'] * sysdf['ev_peak_mw'].values
+    dDN, dL = np.diff(DN, prepend=DN[0]), np.diff(lrg, prepend=lrg[0])
+    large_sh = np.clip(np.where(dDN > 1e-9, dL / np.maximum(dDN, 1e-12), 0.0), 0.0, 1.0)
     ramp = {k: pr.get(f'ramp_pct_peak_{k}') for k in FLEX_TYPES}
     cf_share = le.get('customer_funded_share', 0.0) or 0.0
     elec_share = np.clip(np.where(DN > DN[0], sysdf['elec_peak_mw'].values / np.maximum(DN - DN[0], 1e-12), 0.0),
@@ -549,7 +619,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         ee_vint = []
         Cb = [bd['C0'] for bd in bands]
         pipes = [list(sd) for sd in seeds]
-        cum_wait_mwyr = cum_new_mw = 0.0
+        pipes_new = [[] for _ in NB]                 # new-load upgrades in constrained areas
+        Nin, Nord = [0.0 for _ in NB], [0.0 for _ in NB]
         prev_enabled = prev_fc = 0.0
         prev_mw = None
         band_rows = []
@@ -596,8 +667,13 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 a_i = sum(m for (yy, m) in pipes[i] if yy == y)
                 pipes[i] = [(yy, m) for (yy, m) in pipes[i] if yy != y]
                 Cb[i] += a_i
+                if con_area[i]:
+                    a_n = sum(m for (yy, m) in pipes_new[i] if yy == y)
+                    pipes_new[i] = [(yy, m) for (yy, m) in pipes_new[i] if yy != y]
+                    Cb[i] += a_n
+                    Nin[i] += a_n
+                    a_i += a_n
                 arr_b.append(a_i)
-            arriving = sum(arr_b)
             C = sum(Cb)
             if ss and (Ld or Le) and active:
                 if mode == 'derived':
@@ -616,9 +692,30 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             Hen_b, Hdef_b, srv_b, wait_b, used_b, ord_b, con_b, abv_b = [], [], [], [], [], [], [], []
             for i in NB:
                 # Priority to load enabled only where BAU leaves load waiting
-                wb = res['bau_bands'][i]['waiting_mw'][t] if ss else 0.0
+                wb = res['bau_bands'][i]['upgrade_wait_mw'][t] if ss else 0.0
                 h_en = min(Hb[i] * le['enable_share'], wb) if (Le and wb > 0) else 0.0
                 h_def = (Hb[i] - h_en) if Ld else 0.0
+                if con_area[i]:
+                    # Constrained area: existing overload cleared at the backlog
+                    # clearance rate; new load waits the upgrade delay
+                    gap = max(0.0, G[i] - (Cb[i] - Nin[i]) - sum(m for (_, m) in pipes[i]))
+                    use = min(h_def, gap)
+                    o_bl = clear_pct * (gap - use)
+                    o_new = max(0.0, (Db[i] - DNb[i][0]) * (1 + h) - (h_def - use) - Nord[i])
+                    if not prio and o_bl + o_new > nw['max_build_pct'] * Cb[i]:
+                        sc_ = nw['max_build_pct'] * Cb[i] / (o_bl + o_new)
+                        o_bl, o_new = o_bl * sc_, o_new * sc_
+                    if o_bl > 0:
+                        pipes[i].append((y + 1, o_bl))
+                    Nord[i] += o_new
+                    for (yy, m) in (_split_delay(y, o_new * (1 - large_sh[t]), d_ord)
+                                    + _split_delay(y, o_new * large_sh[t], d_lrg)):
+                        if yy == y:                          # upgrade within the year
+                            Cb[i] += m
+                            Nin[i] += m
+                            arr_b[i] += m
+                        else:
+                            pipes_new[i].append((yy, m))
                 # Deferral headroom only carries load BAU would serve anyway (it
                 # substitutes for reinforcement); only load-enabled headroom can
                 # connect load that BAU leaves waiting. One use per MW.
@@ -630,19 +727,25 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 sv = min(Db[i], min(max(Cb[i] + h_def, G[i]), max(cs_i, bs)) + h_en)
                 used_b.append(min(max(0.0, sv - cs_i), h_en + h_def))
                 # Reinforcement ordering (reactive), capped at the maximum build rate
-                view = Cb[i] + sum(m for (_, m) in pipes[i]) + h_def
-                o = min(max(0.0, Db[i] * (1 + h) - view), nw['max_build_pct'] * Cb[i]) if on['system_needs'] else 0.0
-                if o > 0:
-                    pipes[i].append((y + lead, o))
+                if con_area[i]:
+                    o = o_bl + o_new
+                else:
+                    view = Cb[i] + sum(m for (_, m) in pipes[i]) + h_def
+                    o = (min(max(0.0, Db[i] * (1 + h) - view), nw['max_build_pct'] * Cb[i])
+                         if on['system_needs'] else 0.0)
+                    if o > 0:
+                        pipes[i].append((y + lead, o))
                 eff = Cb[i] + h_en + h_def
                 con_b.append(Db[i] > thr * eff + 1e-9)
                 abv_b.append(max(0.0, sv - eff))                    # served above the planning limit
                 Hen_b.append(h_en); Hdef_b.append(h_def); srv_b.append(sv); wait_b.append(Db[i] - sv); ord_b.append(o)
                 band_rows.append(dict(year=y, band=bands[i]['name'], demand_mw=Db[i], capacity_mw=Cb[i],
                                       operating_limit_mw=op_x * Cb[i], headroom_mw=Hb[i], served_mw=sv,
-                                      waiting_mw=Db[i] - sv, above_planning_limit_mw=abv_b[-1],
+                                      upgrade_wait_mw=Db[i] - sv, above_planning_limit_mw=abv_b[-1],
                                       loading=Db[i] / eff if eff else 0.0, constrained=con_b[-1]))
             H_en, H_def = sum(Hen_b), sum(Hdef_b)
+            arriving = sum(arr_b)
+            C = sum(Cb)
             served, used, order = sum(srv_b), sum(used_b), sum(ord_b)
             waiting = sum(wait_b)
             if not ss:
@@ -652,11 +755,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             if cond0 is None:
                 cond0 = max(0.0, params['annual_capex_m'] - growth)
             capex = growth + cond0 * _infl(infl, t) if on['system_needs'] else params['annual_capex_m']
-            # Delay metrics
-            new_mw = max(0.0, DN[t] - DN[t - 1]) if t else 0.0
-            cum_new_mw += new_mw
-            cum_wait_mwyr += waiting
-            enabled_mw = (sum(max(0.0, res['bau_bands'][i]['waiting_mw'][t] - wait_b[i]) for i in NB)
+            enabled_mw = (sum(max(0.0, res['bau_bands'][i]['upgrade_wait_mw'][t] - wait_b[i]) for i in NB)
                           if ss else 0.0)                                   # connected sooner
             new_enabled = max(0.0, enabled_mw - prev_enabled)
             prev_enabled = max(prev_enabled, enabled_mw)
@@ -667,7 +766,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             new_fc = max(0.0, fc_mw - prev_fc)
             prev_fc = max(prev_fc, fc_mw)
             ciac_avoided = ((new_enabled + new_fc) * cost_mw * cf_share * _infl(infl, t)) if ss else 0.0
-            delay_avoided = (res['bau']['waiting_mw'].iloc[t] - waiting) if ss else 0.0
+            delay_avoided = (res['bau']['upgrade_wait_mw'].iloc[t] - waiting) if ss else 0.0
             elec_fwd = ((res['bau']['mwh_not_served_gwh'].iloc[t] - served_gwh_loss) * elec_share[t]) if ss else 0.0
             S_case = S[t] - (ee_gwh if active else 0.0) - served_gwh_loss - fc_gwh
             inc_om = (max(0.0, enabled_mw) * 8.76 * lf_new * le['incremental_om_mwh'] * _infl(infl, t) / 1000
@@ -752,13 +851,12 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 residential_usage_index=usage, sales_gwh=S_case, ee_gwh=ee_gwh if active else 0.0,
                 peak_mw=P[t], network_demand_mw=D, network_capacity_mw=C, headroom_created_mw=H,
                 headroom_enable_mw=H_en, headroom_defer_mw=H_def, headroom_used_mw=used,
-                served_mw=served, waiting_mw=waiting, mwh_not_served_gwh=served_gwh_loss,
+                served_mw=served, upgrade_wait_mw=waiting, mwh_not_served_gwh=served_gwh_loss,
                 load_in_constrained_bands_mw=constrained_mw, constrained_bands=sum(con_b),
                 above_planning_limit_mw=sum(abv_b),
-                delay_mw_yr_avoided=delay_avoided, connection_cost_avoided_m=ciac_avoided,
+                upgrade_delay_mw_yr_avoided=delay_avoided, connection_cost_avoided_m=ciac_avoided,
                 electrification_gwh_brought_forward=elec_fwd,
                 enabled_mw=enabled_mw, reinforcement_ordered_mw=order, reinforcement_in_service_mw=arriving,
-                avg_connection_delay_yr=(cum_wait_mwyr / cum_new_mw if cum_new_mw > 0 else 0.0),
                 capacity_uplift_pct=(H / C if C else 0.0), flex_conn_mw=fc_mw,
                 capex_m=capex, growth_capex_m=growth, conn_capex_m=conn_capex, incremental_om_m=inc_om,
                 rate_base_m=rb_earning, wires_rate_base_m=rb, regulatory_asset_m=reg_asset, rr_dist_m=rr_dist,
@@ -779,9 +877,20 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                                     firm_mw=firm_flex + (ee_mw if active else 0.0), peak_mw=P[t]))
         res[case] = pd.DataFrame(rows)
         res[f'{case}_band_df'] = pd.DataFrame(band_rows)
+        # Upgrade Delay for Interconnection, by request year (all bands)
+        bdf = res[f'{case}_band_df']
+        mwyr, aff, cens = np.zeros(len(YEARS)), np.zeros(len(YEARS)), np.zeros(len(YEARS))
+        for bn in [bd['name'] for bd in bands]:
+            g_ = bdf[bdf['band'] == bn]
+            m_, a_, c_ = _delay_cohorts(g_['demand_mw'].values, g_['upgrade_wait_mw'].values)
+            mwyr, aff, cens = mwyr + m_, aff + a_, cens + c_
+        res[case]['upgrade_delay_yr'] = np.where(aff > 1e-9, mwyr / np.maximum(aff, 1e-12), 0.0)
+        res[case]['upgrade_delay_mw_affected'] = aff
+        res[case]['upgrade_delay_mw_yr'] = mwyr
+        res[case]['upgrade_delay_mw_still_waiting_2050'] = cens
         if not ss:
             res['bau_bands'] = [{'served_mw': [bt[0][i] for bt in bau_band_t],
-                                 'waiting_mw': [bt[1][i] for bt in bau_band_t]} for i in NB]
+                                 'upgrade_wait_mw': [bt[1][i] for bt in bau_band_t]} for i in NB]
     return dict(bau=res['bau'], ss=res['ss'], mw=pd.DataFrame(mw_rows), system=sysdf, assumptions=a,
                 bands=bands, band_detail={'bau': res['bau_band_df'], 'ss': res['ss_band_df']},
                 program_spend0_m=spend0, program_spend0_parts=spend_parts, starting_lines=lines0,
@@ -910,10 +1019,11 @@ def connection_table(run, years=(2030, 2035, 2050)):
     rows = []
     for y in years:
         rows.append({'year': y,
-                     'BAU waiting MW': b.loc[y, 'waiting_mw'], 'SS waiting MW': s.loc[y, 'waiting_mw'],
+                     'BAU MW waiting for upgrade': b.loc[y, 'upgrade_wait_mw'],
+                     'SS MW waiting for upgrade': s.loc[y, 'upgrade_wait_mw'],
                      'MW connected sooner (SS)': s.loc[y, 'enabled_mw'],
-                     'BAU avg connection delay (yr)': b.loc[y, 'avg_connection_delay_yr'],
-                     'SS avg connection delay (yr)': s.loc[y, 'avg_connection_delay_yr'],
+                     f'BAU {UD} (yr, load requested that year)': b.loc[y, 'upgrade_delay_yr'],
+                     f'SS {UD} (yr, load requested that year)': s.loc[y, 'upgrade_delay_yr'],
                      'BAU GWh not served on time': b.loc[y, 'mwh_not_served_gwh'],
                      'SS GWh not served on time': s.loc[y, 'mwh_not_served_gwh'],
                      'Effective capacity uplift %': s.loc[y, 'capacity_uplift_pct'],
@@ -1031,14 +1141,15 @@ def constrained_table(run, years=(2026, 2030, 2035, 2040, 2050)):
                      'SS MW in constrained bands': s.loc[y, 'load_in_constrained_bands_mw'],
                      'BAU constrained bands': int(b.loc[y, 'constrained_bands']),
                      'SS constrained bands': int(s.loc[y, 'constrained_bands']),
-                     'BAU waiting MW': b.loc[y, 'waiting_mw'], 'SS waiting MW': s.loc[y, 'waiting_mw'],
+                     'BAU MW waiting for upgrade': b.loc[y, 'upgrade_wait_mw'],
+                     'SS MW waiting for upgrade': s.loc[y, 'upgrade_wait_mw'],
                      'BAU MW above planning limit': b.loc[y, 'above_planning_limit_mw'],
                      'SS MW above planning limit': s.loc[y, 'above_planning_limit_mw']})
     return pd.DataFrame(rows).set_index('year')
 
 
 def band_table(run, years=(2026, 2035, 2050)):
-    """Per-band demand, firm capacity, flexible headroom, waiting MW and loading, BAU and shared savings."""
+    """Per-band demand, firm capacity, flexible headroom, MW waiting for upgrade and loading, BAU and shared savings."""
     out = []
     for case, lbl in (('bau', 'BAU'), ('ss', 'Shared savings')):
         d = run['band_detail'][case]
@@ -1046,21 +1157,33 @@ def band_table(run, years=(2026, 2035, 2050)):
     return pd.concat(out).set_index(['year', 'case', 'band'])
 
 
+def _avg_delay(df):
+    aff = df['upgrade_delay_mw_affected'].sum()
+    return float(df['upgrade_delay_mw_yr'].sum() / aff) if aff > 1e-9 else 0.0
+
+
 def access_summary(run):
     """
     Access benefits of shared savings, reported separately from the bill: they
     go to the customers being connected, not to existing residential customers.
+    Upgrade Delay for Interconnection = years a new customer in a constrained
+    area waits for the grid upgrade before connecting (MW-weighted over the MW
+    affected, i.e. MW that waited at least a year; load still waiting in 2050 is
+    counted to the end of 2050).
     """
     b, s = run['bau'], run['ss']
     yrs = s['year'].values
     return {'MW connected sooner, 2035': float(s.loc[s['year'] == 2035, 'enabled_mw'].iloc[0]),
             'MW connected sooner, 2050': float(s.loc[s['year'] == 2050, 'enabled_mw'].iloc[0]),
             'MW connected sooner, peak year': float(s['enabled_mw'].max()),
-            'Total delay avoided (MW-years)': float(s['delay_mw_yr_avoided'].sum()),
-            'Avg connection delay, BAU 2050 (yr)': float(b['avg_connection_delay_yr'].iloc[-1]),
-            'Avg connection delay, SS 2050 (yr)': float(s['avg_connection_delay_yr'].iloc[-1]),
-            'Avg delay avoided per MW of new load (yr)': float(b['avg_connection_delay_yr'].iloc[-1]
-                                                               - s['avg_connection_delay_yr'].iloc[-1]),
+            f'{UD}, BAU (avg yr per MW affected)': _avg_delay(b),
+            f'{UD}, SS (avg yr per MW affected)': _avg_delay(s),
+            f'{UD}, SS (avg yr per MW affected in BAU)': (
+                float(s['upgrade_delay_mw_yr'].sum() / b['upgrade_delay_mw_affected'].sum())
+                if b['upgrade_delay_mw_affected'].sum() > 1e-9 else 0.0),
+            'MW affected by upgrade delay, BAU (2026-2050 requests)': float(b['upgrade_delay_mw_affected'].sum()),
+            'MW affected by upgrade delay, SS (2026-2050 requests)': float(s['upgrade_delay_mw_affected'].sum()),
+            f'{UD} avoided (MW-years)': float(s['upgrade_delay_mw_yr_avoided'].sum()),
             'Connection cost avoided by new customers ($M, undiscounted nominal)':
                 float(s['connection_cost_avoided_m'].sum()),
             'Connection cost avoided by new customers ($M, NPV 3%, 2026 $)':
@@ -1069,9 +1192,29 @@ def access_summary(run):
             'Flexible connections MW, 2050': float(s['flex_conn_mw'].iloc[-1])}
 
 
-def access_table(utility_json, params, overrides=None, scenarios=SCENARIOS):
-    """access_summary() for each scenario (rows)."""
-    return pd.DataFrame({sc: access_summary(project_layers(utility_json, params, scenario=sc, overrides=overrides))
+def upgrade_delay_table(run, years=(2026, 2028, 2030, 2032, 2035, 2040, 2050)):
+    """
+    Upgrade Delay for Interconnection by year, BAU vs shared savings: average
+    years waited by load requested that year (MW affected only), MW affected,
+    MW waiting for upgrade, and MW-years of delay avoided (that calendar year).
+    """
+    b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
+    rows = []
+    for y in years:
+        rows.append({'year': y,
+                     f'BAU {UD} (yr)': b.loc[y, 'upgrade_delay_yr'], f'SS {UD} (yr)': s.loc[y, 'upgrade_delay_yr'],
+                     'BAU MW affected (requested that year)': b.loc[y, 'upgrade_delay_mw_affected'],
+                     'SS MW affected (requested that year)': s.loc[y, 'upgrade_delay_mw_affected'],
+                     'BAU MW waiting for upgrade': b.loc[y, 'upgrade_wait_mw'],
+                     'SS MW waiting for upgrade': s.loc[y, 'upgrade_wait_mw'],
+                     'MW-years of delay avoided': s.loc[y, 'upgrade_delay_mw_yr_avoided']})
+    return pd.DataFrame(rows).set_index('year')
+
+
+def access_table(utility_json, params, overrides=None, scenarios=SCENARIOS, network=None):
+    """access_summary() for each scenario (rows); network {param: value} applies to every scenario."""
+    return pd.DataFrame({sc: access_summary(project_layers(utility_json, params, scenario=sc, overrides=overrides,
+                                                           network=network))
                          for sc in scenarios}).T
 
 
@@ -1135,34 +1278,47 @@ def system_summary(run):
         'Shared savings earnings ($B, undiscounted nominal)': earn.sum() / 1e3,
         'Shared savings earnings ($B, NPV 3%, 2026 $)': _npv(earn, yrs, 0.03) / 1e3,
         'MW connected sooner (peak year)': acc['MW connected sooner, peak year'],
-        'Delay avoided (MW-years)': acc['Total delay avoided (MW-years)'],
+        f'{UD} avoided (MW-years)': acc[f'{UD} avoided (MW-years)'],
+        f'{UD}, BAU (avg yr)': acc[f'{UD}, BAU (avg yr per MW affected)'],
+        f'{UD}, SS (avg yr)': acc[f'{UD}, SS (avg yr per MW affected)'],
+        f'{UD}, SS (avg yr per MW affected in BAU)': acc[f'{UD}, SS (avg yr per MW affected in BAU)'],
+        'MW affected by upgrade delay, BAU': acc['MW affected by upgrade delay, BAU (2026-2050 requests)'],
         'Connection cost avoided ($M, undiscounted nominal)':
             acc['Connection cost avoided by new customers ($M, undiscounted nominal)'],
-        'BAU queue, peak (MW waiting)': float(b['waiting_mw'].max()),
+        'BAU MW waiting for upgrade, peak': float(b['upgrade_wait_mw'].max()),
         'BAU MW above planning limit, 2026': float(b['above_planning_limit_mw'].iloc[0]),
     }
 
 
 SWEEP_MEANS = tuple(round(0.60 + 0.05 * i, 2) for i in range(9))       # 60% to 100%
 SWEEP_SUBBAND = (0.0, 0.02, 0.043, 0.08, 0.15)
+# Upgrade Delay for Interconnection cases: short = low delays + high clearance; long = the reverse
+DELAY_CASES = {'short': {'upgrade_delay_ordinary_years': 'low', 'upgrade_delay_large_years': 'low',
+                         'backlog_clearance_pct': 'high'},
+               'central': {},
+               'long': {'upgrade_delay_ordinary_years': 'high', 'upgrade_delay_large_years': 'high',
+                        'backlog_clearance_pct': 'low'}}
 
 
-def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND, scenario='Central',
-                   network=None, measure='average'):
+def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND, delay_cases=tuple(DELAY_CASES),
+                   scenario='Central', network=None, measure='average'):
     """
     Headroom sweep: mean starting planning utilisation x share of load in the
-    constrained sub-band (0 = no sub-band), everything else at the scenario.
-    network {param: value} adds fixed inputs (e.g. flex_targeting_enabled).
-    One row per point.
+    constrained sub-band (0 = no sub-band) x Upgrade Delay case (short /
+    central / long: the upgrade delays and backlog clearance at low / central /
+    high), everything else at the scenario. network {param: value} adds fixed
+    inputs (e.g. flex_targeting_enabled). One row per point.
     """
     col = MEASURE_COL[measure]
     rows = []
-    for m in means:
-        for x in shares:
-            nw = {**(network or {}), 'mean_utilisation': m, 'subband_enabled': x > 0, 'subband_load_share': x}
-            r = project_layers(utility_json, params, scenario=scenario, network=nw)
-            row = {'mean utilisation': m, 'sub-band share': x,
-                   '2050 monthly saving ($, nominal)': _at(r['bau'], 2050, col) - _at(r['ss'], 2050, col)}
-            row.update(system_summary(r))
-            rows.append(row)
+    for dc in delay_cases:
+        for m in means:
+            for x in shares:
+                nw = {**(network or {}), **DELAY_CASES[dc], 'mean_utilisation': m, 'subband_enabled': x > 0,
+                      'subband_load_share': x}
+                r = project_layers(utility_json, params, scenario=scenario, network=nw)
+                row = {'delay case': dc, 'mean utilisation': m, 'sub-band share': x,
+                       '2050 monthly saving ($, nominal)': _at(r['bau'], 2050, col) - _at(r['ss'], 2050, col)}
+                row.update(system_summary(r))
+                rows.append(row)
     return pd.DataFrame(rows)

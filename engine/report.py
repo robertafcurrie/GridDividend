@@ -740,18 +740,26 @@ SWEEP_PANELS = {
     'customer_npv': ('Customer savings ($B, NPV 3%, 2026 $)', 'Customer savings ($B, NPV 3%, 2026 $)', '${:,.1f}B'),
     'capex': ('Wires capex avoided or deferred ($B, undiscounted nominal)',
               'Wires capex avoided or deferred ($B, undiscounted nominal)', '${:,.1f}B'),
-    'delay': ('Delay avoided (MW-years, 2026-2050)', 'Delay avoided (MW-years)', '{:,.0f}'),
+    'delay': ('Upgrade Delay avoided (MW-years 2026-2050, 80% mean utilisation)',
+              'Upgrade Delay for Interconnection avoided (MW-years)', '{:,.0f}'),
 }
+DELAY_STYLE = {'short': ':', 'central': '-', 'long': '--'}
 
 
 def headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'capex', 'delay')):
     """
     Matplotlib Figure (no pyplot state) for layers.headroom_sweep(): each panel
     plots a metric against mean starting utilisation, one line per sub-band
-    share (ordinal blue ramp, legend). Central scenario.
+    share (ordinal blue ramp, legend), at the central Upgrade Delay case. The
+    'delay' panel plots MW-years of Upgrade Delay avoided against the sub-band
+    share at 80% mean utilisation, one line per delay case (short dotted,
+    central solid, long dashed). Central scenario.
     """
     from matplotlib.figure import Figure
     from matplotlib.ticker import FuncFormatter
+    full = sw
+    if 'delay case' in sw.columns:
+        sw = sw[sw['delay case'] == 'central']
     shares = sorted(sw['sub-band share'].unique())
     ncol = 2 if len(panels) > 1 else 1
     nrow = (len(panels) + 1) // 2
@@ -759,6 +767,21 @@ def headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'capex', '
     axes = fig.subplots(nrow, ncol, squeeze=False).ravel()
     for ax, key in zip(axes, panels):
         title, col, fmt = SWEEP_PANELS[key]
+        if key == 'delay' and 'delay case' in full.columns:
+            m80 = full['mean utilisation'].sub(0.8).abs().min()
+            for dc in [d for d in DELAY_STYLE if d in set(full['delay case'])]:
+                d = full[(full['delay case'] == dc) & ((full['mean utilisation'] - 0.8).abs() == m80)]
+                d = d.sort_values('sub-band share')
+                ax.plot(d['sub-band share'], d[col], color=SWEEP_COLORS[2], lw=2, ls=DELAY_STYLE[dc], marker='o', ms=4,
+                        label=f'{dc} upgrade delay')
+            ax.set_title(title.replace('$', r'\$'), fontsize=10, loc='left')
+            ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f'{v:.0%}'))
+            ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _, f=fmt: f.format(v)))
+            ax.grid(axis='y', color='#e6e6e6', lw=0.8)
+            ax.spines[['top', 'right']].set_visible(False)
+            ax.set_xlabel('Share of load in the constrained sub-band', fontsize=9)
+            ax.legend(fontsize=8, frameon=False)
+            continue
         for x, c in zip(shares, SWEEP_COLORS[-len(shares):] if len(shares) <= len(SWEEP_COLORS) else SWEEP_COLORS):
             d = sw[sw['sub-band share'] == x].sort_values('mean utilisation')
             ax.plot(d['mean utilisation'], d[col], color=c, lw=2, marker='o', ms=4,
@@ -773,7 +796,8 @@ def headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'capex', '
         ax.set_visible(False)
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc='lower center', ncol=len(shares), fontsize=8, frameon=False)
-    fig.suptitle(f'{name}: how the potential depends on existing headroom (Central scenario)', fontsize=11, x=0.01,
+    fig.suptitle(f'{name}: how the potential depends on existing headroom (Central scenario, central upgrade delay)',
+                 fontsize=11, x=0.01,
                  ha='left')
     fig.tight_layout(rect=(0, 0.06, 1, 0.96))
     return fig
@@ -855,55 +879,75 @@ def render_layered_section(utility_key, utility_json, utility_params):
         for sc in LY.SCENARIOS:
             r = LY.project_layers(uj, p, scenario=sc, overrides=ov)
             b_, s_ = r['bau'].set_index('year'), r['ss'].set_index('year')
+            a_ = LY.access_summary(r)
             net_rows.append([lbl, sc, f"{s_.loc[2035, 'capacity_uplift_pct']:.1%}", f"{s_.loc[2050, 'capacity_uplift_pct']:.1%}",
-                             f"{s_.loc[2050, 'enabled_mw']:,.0f}",
-                             f"{b_.loc[2050, 'avg_connection_delay_yr']:.2f} &rarr; {s_.loc[2050, 'avg_connection_delay_yr']:.2f}"])
+                             f"{a_['MW connected sooner, peak year']:,.0f}",
+                             f"{a_[LY.UD + ', BAU (avg yr per MW affected)']:.2f} &rarr; "
+                             f"{a_[LY.UD + ', SS (avg yr per MW affected in BAU)']:.2f}"])
     # Loading bands: MW of load in constrained bands
     con_rows = []
     for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
         ct = LY.constrained_table(LY.project_layers(uj, p, overrides=ov), (2030, 2035, 2040, 2050))
         for y, r in ct.iterrows():
             con_rows.append([lbl, str(y), f"{r['BAU MW in constrained bands']:,.0f}", f"{r['SS MW in constrained bands']:,.0f}",
-                             f"{r['BAU waiting MW']:,.0f}", f"{r['SS waiting MW']:,.0f}"])
+                             f"{r['BAU MW waiting for upgrade']:,.0f}", f"{r['SS MW waiting for upgrade']:,.0f}"])
     nb = c['bands']
     band_desc = '; '.join(f"{b['name']} {b['loading0']:.0%}" for b in nb)
     band_status = LY.network_block(uj['forward_assumptions']).get('bands', {}).get('status', '')
     # Constrained sub-band (load above the planning limit), Central scenario
     nwp = LY.network_block(uj['forward_assumptions'])
     sub_rows = []
-    for lbl, nw in (('Sub-band on', {'subband_enabled': True}),
-                    ('Sub-band on, flexibility targeted', {'subband_enabled': True, 'flex_targeting_enabled': True})):
+    for lbl, nw in (('Central (sub-band on)', {'subband_enabled': True}),
+                    ('Central, flexibility targeted', {'subband_enabled': True, 'flex_targeting_enabled': True})):
         r = LY.project_layers(uj, p, network=nw)
         b_, s_ = r['bau'].set_index('year'), r['ss'].set_index('year')
         a_ = LY.access_summary(r)
         for y in (2026, 2028, 2030, 2035):
             sub_rows.append([lbl, str(y), f"{b_.loc[y, 'above_planning_limit_mw']:,.0f}", f"{s_.loc[y, 'above_planning_limit_mw']:,.0f}",
-                             f"{b_.loc[y, 'waiting_mw']:,.0f}", f"{s_.loc[y, 'waiting_mw']:,.0f}",
-                             f"{a_['Total delay avoided (MW-years)']:,.0f}" if y == 2026 else '',
+                             f"{b_.loc[y, 'upgrade_wait_mw']:,.0f}", f"{s_.loc[y, 'upgrade_wait_mw']:,.0f}",
+                             f"{a_[LY.UD + ' avoided (MW-years)']:,.0f}" if y == 2026 else '',
                              f"{b_.loc[2050, 'avg_bill_total'] - s_.loc[2050, 'avg_bill_total']:,.2f}" if y == 2026 else ''])
     sub_desc = (f"{nwp['subband_load_share']['value']:.1%} of network load at {nwp['subband_utilisation']['value']:.1%} "
                 f"planning utilisation (share status {nwp['subband_load_share']['status']}, utilisation status "
                 f"{nwp['subband_utilisation']['status']}); operating limit {LY.operating_limit({k: v.get('value') for k, v in nwp.items() if isinstance(v, dict) and 'value' in v}):.2f} x planning capacity")
+    # Upgrade Delay for Interconnection by year, Central
+    ud_rows = []
+    udt = LY.upgrade_delay_table(c, (2028, 2030, 2032, 2035, 2040, 2050))
+    for y, r in udt.iterrows():
+        ud_rows.append([str(y), f"{r[f'BAU {LY.UD} (yr)']:.2f}", f"{r[f'SS {LY.UD} (yr)']:.2f}",
+                        f"{r['BAU MW affected (requested that year)']:,.1f}", f"{r['SS MW affected (requested that year)']:,.1f}",
+                        f"{r['BAU MW waiting for upgrade']:,.0f}", f"{r['SS MW waiting for upgrade']:,.0f}",
+                        f"{r['MW-years of delay avoided']:,.0f}"])
+    ud_in = '; '.join(f"{lab} {nwp[k].get('central')} yr ({nwp[k].get('status')})" for k, lab in
+                      (('upgrade_delay_ordinary_years', 'ordinary new load'), ('upgrade_delay_large_years', 'large loads'))
+                      if k in nwp)
+    if 'backlog_clearance_pct' in nwp:
+        ud_in += (f"; backlog cleared {nwp['backlog_clearance_pct']['central']:.0%} a year "
+                  f"({nwp['backlog_clearance_pct']['status']}); build-rate priority "
+                  f"{'on' if nwp.get('constrained_build_priority', {}).get('value') else 'off'}")
     # Headroom sweep
     sw = LY.headroom_sweep(uj, p)
-    sweep_img = _fig_b64(headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv')), 'Headroom sweep')
-    def _sw(m, x, c):
-        return float(sw.loc[(sw['mean utilisation'] == m) & (sw['sub-band share'] == x), c].iloc[0])
+    sweep_img = _fig_b64(headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'delay')), 'Headroom sweep')
+    def _sw(m, x, c, dc='central'):
+        return float(sw.loc[(sw['delay case'] == dc) & (sw['mean utilisation'] == m) & (sw['sub-band share'] == x), c].iloc[0])
     sweep_rows = [[f'{m:.0%}', _fmt(_sw(m, 0.043, '2050 monthly saving ($, nominal)'), 2),
                    f"${_sw(m, 0.043, 'Customer savings ($B, undiscounted nominal)'):,.2f}B",
                    f"${_sw(m, 0.043, 'Customer savings ($B, NPV 3%, 2026 $)'):,.2f}B",
                    f"${_sw(m, 0.043, 'Wires capex avoided or deferred ($B, undiscounted nominal)'):,.2f}B",
                    f"{_sw(m, 0.043, 'MW connected sooner (peak year)'):,.0f}",
-                   f"{_sw(m, 0.043, 'Delay avoided (MW-years)'):,.0f}",
+                   ' / '.join(f"{_sw(m, 0.043, LY.UD + ' avoided (MW-years)', dc):,.0f}" for dc in ('short', 'central', 'long')),
                    _fmt(_sw(m, 0.043, 'Connection cost avoided ($M, undiscounted nominal)'), 0, suffix='M')]
                   for m in (0.6, 0.7, 0.8, 0.9, 1.0)]
     # Access benefits (not on the bill)
     acc_rows = []
-    for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
-        at_ = LY.access_table(uj, p, overrides=ov)
+    for lbl, ov, nw in (('Central network', {}, None), ('Central network, sub-band on in every scenario', {}, {'subband_enabled': True}),
+                        ('Tight network', TIGHT_NETWORK, None)):
+        at_ = LY.access_table(uj, p, overrides=ov, network=nw)
         for sc, r in at_.iterrows():
-            acc_rows.append([lbl, sc, f"{r['MW connected sooner, 2050']:,.0f}", f"{r['Total delay avoided (MW-years)']:,.0f}",
-                             f"{r['Avg delay avoided per MW of new load (yr)']:.2f}",
+            acc_rows.append([lbl, sc, f"{r['MW affected by upgrade delay, BAU (2026-2050 requests)']:,.0f}",
+                             f"{r[LY.UD + ', BAU (avg yr per MW affected)']:.2f} &rarr; "
+                             f"{r[LY.UD + ', SS (avg yr per MW affected in BAU)']:.2f}",
+                             f"{r[LY.UD + ' avoided (MW-years)']:,.0f}", f"{r['MW connected sooner, peak year']:,.0f}",
                              _fmt(r['Connection cost avoided by new customers ($M, undiscounted nominal)'], 0, suffix='M'),
                              _fmt(r['Connection cost avoided by new customers ($M, NPV 3%, 2026 $)'], 0, suffix='M'),
                              f"{r['Electrification GWh brought forward (cumulative)']:,.0f}"])
@@ -947,42 +991,56 @@ def render_layered_section(utility_key, utility_json, utility_params):
       itself (MW-weighted, 2026 $): {'; '.join(pays)}.</p>
     {_tbl(['Year', 'Cost', 'Capacity value', 'Deferral value', 'Load-enabled value', 'Total value'], vs_rows)}
     <h2>Network Capacity: Effective Uplift and Load Connected Sooner</h2>
-    <p class="section-intro">Effective capacity uplift = flexible headroom / network capacity. MW connected sooner and average
-      connection delay (years, BAU &rarr; shared savings) for 2050. Tight network = low planning headroom, long lead time,
-      low build rate (sensitivity).</p>
-    {_tbl(['Network', 'Scenario', 'Uplift 2035', 'Uplift 2050', 'MW connected sooner 2050', 'Avg delay 2050 (yr)'], net_rows)}
+    <p class="section-intro">Effective capacity uplift = flexible headroom / network capacity. MW connected sooner (peak year)
+      and the average Upgrade Delay for Interconnection, BAU &rarr; shared savings (years per MW that waits under BAU,
+      2026&ndash;2050 requests). Tight network = low planning headroom, long lead time, low build rate (sensitivity).</p>
+    {_tbl(['Network', 'Scenario', 'Uplift 2035', 'Uplift 2050', 'MW connected sooner (peak year)',
+           'Upgrade Delay for Interconnection (yr, BAU &rarr; SS)'], net_rows)}
     <h2>Loading Bands: Load in Constrained Bands</h2>
     <p class="section-intro">The network is split into {len(nb)} bands of substation loading (starting loading: {band_desc};
       status {band_status}). A band is constrained when its load exceeds firm capacity plus counted flexible headroom.
-      MW of network load in constrained bands and MW waiting for capacity, Central scenario.</p>
-    {_tbl(['Network', 'Year', 'BAU MW in constrained bands', 'Shared savings MW in constrained bands', 'BAU MW waiting',
-           'Shared savings MW waiting'], con_rows)}
+      MW of network load in constrained bands and MW waiting for upgrade, Central scenario.</p>
+    {_tbl(['Network', 'Year', 'BAU MW in constrained bands', 'Shared savings MW in constrained bands',
+           'BAU MW waiting for upgrade', 'Shared savings MW waiting for upgrade'], con_rows)}
     <h2>Constrained Sub-Band: Load Above the Planning Limit</h2>
-    <p class="section-intro">Sensitivity, Central scenario (off by default): {sub_desc}. Existing load stays connected up to
-      the operating limit; new load in the sub-band waits until reinforcement (ordered from 2026, subject to lead time and
-      build rate) catches up. MW above the planning limit and MW waiting are separate measures, BAU and shared savings.
-      Flexibility targeted = flexible headroom sited first where load is above the planning limit.</p>
-    {_tbl(['Setting', 'Year', 'BAU MW above planning limit', 'SS MW above planning limit', 'BAU MW waiting',
-           'SS MW waiting', 'Delay avoided (MW-yr, 2026-2050)', '2050 monthly saving ($, nominal)'], sub_rows)}
+    <p class="section-intro">On in the Central scenario (Cautious and Ambitious keep it off in their scenario network
+      values): {sub_desc}. Existing load stays connected up to the operating limit; the backlog above the planning limit is
+      cleared at the backlog clearance rate, and new load in the sub-band waits the Upgrade Delay for Interconnection. MW
+      above the planning limit and MW waiting for upgrade are separate measures, BAU and shared savings. Flexibility
+      targeted = flexible headroom sited first where load is above the planning limit.</p>
+    {_tbl(['Setting', 'Year', 'BAU MW above planning limit', 'SS MW above planning limit', 'BAU MW waiting for upgrade',
+           'SS MW waiting for upgrade', 'Upgrade Delay avoided (MW-yr, 2026-2050)', '2050 monthly saving ($, nominal)'],
+          sub_rows)}
+    <h2>Upgrade Delay for Interconnection, Central</h2>
+    <p class="section-intro">The time a new customer in a constrained area waits for the grid upgrade before connecting.
+      Inputs: {ud_in}. By request year: average years waited by the MW that had to wait (MW affected), BAU and shared
+      savings; MW waiting for upgrade and MW-years of delay avoided in that calendar year. Load still waiting in 2050 is
+      counted to the end of 2050.</p>
+    {_tbl(['Request year', 'BAU delay (yr)', 'SS delay (yr)', 'BAU MW affected', 'SS MW affected', 'BAU MW waiting',
+           'SS MW waiting', 'MW-years avoided'], ud_rows)}
     <h2>How the Potential Depends on Existing Headroom</h2>
     <p class="section-intro">Headroom sweep, Central scenario: mean starting planning utilisation from 60% to 100% (bands
       shifted together, each capped at the planning limit) and share of load in the constrained sub-band (0% to 15%;
-      system mean held fixed). Table at a 4.3% sub-band share. Customer savings = delivery, program and capacity costs plus
+      system mean held fixed), at the central Upgrade Delay case; the third panel runs the upgrade delays and backlog
+      clearance at short (low delays, fast clearance), central and long. Table at a 4.3% sub-band share. Customer savings = delivery, program and capacity costs plus
       efficiency energy at today's residential supply rate (all classes; likely an overstatement for commercial and
       industrial customers).</p>
     {sweep_img}
     {_tbl(['Mean utilisation', '2050 monthly saving ($, nominal)', 'Customer savings ($B undiscounted nominal)',
            'Customer savings ($B NPV 3%, 2026 $)', 'Wires capex avoided ($B undiscounted nominal)',
-           'MW connected sooner (peak year)', 'Delay avoided (MW-yr)', 'Connection cost avoided ($M undiscounted nominal)'],
+           'MW connected sooner (peak year)', 'Upgrade Delay avoided (MW-yr; short / central / long)',
+           'Connection cost avoided ($M undiscounted nominal)'],
           sweep_rows)}
     <h2>Access: Faster Connections (Not on the Bill)</h2>
     <p class="section-intro">Benefits to the customers being connected, reported separately from the residential bill.
-      Delay avoided = MW-years of load connected sooner than under BAU. Connection cost avoided = network upgrade cost
+      Upgrade Delay for Interconnection: MW of new load that waits under BAU, the average wait BAU &rarr; shared savings
+      (years per MW that waits under BAU) and MW-years avoided. Connection cost avoided = network upgrade cost
       ($/MW at the utility's distribution upgrade cost) for MW connected sooner or on flexible connections: an upper bound,
       since the share paid by new customers through CIAC is tariff-specific. Electrification GWh brought forward = energy
       served sooner, electrification share of load growth.</p>
-    {_tbl(['Network', 'Scenario', 'MW connected sooner 2050', 'Delay avoided (MW-yr, 2026-2050)',
-           'Avg delay avoided (yr per MW of new load)', 'Connection cost avoided ($M undiscounted nominal)',
+    {_tbl(['Network', 'Scenario', 'MW affected (BAU)', 'Upgrade Delay (yr, BAU &rarr; SS)',
+           'Upgrade Delay avoided (MW-yr, 2026-2050)', 'MW connected sooner (peak year)',
+           'Connection cost avoided ($M undiscounted nominal)',
            'Connection cost avoided ($M NPV 3%, 2026 $)', 'Electrification GWh brought forward'], acc_rows)}
     <h2>Flexible MW: Target Path vs Ramp Limit</h2>
     <p class="section-intro">Total flexible nameplate MW, Central: the target path, and with the maximum annual growth per

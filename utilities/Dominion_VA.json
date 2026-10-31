@@ -546,7 +546,9 @@
           "deferral": "low",
           "load_enabled": "low"
         },
-        "network": {}
+        "network": {
+          "subband_enabled": false
+        }
       },
       "Central": {
         "description": "Every assumption at central; flexible MW anchored to VCEA storage target and Dominion IRP DSM forecast.",
@@ -562,7 +564,9 @@
           "deferral": "high",
           "load_enabled": "high"
         },
-        "network": {}
+        "network": {
+          "subband_enabled": false
+        }
       }
     },
     "projection": {
@@ -1174,7 +1178,7 @@
     },
     "network": {
       "label": "Network: existing headroom, planning limit, constrained sub-band, reinforcement, flexibility targeting",
-      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values.",
+      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values. Constrained sub-band on for Central (network block); Cautious and Ambitious keep it off through their scenario network values, so they are unchanged.",
       "params": {
         "band_mode": {
           "value": "explicit",
@@ -1252,8 +1256,8 @@
           "status": "derived"
         },
         "subband_enabled": {
-          "value": false,
-          "unit": "carve a constrained sub-band (load above the planning limit) out of the most loaded bands; false reproduces the model without it",
+          "value": true,
+          "unit": "per-utility switch: carve a constrained sub-band (load above the planning limit) out of the most loaded bands. On for Central (scenario None = Central); Cautious and Ambitious switch it off in their scenario network values",
           "source": "Model setting",
           "as_of": "2026-10-31",
           "status": "setting"
@@ -1271,6 +1275,40 @@
           "source": "Midpoint of the planning limit (1.00) and the operating limit (1.25); the filing gives only the count of feeders above 100%, not their loading",
           "as_of": "2026-10-31",
           "status": "_VERIFY"
+        },
+        "upgrade_delay_ordinary_years": {
+          "low": 0.5,
+          "central": 1.5,
+          "high": 3.0,
+          "unit": "Upgrade Delay for Interconnection, ordinary new load (EVs, heat pumps, small business) in constrained areas: years from request to connection (fractional years split between the two whole years)",
+          "source": "Dominion publishes no timeline for ordinary new load in constrained areas: the grid utilization filing (PUR-2026-00164) reports constrained feeders (82) but no connection times. Con Edison guide used as proxy. Con Edison, E-Mobility Interconnection Guide: New & Upgraded Electric Service Overview (coned.com, rev. 30 Apr 2026): project timeline from service determination to energization, including any upstream utility modifications and transformer or feeder reinforcement: <300 kW overhead / <500 kW underground 4-6 months; 300-2,000 kW 12-18 months; 500-5,000 kW network and 2,000-10,000 kW 24-36 months; >8,000 kW high-tension 36+ months. Low 0.5 / central 1.5 / high 3.0 yr",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "upgrade_delay_large_years": {
+          "low": 4.0,
+          "central": 6.0,
+          "high": 7.0,
+          "unit": "Upgrade Delay for Interconnection, large loads (data centres on the distribution system, fleet hubs) in constrained areas: years from request to connection",
+          "source": "Dominion Energy Virginia, Application for approval of large-load connection queue process standards, SCC Case No. PUR-2026-00011 (filed 2 Feb 2026), para. 5-6: ~25,000 MW of large-load delivery-point requests (>= ~100 MW, data centres) assigned projected connection dates through 31 Dec 2031; a further ~45,000 MW batched and still being studied; ~10 new requests (2,000-3,000 MW) a month. Central 6 yr: requests assigned dates now reach end-2031, about 6 years after filing. Low 4 yr / high 7 yr: Dominion's earlier estimates for Data Center Alley as reported (4 years in 2022, up to 7 years for loads above 100 MW in 2024; Bloomberg, 29 Aug 2024, not checked against the primary source). These are transmission delivery points; applying them to distribution-connected large loads in constrained areas is an assumption",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "backlog_clearance_pct": {
+          "low": 0.06,
+          "central": 0.2,
+          "high": 0.33,
+          "unit": "share of the outstanding constrained backlog (existing load above the planning limit) the utility clears per year, in service the following year; replaces clearing as soon as lead time and build rate allow",
+          "source": "No utility publishes a clearance rate for constrained feeders. Low 6%/yr: Dominion Energy Virginia, Application for approval of large-load connection queue process standards, SCC Case No. PUR-2026-00011 (filed 2 Feb 2026), para. 5-6: ~25,000 MW of large-load delivery-point requests (>= ~100 MW, data centres) assigned projected connection dates through 31 Dec 2031; a further ~45,000 MW batched and still being studied; ~10 new requests (2,000-3,000 MW) a month - about 25 of 70 GW given dates over the ~6 years to 2031, ~6% of the backlog a year (large loads, transmission). Central 20%/yr (backlog cleared in about 5 years) is an assumption between that and high 33%/yr (cleared within the 3-year central reinforcement lead time, close to the earlier model assumption)",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "constrained_build_priority": {
+          "value": true,
+          "unit": "constrained areas get build-rate priority: their upgrades are not capped by max_build_pct (false = backlog clearance and new-load upgrades together capped at max_build_pct of the band capacity per year)",
+          "source": "Model setting (overloaded feeders are relieved first for reliability)",
+          "as_of": "2026-10-31",
+          "status": "setting"
         },
         "planning_headroom": {
           "low": 0.05,
