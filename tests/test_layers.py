@@ -221,3 +221,121 @@ def test_access_zero_with_layers_off(key, nb):
     a = LY.access_summary(r)
     assert a['Total delay avoided (MW-years)'] == 0
     assert a['Connection cost avoided by new customers ($M, undiscounted nominal)'] == 0
+
+
+# ── Network block: defaults, sub-band, override order ─────────────────────────
+
+_FIXTURE_1B09 = os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')
+SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('source', ['current_json', 'legacy_json'])
+def test_network_defaults_reproduce_1b09e20(key, nb, source):
+    """Network block at its defaults (current JSON), and the 1b09e20 JSON without one, reproduce 1b09e20 exactly."""
+    from engine.report import TIGHT_NETWORK
+    fx = json.load(open(_FIXTURE_1B09))[key]
+    uj, p = _utility(key, nb)
+    if source == 'legacy_json':
+        uj = {**uj, 'forward_assumptions': fx['forward_assumptions']}
+    for name, ref in fx['runs'].items():
+        r = LY.project_layers(uj, p, scenario=name.replace('_tight', ''),
+                              overrides=TIGHT_NETWORK if name.endswith('_tight') else None)
+        for col, d in ref.items():
+            for case in ('bau', 'ss'):
+                np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{name} {col} {case}')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('scenario', LY.SCENARIOS)
+def test_headroom_used_never_exceeds_created_with_subband(key, nb, scenario):
+    uj, p = _utility(key, nb)
+    for nw in (SUBBAND_ON, {**SUBBAND_ON, 'subband_load_share': 0.15, 'mean_utilisation': 0.95}):
+        s = LY.project_layers(uj, p, scenario=scenario, network=nw)['ss']
+        tol = 1e-9
+        assert (s['headroom_enable_mw'] + s['headroom_defer_mw'] <= s['headroom_created_mw'] + tol).all()
+        assert (s['headroom_used_mw'] <= s['headroom_created_mw'] + tol).all()
+        # where BAU leaves load waiting, efficiency also frees capacity for it
+        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + s['ee_mw'] + tol).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_served_never_exceeds_operating_limit(key, nb):
+    uj, p = _utility(key, nb)
+    for nw in (SUBBAND_ON, {**SUBBAND_ON, 'subband_load_share': 0.15, 'subband_utilisation': 1.3}):
+        r = LY.project_layers(uj, p, network=nw)
+        for case in ('bau', 'ss'):
+            d = r['band_detail'][case]
+            assert (d['served_mw'] <= d['operating_limit_mw'] + d['headroom_mw'] + 1e-9).all()
+            assert (d['served_mw'] <= d['demand_mw'] + 1e-9).all()
+        # utilisation above the operating limit: existing load is served up to the
+        # operating limit on 2026 starting capacity; the excess waits from 2026
+        b = r['band_detail']['bau']
+        b0 = b[(b['year'] == 2026) & (b['band'] == 'Above planning limit')].iloc[0]
+        sub = r['bands'][0]
+        if nw.get('subband_utilisation', 1.125) > r['operating_limit']:
+            assert b0['served_mw'] == pytest.approx(r['operating_limit'] * sub['C0'])
+            assert b0['waiting_mw'] > 0
+
+
+def test_full_utilisation_long_lead_gives_bau_queue():
+    uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
+    base = LY.project_layers(uj, p)
+    assert base['bau']['waiting_mw'].max() == 0
+    r = LY.project_layers(uj, p, network={'mean_utilisation': 1.0, 'reinforcement_lead_years': 'high'})
+    assert r['bau']['waiting_mw'].max() > 0
+    assert all(b['loading0'] == pytest.approx(1.0) for b in r['bands'])
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_subband_gives_bau_queue_and_keeps_totals(key, nb):
+    """Sub-band: load above the planning limit at 2026, new load waits in BAU; total load and capacity unchanged."""
+    uj, p = _utility(key, nb)
+    off, on = LY.project_layers(uj, p), LY.project_layers(uj, p, network={'subband_enabled': True})
+    sub = on['bands'][0]
+    assert sub['name'] == 'Above planning limit' and sub['load_share'] == pytest.approx(0.043)
+    assert sub['loading0'] == pytest.approx(1.125)
+    assert sum(b['load_share'] for b in on['bands']) == pytest.approx(1.0)
+    assert sum(b['C0'] for b in on['bands']) == pytest.approx(sum(b['C0'] for b in off['bands']))
+    assert on['bau']['above_planning_limit_mw'].iloc[0] > 0
+    assert on['bau']['waiting_mw'].max() > 0
+    assert LY.access_summary(on)['Total delay avoided (MW-years)'] > 0
+
+
+@pytest.mark.parametrize('mean', [0.6, 0.75, 0.9, 1.0])
+def test_mean_utilisation_shift(mean):
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    for mode in ('explicit', 'generated'):
+        bands = LY.project_layers(uj, p, network={'mean_utilisation': mean, 'band_mode': mode})['bands']
+        cw = sum(b['capacity_share'] * b['loading0'] for b in bands) / sum(b['capacity_share'] for b in bands)
+        assert cw == pytest.approx(mean, abs=1e-9)
+        assert max(b['loading0'] for b in bands) <= 1.0 + 1e-12
+
+
+def test_network_override_order():
+    """JSON < scenario network values < notebook NETWORK_OVERRIDES < per-call network."""
+    import copy
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    uj = copy.deepcopy(uj)
+    fa = uj['forward_assumptions']
+    get = lambda **kw: LY.resolve(fa, **kw)['network']['reinforcement_lead_years']
+    assert get() == 3
+    fa['scenarios']['Ambitious']['network'] = {'reinforcement_lead_years': 'low'}
+    fa['scenarios']['Central']['network'] = {'reinforcement_lead_years': 4}
+    assert get(scenario='Ambitious') == 2 and get(scenario='Central') == 4 and get(scenario='Cautious') == 3
+    try:
+        LY.NETWORK_OVERRIDES.update({'reinforcement_lead_years': 6})
+        assert get(scenario='Ambitious') == 6
+        assert get(scenario='Ambitious', network={'reinforcement_lead_years': 7}) == 7
+    finally:
+        LY.NETWORK_OVERRIDES.clear()
+    assert get(scenario='Ambitious') == 2
+
+
+def test_headroom_sweep_grid():
+    uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
+    sw = LY.headroom_sweep(uj, p, means=(0.7, 0.8), shares=(0.0, 0.043))
+    assert len(sw) == 4
+    zero = sw[sw['sub-band share'] == 0]
+    assert (zero['Delay avoided (MW-years)'] == 0).all()
+    assert (sw[sw['sub-band share'] > 0]['Delay avoided (MW-years)'] > 0).all()

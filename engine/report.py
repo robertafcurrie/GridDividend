@@ -728,9 +728,63 @@ footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-w
 
 # ── Layered section (engine/layers.py) ───────────────────────────────────────
 
-TIGHT_NETWORK = {('system_needs', 'planning_headroom'): 'low',
-                 ('system_needs', 'reinforcement_lead_years'): 'high',
-                 ('system_needs', 'max_build_pct'): 'low'}
+TIGHT_NETWORK = {('network', 'planning_headroom'): 'low',
+                 ('network', 'reinforcement_lead_years'): 'high',
+                 ('network', 'max_build_pct'): 'low'}
+
+
+# Ordinal blue ramp (light -> dark) for the sub-band shares in the headroom sweep
+SWEEP_COLORS = ('#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#0d366b')
+SWEEP_PANELS = {
+    'saving': ('2050 monthly saving ($/month, nominal)', '2050 monthly saving ($, nominal)', '${:,.1f}'),
+    'customer_npv': ('Customer savings ($B, NPV 3%, 2026 $)', 'Customer savings ($B, NPV 3%, 2026 $)', '${:,.1f}B'),
+    'capex': ('Wires capex avoided or deferred ($B, undiscounted nominal)',
+              'Wires capex avoided or deferred ($B, undiscounted nominal)', '${:,.1f}B'),
+    'delay': ('Delay avoided (MW-years, 2026-2050)', 'Delay avoided (MW-years)', '{:,.0f}'),
+}
+
+
+def headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv', 'capex', 'delay')):
+    """
+    Matplotlib Figure (no pyplot state) for layers.headroom_sweep(): each panel
+    plots a metric against mean starting utilisation, one line per sub-band
+    share (ordinal blue ramp, legend). Central scenario.
+    """
+    from matplotlib.figure import Figure
+    from matplotlib.ticker import FuncFormatter
+    shares = sorted(sw['sub-band share'].unique())
+    ncol = 2 if len(panels) > 1 else 1
+    nrow = (len(panels) + 1) // 2
+    fig = Figure(figsize=(6.2 * ncol, 3.9 * nrow + 0.6))
+    axes = fig.subplots(nrow, ncol, squeeze=False).ravel()
+    for ax, key in zip(axes, panels):
+        title, col, fmt = SWEEP_PANELS[key]
+        for x, c in zip(shares, SWEEP_COLORS[-len(shares):] if len(shares) <= len(SWEEP_COLORS) else SWEEP_COLORS):
+            d = sw[sw['sub-band share'] == x].sort_values('mean utilisation')
+            ax.plot(d['mean utilisation'], d[col], color=c, lw=2, marker='o', ms=4,
+                    label=('no sub-band' if x == 0 else f'{x:.1%} of load above limit'))
+        ax.set_title(title.replace('$', r'\$'), fontsize=10, loc='left')
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f'{v:.0%}'))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _, f=fmt: f.format(v)))
+        ax.grid(axis='y', color='#e6e6e6', lw=0.8)
+        ax.spines[['top', 'right']].set_visible(False)
+        ax.set_xlabel('Mean starting planning utilisation', fontsize=9)
+    for ax in axes[len(panels):]:
+        ax.set_visible(False)
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, loc='lower center', ncol=len(shares), fontsize=8, frameon=False)
+    fig.suptitle(f'{name}: how the potential depends on existing headroom (Central scenario)', fontsize=11, x=0.01,
+                 ha='left')
+    fig.tight_layout(rect=(0, 0.06, 1, 0.96))
+    return fig
+
+
+def _fig_b64(fig, alt):
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=110, bbox_inches='tight')
+    b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+    return f'<img src="data:image/png;base64,{b64}" alt="{alt}" class="chart-img">'
 
 
 def _tbl(header, rows):
@@ -813,7 +867,36 @@ def render_layered_section(utility_key, utility_json, utility_params):
                              f"{r['BAU waiting MW']:,.0f}", f"{r['SS waiting MW']:,.0f}"])
     nb = c['bands']
     band_desc = '; '.join(f"{b['name']} {b['loading0']:.0%}" for b in nb)
-    band_status = uj['forward_assumptions']['layers']['system_needs']['params'].get('network_bands', {}).get('status', '')
+    band_status = LY.network_block(uj['forward_assumptions']).get('bands', {}).get('status', '')
+    # Constrained sub-band (load above the planning limit), Central scenario
+    nwp = LY.network_block(uj['forward_assumptions'])
+    sub_rows = []
+    for lbl, nw in (('Sub-band on', {'subband_enabled': True}),
+                    ('Sub-band on, flexibility targeted', {'subband_enabled': True, 'flex_targeting_enabled': True})):
+        r = LY.project_layers(uj, p, network=nw)
+        b_, s_ = r['bau'].set_index('year'), r['ss'].set_index('year')
+        a_ = LY.access_summary(r)
+        for y in (2026, 2028, 2030, 2035):
+            sub_rows.append([lbl, str(y), f"{b_.loc[y, 'above_planning_limit_mw']:,.0f}", f"{s_.loc[y, 'above_planning_limit_mw']:,.0f}",
+                             f"{b_.loc[y, 'waiting_mw']:,.0f}", f"{s_.loc[y, 'waiting_mw']:,.0f}",
+                             f"{a_['Total delay avoided (MW-years)']:,.0f}" if y == 2026 else '',
+                             f"{b_.loc[2050, 'avg_bill_total'] - s_.loc[2050, 'avg_bill_total']:,.2f}" if y == 2026 else ''])
+    sub_desc = (f"{nwp['subband_load_share']['value']:.1%} of network load at {nwp['subband_utilisation']['value']:.1%} "
+                f"planning utilisation (share status {nwp['subband_load_share']['status']}, utilisation status "
+                f"{nwp['subband_utilisation']['status']}); operating limit {LY.operating_limit({k: v.get('value') for k, v in nwp.items() if isinstance(v, dict) and 'value' in v}):.2f} x planning capacity")
+    # Headroom sweep
+    sw = LY.headroom_sweep(uj, p)
+    sweep_img = _fig_b64(headroom_sweep_figure(sw, name, panels=('saving', 'customer_npv')), 'Headroom sweep')
+    def _sw(m, x, c):
+        return float(sw.loc[(sw['mean utilisation'] == m) & (sw['sub-band share'] == x), c].iloc[0])
+    sweep_rows = [[f'{m:.0%}', _fmt(_sw(m, 0.043, '2050 monthly saving ($, nominal)'), 2),
+                   f"${_sw(m, 0.043, 'Customer savings ($B, undiscounted nominal)'):,.2f}B",
+                   f"${_sw(m, 0.043, 'Customer savings ($B, NPV 3%, 2026 $)'):,.2f}B",
+                   f"${_sw(m, 0.043, 'Wires capex avoided or deferred ($B, undiscounted nominal)'):,.2f}B",
+                   f"{_sw(m, 0.043, 'MW connected sooner (peak year)'):,.0f}",
+                   f"{_sw(m, 0.043, 'Delay avoided (MW-years)'):,.0f}",
+                   _fmt(_sw(m, 0.043, 'Connection cost avoided ($M, undiscounted nominal)'), 0, suffix='M')]
+                  for m in (0.6, 0.7, 0.8, 0.9, 1.0)]
     # Access benefits (not on the bill)
     acc_rows = []
     for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
@@ -874,6 +957,24 @@ def render_layered_section(utility_key, utility_json, utility_params):
       MW of network load in constrained bands and MW waiting for capacity, Central scenario.</p>
     {_tbl(['Network', 'Year', 'BAU MW in constrained bands', 'Shared savings MW in constrained bands', 'BAU MW waiting',
            'Shared savings MW waiting'], con_rows)}
+    <h2>Constrained Sub-Band: Load Above the Planning Limit</h2>
+    <p class="section-intro">Sensitivity, Central scenario (off by default): {sub_desc}. Existing load stays connected up to
+      the operating limit; new load in the sub-band waits until reinforcement (ordered from 2026, subject to lead time and
+      build rate) catches up. MW above the planning limit and MW waiting are separate measures, BAU and shared savings.
+      Flexibility targeted = flexible headroom sited first where load is above the planning limit.</p>
+    {_tbl(['Setting', 'Year', 'BAU MW above planning limit', 'SS MW above planning limit', 'BAU MW waiting',
+           'SS MW waiting', 'Delay avoided (MW-yr, 2026-2050)', '2050 monthly saving ($, nominal)'], sub_rows)}
+    <h2>How the Potential Depends on Existing Headroom</h2>
+    <p class="section-intro">Headroom sweep, Central scenario: mean starting planning utilisation from 60% to 100% (bands
+      shifted together, each capped at the planning limit) and share of load in the constrained sub-band (0% to 15%;
+      system mean held fixed). Table at a 4.3% sub-band share. Customer savings = delivery, program and capacity costs plus
+      efficiency energy at today's residential supply rate (all classes; likely an overstatement for commercial and
+      industrial customers).</p>
+    {sweep_img}
+    {_tbl(['Mean utilisation', '2050 monthly saving ($, nominal)', 'Customer savings ($B undiscounted nominal)',
+           'Customer savings ($B NPV 3%, 2026 $)', 'Wires capex avoided ($B undiscounted nominal)',
+           'MW connected sooner (peak year)', 'Delay avoided (MW-yr)', 'Connection cost avoided ($M undiscounted nominal)'],
+          sweep_rows)}
     <h2>Access: Faster Connections (Not on the Bill)</h2>
     <p class="section-intro">Benefits to the customers being connected, reported separately from the residential bill.
       Delay avoided = MW-years of load connected sooner than under BAU. Connection cost avoided = network upgrade cost

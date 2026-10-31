@@ -7,7 +7,11 @@
 # The network is split into loading bands (groups of substations from most to
 # least loaded, `system_needs.network_bands`); constraints, delay, deferral and
 # load enabled are computed per band and summed. No bands = one band at the
-# planning target (the single-pool model).
+# planning target (the single-pool model). Every headroom input lives in the
+# `network` block of forward_assumptions (bands, planning limit, constrained
+# sub-band, lead time, build rate, seed pipeline, flexibility targeting), set
+# at three levels, highest wins: notebook override (NETWORK_OVERRIDES) >
+# scenario `network` values > the utility JSON.
 #
 # Year zero is each utility's `starting_bill` (utilities/*.json): today's
 # residential bill at benchmark usage, by line and category. Each category is
@@ -52,6 +56,14 @@ CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 's
               'capacity', 'transmission', 'taxes_and_fees')
 DIST_CATS = ('distribution_base', 'distribution_rider')
 FLEX_TYPES = ('dr', 'ev', 'storage', 'der')
+# Network inputs formerly in system_needs (older forward_assumptions without a
+# `network` block are read from there; network_bands -> bands)
+_LEGACY_NETWORK = {'planning_headroom': 'planning_headroom', 'reinforcement_lead_years': 'reinforcement_lead_years',
+                   'max_build_pct': 'max_build_pct', 'constrained_loading': 'constrained_loading',
+                   'network_bands': 'bands'}
+# Notebook-level network override {param: value or level}: wins over the
+# scenario `network` values and the JSON. Set from the notebook's layer section.
+NETWORK_OVERRIDES = {}
 FLEX_LABEL = {'dr': 'Demand response', 'ev': 'Managed EV charging', 'storage': 'Distributed storage',
               'der': 'Other DER', 'ee': 'Energy efficiency (peak)'}
 
@@ -144,17 +156,36 @@ def by_category(lines):
 
 # ── Assumptions ──────────────────────────────────────────────────────────────
 
+def network_block(fa):
+    """The `network` params of forward_assumptions (legacy: read from system_needs)."""
+    if 'network' in fa:
+        return fa['network'].get('params', {})
+    sn = fa['layers'].get('system_needs', {}).get('params', {})
+    return {new: sn[old] for old, new in _LEGACY_NETWORK.items() if old in sn}
+
+
 def _param_items(fa):
     yield 'projection', fa['projection']
+    legacy = 'network' not in fa
     for lname, layer in fa['layers'].items():
-        yield lname, layer.get('params', {})
+        items = layer.get('params', {})
+        if legacy and lname == 'system_needs':
+            items = {k: v for k, v in items.items() if k not in _LEGACY_NETWORK}
+        yield lname, items
+    yield 'network', network_block(fa)
 
 
 def scenario_overrides(fa, scenario):
-    """{(layer, param): level} for a named scenario in forward_assumptions['scenarios']."""
-    if scenario in (None, 'Central'):
+    """
+    {(layer, param): level} for a named scenario in forward_assumptions['scenarios'],
+    plus {('network', param): value or level} from the scenario's own `network` values.
+    """
+    if scenario is None:
         return {}
     sc = fa['scenarios'][scenario]
+    net = {('network', k): v for k, v in sc.get('network', {}).items() if not k.startswith('_')}
+    if scenario == 'Central':
+        return net
     out = {}
     for lname, items in _param_items(fa):
         for pname, spec in items.items():
@@ -162,31 +193,39 @@ def scenario_overrides(fa, scenario):
                 lev = sc['levels'].get(f'{lname}.{pname}',
                                        sc['levels'].get(lname, sc.get('default_level', 'central')))
                 out[(lname, pname)] = lev
+    out.update(net)
     return out
 
 
-def resolve(fa, level='central', overrides=None, enabled=None, scenario=None):
+def resolve(fa, level='central', overrides=None, enabled=None, scenario=None, network=None):
     """
-    Flatten forward_assumptions to {layer: {param: value}}.
-    level applies to every low/central/high assumption; scenario (if given)
-    sets levels per assumption; overrides {(layer, param): level or value}
-    win over both. enabled {layer: bool} overrides the JSON switches.
+    Flatten forward_assumptions to {layer: {param: value}} (network inputs under 'network').
+    Lowest to highest: level (every low/central/high assumption); scenario
+    (levels per assumption, and the scenario's `network` values); the notebook
+    override NETWORK_OVERRIDES; overrides {(layer, param): level or value};
+    network {param: level or value} (per-call, e.g. the headroom sweep).
+    enabled {layer: bool} overrides the JSON switches.
     """
     ov = {}
     if scenario:
         ov.update(scenario_overrides(fa, scenario))
+    ov.update({('network', k): v for k, v in NETWORK_OVERRIDES.items()})
     ov.update(overrides or {})
+    ov.update({('network', k): v for k, v in (network or {}).items()})
     out = {'_enabled': {}}
     for lname, items in _param_items(fa):
         vals = {}
         for pname, spec in items.items():
             if isinstance(spec, dict) and 'central' in spec:
                 lev = ov.get((lname, pname), level)
-                vals[pname] = spec[lev] if lev in LEVELS else lev
+                vals[pname] = spec[lev] if (isinstance(lev, str) and lev in LEVELS) else lev
             elif isinstance(spec, dict) and 'value' in spec:
                 vals[pname] = ov.get((lname, pname), spec['value'])
             else:
                 vals[pname] = spec
+        for (l2, p2), v in ov.items():           # overrides of inputs the JSON leaves out
+            if l2 == lname and p2 not in items and lname == 'network':
+                vals[p2] = v
         out[lname] = vals
     for lname, layer in fa['layers'].items():
         on = layer.get('enabled', True)
@@ -295,15 +334,76 @@ def _seed_pipeline(D, h, lead):
     return [(YEARS[i], max(0.0, (D[i + 1] - D[i]) * (1 + h))) for i in range(min(lead, len(D) - 1))]
 
 
-def network_bands(sn, DN0, h):
+def _seed_from(nw, DN, h, lead):
+    """Seed pipeline: 'derived' (the next `lead` years of growth with headroom), 'none', or [{year, mw}]."""
+    sp = nw.get('seed_pipeline', 'derived')
+    if sp is None or (isinstance(sp, str) and sp == 'derived'):
+        yrs = nw.get('seed_pipeline_years')
+        return _seed_pipeline(DN, h, lead if yrs is None else int(round(yrs)))
+    if isinstance(sp, str) and sp == 'none':
+        return []
+    return [(int(d['year']), float(d['mw'])) for d in sp]
+
+
+def operating_limit(nw):
+    """Operating limit as a multiple of planning capacity: `operating_limit`, else 1 / planning_limit_factor."""
+    if nw.get('operating_limit') is not None:
+        return float(nw['operating_limit'])
+    return 1 / nw['planning_limit_factor'] if nw.get('planning_limit_factor') else 1.0
+
+
+def _band_spec(nw, h):
     """
-    Loading bands from system_needs.network_bands: each band has a share of
-    network capacity and a starting loading (network peak / firm capacity; null
-    = at the planning target 1 / (1 + headroom)). Load shares follow from both.
+    Band list before the sub-band: explicit (`bands`) or generated (`n_bands`
+    equal-capacity bands, loadings spread linearly by `utilisation_spread`
+    around `mean_utilisation`). If `mean_utilisation` is set, loadings are
+    shifted by one amount so the capacity-weighted mean equals it, each band
+    capped at the planning limit (loading 1.0); load above the planning limit
+    belongs in the constrained sub-band.
+    """
+    tgt = 1 / (1 + h)
+    mean = nw.get('mean_utilisation')
+    spec = nw.get('bands') or [{'name': 'All', 'capacity_share': 1.0, 'loading': None}]
+    if nw.get('band_mode', 'explicit') == 'generated':
+        n, spr = int(nw['n_bands']), nw['utilisation_spread']
+        if mean is None:            # centre on the explicit bands' capacity-weighted mean
+            mean = (sum(b['capacity_share'] * (b['loading'] if b.get('loading') is not None else tgt) for b in spec)
+                    / sum(b['capacity_share'] for b in spec))
+        spec = [{'name': f'Band {i + 1}', 'capacity_share': 1 / n,
+                 'loading': (mean + spr * (0.5 - i / (n - 1)) if n > 1 else mean)} for i in range(n)]
+    if mean is None:
+        return spec
+    if not 0 < mean <= 1.0:
+        raise ValueError(f'mean_utilisation {mean} must be in (0, 1]: load above the planning limit goes in the sub-band')
+    L = np.array([b['loading'] if b.get('loading') is not None else tgt for b in spec], float)
+    cs = np.array([b['capacity_share'] for b in spec], float)
+    f = lambda d: float(np.sum(cs * np.minimum(L + d, 1.0)) / cs.sum())
+    lo, hi = -L.max(), 1.0 - L.min()
+    for _ in range(200):                                    # bisection on the shift
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if f(mid) < mean else (lo, mid)
+    d = (lo + hi) / 2
+    if (L + d).min() <= 0:
+        raise ValueError(f'mean_utilisation {mean} gives a band with zero or negative loading')
+    return [{**b, 'loading': float(min(Li + d, 1.0))} for b, Li in zip(spec, L)]
+
+
+def network_bands(nw, DN0, h):
+    """
+    Loading bands from the network block: each band has a share of network
+    capacity and a starting loading (network peak / planning capacity; null =
+    at the planning target 1 / (1 + headroom)). Load shares follow from both.
     Optional growth_share and flex_share allocate load growth and flexible MW;
     default pro rata to load. No bands -> one band at the planning target.
+
+    Constrained sub-band (subband_enabled): `subband_load_share` of network
+    load at `subband_utilisation` (above the planning limit), carved out of
+    the most loaded bands with total load and capacity unchanged (their
+    growth and flex shares move with the load). Existing load in every band is
+    served up to the operating limit (1 / planning_limit_factor x planning
+    capacity); see project_layers.
     """
-    spec = sn.get('network_bands') or [{'name': 'All', 'capacity_share': 1.0, 'loading': None}]
+    spec = _band_spec(nw, h)
     tgt = 1 / (1 + h)
     w = [b['capacity_share'] * (b['loading'] if b.get('loading') is not None else tgt) for b in spec]
     out = []
@@ -312,14 +412,43 @@ def network_bands(sn, DN0, h):
         C0 = (ls * DN0 * (1 + h)) if b.get('loading') is None else ls * DN0 / b['loading']
         out.append(dict(name=b.get('name', ''), capacity_share=b['capacity_share'], load_share=ls,
                         loading0=b.get('loading') if b.get('loading') is not None else tgt,
-                        growth_share=b.get('growth_share', ls), flex_share=b.get('flex_share', ls), C0=C0))
+                        growth_share=b.get('growth_share', ls), flex_share=b.get('flex_share', ls), C0=C0,
+                        subband=False))
+    x = nw.get('subband_load_share') or 0.0
+    if nw.get('subband_enabled') and x > 0:
+        Ls = nw['subband_utilisation']
+        if x >= 1:
+            raise ValueError('subband_load_share must be below 1')
+        rem, g, fl = x, 0.0, 0.0
+        for bd in sorted(out, key=lambda b: -b['loading0']):
+            take = min(rem, bd['load_share'])
+            if take <= 0:
+                break
+            frac = take / bd['load_share']
+            cut = take * DN0 / Ls
+            if cut >= bd['C0'] and take < bd['load_share']:
+                raise ValueError('subband_utilisation is below the loading of the band it is carved from')
+            g += bd['growth_share'] * frac
+            fl += bd['flex_share'] * frac
+            bd['growth_share'] *= 1 - frac
+            bd['flex_share'] *= 1 - frac
+            bd['load_share'] -= take
+            bd['C0'] = max(0.0, bd['C0'] - cut)
+            bd['loading0'] = bd['load_share'] * DN0 / bd['C0'] if bd['C0'] > 0 else 0.0
+            rem -= take
+        out = [bd for bd in out if bd['load_share'] > 1e-12]
+        out.insert(0, dict(name='Above planning limit', capacity_share=0.0, load_share=x, loading0=Ls,
+                           growth_share=g, flex_share=fl, C0=x * DN0 / Ls, subband=True))
+        tot = sum(bd['C0'] for bd in out)
+        for bd in out:
+            bd['capacity_share'] = bd['C0'] / tot
     return out
 
 
 # ── Projection ───────────────────────────────────────────────────────────────
 
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
-                   pool_basis=None, scenario=None, flex_cost_scale=1.0, uplift_mode=None):
+                   pool_basis=None, scenario=None, flex_cost_scale=1.0, uplift_mode=None, network=None):
     """
     BAU and shared-savings projection with an explicit distribution-network
     capacity constraint.
@@ -328,20 +457,30 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     grows only through reinforcement, ordered when demand x (1 + headroom)
     exceeds capacity in service + pipeline (+ headroom counted for deferral),
     arriving after the lead time, capped at a maximum build rate. Served load
-    = min(demand, capacity [+ flexible headroom]); the rest waits.
+    = min(demand, capacity [+ flexible headroom]); the rest waits. Existing
+    load (2026) is served up to the operating limit (planning capacity /
+    planning_limit_factor): in a band above the planning limit, existing load
+    stays connected and new load waits until reinforcement (ordered from 2026,
+    subject to lead time and build rate) brings capacity up to it.
 
     Flexible headroom (shared savings) = firm flexible MW x locational match
     + flexible large-load connections ('derived' mode), or an assumed % of
     capacity ('direct' mode). Each year it is split, never double-used:
     load enabled (waiting load connects sooner, up to enable_share of the
     headroom) first where the network is constrained, the rest to deferral
-    (counted by the planner, so reinforcement is ordered later).
+    (counted by the planner, so reinforcement is ordered later). With
+    flexibility targeting on, up to flex_targeting_share of the headroom goes
+    first to bands above their planning limit (in proportion to the load
+    above it), the rest pro rata.
+
+    network {param: level or value} sets network-block inputs for this call
+    (highest precedence; see resolve()).
 
     Returns dict: 'bau', 'ss' (yearly DataFrames), 'mw' (MW by type),
     'system', 'assumptions', and year-zero details.
     """
     fa = utility_json['forward_assumptions']
-    a = resolve(fa, level, overrides, enabled, scenario)
+    a = resolve(fa, level, overrides, enabled, scenario, network)
     on = a['_enabled']
     if pool_basis:
         a['mechanism']['pool_basis'] = pool_basis
@@ -349,6 +488,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     infl = pj['inflation_rate']
     sn, pr, dfr, le, cap, mech = (a['system_needs'], a['programs'], a['deferral'], a['load_enabled'],
                                   a['capacity'], a['mechanism'])
+    nw = a['network']
     mode = uplift_mode or le['uplift_mode']
     sysdf = system_path(params, a, on['system_needs'])
     S = sysdf['sales_gwh'].values
@@ -356,8 +496,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     DN = sysdf['net_peak_mw'].values
     S0, P0 = S[0], P[0]
     lf_new = S0 / (P0 * 8.76)                        # load factor of new load (system average)
-    h = sn['planning_headroom']
-    lead = int(round(sn['reinforcement_lead_years']))
+    h = nw['planning_headroom']
+    lead = int(round(nw['reinforcement_lead_years']))
     cost_mw = sn['dist_upgrade_cost_per_mw']
 
     lines0 = starting_lines(utility_json)
@@ -374,16 +514,21 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     ee_kw_per_mwh = (pr['ee_kw_per_mwh'] if pr.get('ee_kw_per_mwh') is not None
                      else pr['ee_peak_coincidence'] / (8.76 * lf_new))
     price0 = cap['price_m_per_mw_yr']
-    bands = network_bands(sn, DN[0], h)
+    bands = network_bands(nw, DN[0], h)
     NB = range(len(bands))
+    op_x = operating_limit(nw)
+    # Existing load served at the start: up to the operating limit
+    G = [min(bd['load_share'] * DN[0], op_x * bd['C0']) for bd in bands]
+    tgt_on = bool(nw.get('flex_targeting_enabled'))
+    tgt_share = nw.get('flex_targeting_share', 0.0) or 0.0
     DNb = [[bd['load_share'] * DN[t] + (bd['growth_share'] - bd['load_share']) * (DN[t] - DN[0])
             for t in range(len(YEARS))] for bd in bands]
     # Projects under way at 2026 were planned system-wide: the single-pool seed,
     # allocated to bands by growth share (keeps the 2026 growth / asset-condition
     # capex split independent of the band assumptions)
-    seed = _seed_pipeline(DN, h, lead) if on['system_needs'] else []
+    seed = _seed_from(nw, DN, h, lead) if on['system_needs'] else []
     seeds = [[(yy, m * bd['growth_share']) for (yy, m) in seed] for bd in bands]
-    thr = sn.get('constrained_loading', 1.0)
+    thr = nw.get('constrained_loading', 1.0)
     ramp = {k: pr.get(f'ramp_pct_peak_{k}') for k in FLEX_TYPES}
     cf_share = le.get('customer_funded_share', 0.0) or 0.0
     elec_share = np.clip(np.where(DN > DN[0], sysdf['elec_peak_mw'].values / np.maximum(DN - DN[0], 1e-12), 0.0),
@@ -458,12 +603,17 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 if mode == 'derived':
                     H = firm_flex * dfr['locational_match'] + fc_mw
                     Hb = [H * bands[i]['flex_share'] for i in NB]
+                    if tgt_on:      # targeting: headroom first to bands above their planning limit
+                        need = [max(0.0, Db[i] - Cb[i]) for i in NB]
+                        T = min(tgt_share * H, sum(need))
+                        if T > 0:
+                            Hb = [(H - T) * bands[i]['flex_share'] + T * need[i] / sum(need) for i in NB]
                 else:
                     Hb = [le['direct_uplift_pct'] * Cb[i] for i in NB]
                     H = sum(Hb)
             else:
                 H, Hb = 0.0, [0.0 for _ in NB]
-            Hen_b, Hdef_b, srv_b, wait_b, used_b, ord_b, con_b = [], [], [], [], [], [], []
+            Hen_b, Hdef_b, srv_b, wait_b, used_b, ord_b, con_b, abv_b = [], [], [], [], [], [], [], []
             for i in NB:
                 # Priority to load enabled only where BAU leaves load waiting
                 wb = res['bau_bands'][i]['waiting_mw'][t] if ss else 0.0
@@ -472,19 +622,25 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 # Deferral headroom only carries load BAU would serve anyway (it
                 # substitutes for reinforcement); only load-enabled headroom can
                 # connect load that BAU leaves waiting. One use per MW.
+                # Existing load G[i] stays served up to the operating limit
+                # (equals the planning-capacity rule when the band starts at or
+                # below its planning limit, G[i] <= Cb[i]).
                 bs = res['bau_bands'][i]['served_mw'][t] if ss else Db[i]
-                sv = min(Db[i], min(Cb[i] + h_def, max(Cb[i], bs)) + h_en)
-                used_b.append(min(max(0.0, sv - Cb[i]), h_en + h_def))
+                cs_i = max(Cb[i], G[i])
+                sv = min(Db[i], min(max(Cb[i] + h_def, G[i]), max(cs_i, bs)) + h_en)
+                used_b.append(min(max(0.0, sv - cs_i), h_en + h_def))
                 # Reinforcement ordering (reactive), capped at the maximum build rate
                 view = Cb[i] + sum(m for (_, m) in pipes[i]) + h_def
-                o = min(max(0.0, Db[i] * (1 + h) - view), sn['max_build_pct'] * Cb[i]) if on['system_needs'] else 0.0
+                o = min(max(0.0, Db[i] * (1 + h) - view), nw['max_build_pct'] * Cb[i]) if on['system_needs'] else 0.0
                 if o > 0:
                     pipes[i].append((y + lead, o))
                 eff = Cb[i] + h_en + h_def
                 con_b.append(Db[i] > thr * eff + 1e-9)
+                abv_b.append(max(0.0, sv - eff))                    # served above the planning limit
                 Hen_b.append(h_en); Hdef_b.append(h_def); srv_b.append(sv); wait_b.append(Db[i] - sv); ord_b.append(o)
                 band_rows.append(dict(year=y, band=bands[i]['name'], demand_mw=Db[i], capacity_mw=Cb[i],
-                                      headroom_mw=Hb[i], served_mw=sv, waiting_mw=Db[i] - sv,
+                                      operating_limit_mw=op_x * Cb[i], headroom_mw=Hb[i], served_mw=sv,
+                                      waiting_mw=Db[i] - sv, above_planning_limit_mw=abv_b[-1],
                                       loading=Db[i] / eff if eff else 0.0, constrained=con_b[-1]))
             H_en, H_def = sum(Hen_b), sum(Hdef_b)
             served, used, order = sum(srv_b), sum(used_b), sum(ord_b)
@@ -598,6 +754,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 headroom_enable_mw=H_en, headroom_defer_mw=H_def, headroom_used_mw=used,
                 served_mw=served, waiting_mw=waiting, mwh_not_served_gwh=served_gwh_loss,
                 load_in_constrained_bands_mw=constrained_mw, constrained_bands=sum(con_b),
+                above_planning_limit_mw=sum(abv_b),
                 delay_mw_yr_avoided=delay_avoided, connection_cost_avoided_m=ciac_avoided,
                 electrification_gwh_brought_forward=elec_fwd,
                 enabled_mw=enabled_mw, reinforcement_ordered_mw=order, reinforcement_in_service_mw=arriving,
@@ -628,7 +785,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     return dict(bau=res['bau'], ss=res['ss'], mw=pd.DataFrame(mw_rows), system=sysdf, assumptions=a,
                 bands=bands, band_detail={'bau': res['bau_band_df'], 'ss': res['ss_band_df']},
                 program_spend0_m=spend0, program_spend0_parts=spend_parts, starting_lines=lines0,
-                ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc, uplift_mode=mode)
+                ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc, uplift_mode=mode,
+                benchmark_kwh=kwh_b, operating_limit=op_x)
 
 
 # ── Outputs ──────────────────────────────────────────────────────────────────
@@ -861,7 +1019,10 @@ def earnings_table(run):
 # ── Loading bands, access and ramps ──────────────────────────────────────────
 
 def constrained_table(run, years=(2026, 2030, 2035, 2040, 2050)):
-    """MW of network load in constrained bands (loading above constrained_loading), BAU vs shared savings."""
+    """
+    MW of network load in constrained bands (loading above constrained_loading),
+    MW waiting, and MW served above the planning limit, BAU vs shared savings.
+    """
     b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
     rows = []
     for y in years:
@@ -870,7 +1031,9 @@ def constrained_table(run, years=(2026, 2030, 2035, 2040, 2050)):
                      'SS MW in constrained bands': s.loc[y, 'load_in_constrained_bands_mw'],
                      'BAU constrained bands': int(b.loc[y, 'constrained_bands']),
                      'SS constrained bands': int(s.loc[y, 'constrained_bands']),
-                     'BAU waiting MW': b.loc[y, 'waiting_mw'], 'SS waiting MW': s.loc[y, 'waiting_mw']})
+                     'BAU waiting MW': b.loc[y, 'waiting_mw'], 'SS waiting MW': s.loc[y, 'waiting_mw'],
+                     'BAU MW above planning limit': b.loc[y, 'above_planning_limit_mw'],
+                     'SS MW above planning limit': s.loc[y, 'above_planning_limit_mw']})
     return pd.DataFrame(rows).set_index('year')
 
 
@@ -929,3 +1092,77 @@ def mw_path_table(utility_json, params, scenario='Central', years=(2030, 2035, 2
             row['Total flexible MW'] = sum(m.loc[y, f'{k}_ss_mw'] for k in FLEX_TYPES)
             rows.append(row)
     return pd.DataFrame(rows).set_index(['path', 'year'])
+
+
+# ── System-wide savings and the headroom sweep ───────────────────────────────
+
+def supply_rate_kwh(run):
+    """Today's residential supply energy rate, $/kWh (supply_energy lines at benchmark usage)."""
+    sup = sum(d['month'] for d in run['starting_lines'] if d['category'] == 'supply_energy')
+    return sup / run['benchmark_kwh']
+
+
+def system_summary(run):
+    """
+    System-wide results, BAU minus shared savings, $M nominal unless stated.
+    Customer savings = what all customers pay for delivery (revenue requirement,
+    net of shared savings earnings) + program surcharges + capacity, plus the
+    energy no longer bought because of efficiency, valued at today's
+    residential supply rate grown at supply_energy_growth (applied to every
+    class, so it likely overstates the commercial and industrial share).
+    Wires capex avoided = BAU capex - shared-savings capex - connection capex.
+    """
+    b, s = run['bau'], run['ss']
+    yrs = s['year'].values
+    t = yrs - yrs[0]
+    pay = lambda d: d['rr_m'] + d['program_bill_cost_m'] + d['capacity_cost_m']
+    delivery = (pay(b) - pay(s)).values
+    g = run['assumptions']['projection']['supply_energy_growth']
+    ee_energy = s['ee_gwh'].values * supply_rate_kwh(run) * (1 + g) ** t
+    total = delivery + ee_energy
+    capex = (b['capex_m'] - s['capex_m'] - s['conn_capex_m']).values
+    capc = (b['capacity_cost_m'] - s['capacity_cost_m']).values
+    earn = s['shared_savings_earnings_m'].values
+    acc = access_summary(run)
+    return {
+        'Customer savings ($B, undiscounted nominal)': total.sum() / 1e3,
+        'Customer savings ($B, NPV 3%, 2026 $)': _npv(total, yrs, 0.03) / 1e3,
+        'of which efficiency energy ($B, undiscounted nominal)': ee_energy.sum() / 1e3,
+        'Wires capex avoided or deferred ($B, undiscounted nominal)': capex.sum() / 1e3,
+        'Wires capex avoided or deferred ($B, NPV 3%, 2026 $)': _npv(capex, yrs, 0.03) / 1e3,
+        'Reinforcement deferred (MW)': float(b['reinforcement_in_service_mw'].sum() - s['reinforcement_in_service_mw'].sum()),
+        'Capacity cost avoided ($B, undiscounted nominal)': capc.sum() / 1e3,
+        'Shared savings earnings ($B, undiscounted nominal)': earn.sum() / 1e3,
+        'Shared savings earnings ($B, NPV 3%, 2026 $)': _npv(earn, yrs, 0.03) / 1e3,
+        'MW connected sooner (peak year)': acc['MW connected sooner, peak year'],
+        'Delay avoided (MW-years)': acc['Total delay avoided (MW-years)'],
+        'Connection cost avoided ($M, undiscounted nominal)':
+            acc['Connection cost avoided by new customers ($M, undiscounted nominal)'],
+        'BAU queue, peak (MW waiting)': float(b['waiting_mw'].max()),
+        'BAU MW above planning limit, 2026': float(b['above_planning_limit_mw'].iloc[0]),
+    }
+
+
+SWEEP_MEANS = tuple(round(0.60 + 0.05 * i, 2) for i in range(9))       # 60% to 100%
+SWEEP_SUBBAND = (0.0, 0.02, 0.043, 0.08, 0.15)
+
+
+def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND, scenario='Central',
+                   network=None, measure='average'):
+    """
+    Headroom sweep: mean starting planning utilisation x share of load in the
+    constrained sub-band (0 = no sub-band), everything else at the scenario.
+    network {param: value} adds fixed inputs (e.g. flex_targeting_enabled).
+    One row per point.
+    """
+    col = MEASURE_COL[measure]
+    rows = []
+    for m in means:
+        for x in shares:
+            nw = {**(network or {}), 'mean_utilisation': m, 'subband_enabled': x > 0, 'subband_load_share': x}
+            r = project_layers(utility_json, params, scenario=scenario, network=nw)
+            row = {'mean utilisation': m, 'sub-band share': x,
+                   '2050 monthly saving ($, nominal)': _at(r['bau'], 2050, col) - _at(r['ss'], 2050, col)}
+            row.update(system_summary(r))
+            rows.append(row)
+    return pd.DataFrame(rows)

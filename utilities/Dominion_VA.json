@@ -545,12 +545,14 @@
           "programs": "low",
           "deferral": "low",
           "load_enabled": "low"
-        }
+        },
+        "network": {}
       },
       "Central": {
         "description": "Every assumption at central; flexible MW anchored to VCEA storage target and Dominion IRP DSM forecast.",
         "default_level": "central",
-        "levels": {}
+        "levels": {},
+        "network": {}
       },
       "Ambitious": {
         "description": "DOE national range (20% of peak) or the state anchor if higher, low cost per kW-year, high locational match, more flexible connections; growth and utility share central.",
@@ -559,7 +561,8 @@
           "programs": "high",
           "deferral": "high",
           "load_enabled": "high"
-        }
+        },
+        "network": {}
       }
     },
     "projection": {
@@ -664,73 +667,6 @@
             "source": "utilities/Dominion_VA.json _dist_upgrade_VERIFY: suburban/rural $0.8-1.5M/MW, Northern VA $3-4M/MW",
             "as_of": "2026-10-31",
             "status": "derived"
-          },
-          "planning_headroom": {
-            "low": 0.05,
-            "central": 0.1,
-            "high": 0.15,
-            "unit": "firm network capacity above network peak, share",
-            "source": "No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity); Pepco must file feeder-level constraint data under COMAR 20.50.15. Neither is aggregated to a system headroom %.",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "reinforcement_lead_years": {
-            "low": 2,
-            "central": 3,
-            "high": 5,
-            "unit": "years from order to in service",
-            "source": "Assumption: distribution feeder and substation reinforcement typically takes 2-5 years",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "max_build_pct": {
-            "low": 0.02,
-            "central": 0.035,
-            "high": 0.05,
-            "unit": "maximum reinforcement ordered per year, share of capacity",
-            "source": "Assumption (supply chain, outages, crews)",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "network_bands": {
-            "value": [
-              {
-                "name": "Most loaded",
-                "capacity_share": 0.2,
-                "loading": 1.0
-              },
-              {
-                "name": "High",
-                "capacity_share": 0.2,
-                "loading": 0.88
-              },
-              {
-                "name": "Middle",
-                "capacity_share": 0.2,
-                "loading": 0.78
-              },
-              {
-                "name": "Low",
-                "capacity_share": 0.2,
-                "loading": 0.7
-              },
-              {
-                "name": "Least loaded",
-                "capacity_share": 0.2,
-                "loading": 0.63
-              }
-            ],
-            "unit": "bands of substation loading, most to least loaded: share of firm capacity, starting loading (network peak / firm capacity); growth_share and flex_share optional (default pro rata to load)",
-            "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder. Mean sourced; quintile shape assumed (the filing reports only the aggregate and the count above 100%): top quintile at firm capacity (holds the 4.3% of feeders above 100%; the model cannot start with load unserved), others spread to give the 79.8% mean.",
-            "as_of": "2026-10-31",
-            "status": "derived"
-          },
-          "constrained_loading": {
-            "value": 1.0,
-            "unit": "loading above which a band counts as constrained",
-            "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder (constrained = above 100% planning utilisation)",
-            "as_of": "2026-10-31",
-            "status": "sourced"
           }
         }
       },
@@ -1234,6 +1170,163 @@
         "hook": true,
         "label": "Hook for a later step: allowed ROE",
         "params": {}
+      }
+    },
+    "network": {
+      "label": "Network: existing headroom, planning limit, constrained sub-band, reinforcement, flexibility targeting",
+      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values.",
+      "params": {
+        "band_mode": {
+          "value": "explicit",
+          "unit": "'explicit' = the bands list; 'generated' = n_bands equal-capacity bands from mean_utilisation and utilisation_spread",
+          "source": "Model setting",
+          "as_of": "2026-10-31",
+          "status": "setting"
+        },
+        "bands": {
+          "value": [
+            {
+              "name": "Most loaded",
+              "capacity_share": 0.2,
+              "loading": 1.0
+            },
+            {
+              "name": "High",
+              "capacity_share": 0.2,
+              "loading": 0.88
+            },
+            {
+              "name": "Middle",
+              "capacity_share": 0.2,
+              "loading": 0.78
+            },
+            {
+              "name": "Low",
+              "capacity_share": 0.2,
+              "loading": 0.7
+            },
+            {
+              "name": "Least loaded",
+              "capacity_share": 0.2,
+              "loading": 0.63
+            }
+          ],
+          "unit": "bands of substation loading, most to least loaded: share of firm capacity, starting loading (network peak / firm capacity); growth_share and flex_share optional (default pro rata to load)",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder. Mean sourced; quintile shape assumed (the filing reports only the aggregate and the count above 100%): top quintile at firm capacity (holds the 4.3% of feeders above 100%; the model cannot start with load unserved), others spread to give the 79.8% mean.",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "n_bands": {
+          "value": 5,
+          "unit": "number of bands (generated mode)",
+          "source": "Same count as the explicit bands (quintiles of firm capacity)",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "mean_utilisation": {
+          "value": null,
+          "unit": "capacity-weighted mean starting planning utilisation (network peak / planning capacity); null = bands as given (79.8%). Set a number to shift every band by one amount to that mean, each capped at 1.0 (load above the planning limit goes in the sub-band); generated mode uses it as the centre (null = the explicit bands' mean)",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3, Metric (i): substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general utilisation)",
+          "as_of": "2026-10-31",
+          "status": "sourced"
+        },
+        "utilisation_spread": {
+          "value": 0.37,
+          "unit": "most minus least loaded band (generated mode; linear spread)",
+          "source": "Derived from the explicit bands (1.00 - 0.63); the filing reports only the mean and the count of feeders above 100%, so the shape is assumed",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "planning_limit_factor": {
+          "value": 0.8,
+          "unit": "planning capacity / feeder rating (planning utilisation = load / (factor x rating - contract reserves))",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): planning utilisation = (SCADA net load + DER generation + flexibility) / (0.80 x applicable feeder rating - contract reserves); the 0.80 factor reserves 20% of the rating for contingencies and distribution-automation transfers (not applied to data-centre, industrial or grouped single-customer feeders)",
+          "as_of": "2026-10-31",
+          "status": "sourced"
+        },
+        "operating_limit": {
+          "value": null,
+          "unit": "operating limit as a multiple of planning capacity; null = 1 / planning_limit_factor (1.25 at 0.80). Existing load is served up to it",
+          "source": "Derived: the full feeder rating relative to 0.80 x rating (contract reserves ignored)",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "subband_enabled": {
+          "value": false,
+          "unit": "carve a constrained sub-band (load above the planning limit) out of the most loaded bands; false reproduces the model without it",
+          "source": "Model setting",
+          "as_of": "2026-10-31",
+          "status": "setting"
+        },
+        "subband_load_share": {
+          "value": 0.043,
+          "unit": "share of network load in the constrained sub-band",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation at their local peak. Feeder share used as a proxy for load share",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "subband_utilisation": {
+          "value": 1.125,
+          "unit": "starting planning utilisation of the constrained sub-band",
+          "source": "Midpoint of the planning limit (1.00) and the operating limit (1.25); the filing gives only the count of feeders above 100%, not their loading",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "planning_headroom": {
+          "low": 0.05,
+          "central": 0.1,
+          "high": 0.15,
+          "unit": "firm network capacity above network peak, share",
+          "source": "No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity); Pepco must file feeder-level constraint data under COMAR 20.50.15. Neither is aggregated to a system headroom %.",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "reinforcement_lead_years": {
+          "low": 2,
+          "central": 3,
+          "high": 5,
+          "unit": "years from order to in service",
+          "source": "Assumption: distribution feeder and substation reinforcement typically takes 2-5 years",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "max_build_pct": {
+          "low": 0.02,
+          "central": 0.035,
+          "high": 0.05,
+          "unit": "maximum reinforcement ordered per year, share of capacity",
+          "source": "Assumption (supply chain, outages, crews)",
+          "as_of": "2026-10-31",
+          "status": "_VERIFY"
+        },
+        "seed_pipeline": {
+          "value": "derived",
+          "unit": "projects under way at 2026: 'derived' = the next lead-time years of network growth with planning headroom, allocated to bands by growth share (keeps the 2026 growth / asset-condition capex split independent of the bands); 'none'; or [{year, mw}]",
+          "source": "Model calibration; no utility publishes its in-flight distribution capacity pipeline in MW",
+          "as_of": "2026-10-31",
+          "status": "derived"
+        },
+        "constrained_loading": {
+          "value": 1.0,
+          "unit": "loading above which a band counts as constrained",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder (constrained = above 100% planning utilisation)",
+          "as_of": "2026-10-31",
+          "status": "sourced"
+        },
+        "flex_targeting_enabled": {
+          "value": false,
+          "unit": "site flexible headroom first in bands above their planning limit; false = pro rata (flex_share)",
+          "source": "Model setting (policy lever: locational targeting of flexibility)",
+          "as_of": "2026-10-31",
+          "status": "setting"
+        },
+        "flex_targeting_share": {
+          "value": 1.0,
+          "unit": "maximum share of flexible headroom sited in bands above their planning limit when targeting is on (never more than the load above the limit); 1.0 = those bands first",
+          "source": "Model setting (policy lever)",
+          "as_of": "2026-10-31",
+          "status": "setting"
+        }
       }
     },
     "capacity_carve_out": {
