@@ -69,5 +69,9 @@
       "COMAR 20.50.15 Electric System Planning (feeder-level constraint data)"
     ],
     "note": "Pepco MD is a wires-only utility: supply (SOS) and transmission are pass-through charges outside this rate case."
-  }
+  },
+
+  "_class_shares_note": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Potomac Electric Power Co, MD only: bundled (Part A) + delivery-only (Part C) rows, so retail-choice load is included. Residential sales 5,499,703 of 13,405,796 MWh = 41.0%; residential customers 553,607 of 603,429 = 91.7%. MD PSC Ten-Year Plan (2024) gives 41.8% / 91.6%; EIA used here for consistency across utilities. Used only when CAPACITY_SAVINGS_ALLOCATION = 'sales_share' (CORRECTED): the residential capacity credit is scaled by sales share / customer share.",
+  "residential_sales_share": 0.4102,
+  "residential_customer_share": 0.9174
 }

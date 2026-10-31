@@ -1,6 +1,8 @@
 from .model import (project, run_named_scenario, apply_passthrough_savings, apply_roe_override,
                     apply_preset, delivery_rr_reconciliation, PRESETS,
-                    capacity_cost_in_year, passthrough_utility_share)
+                    capacity_cost_in_year, passthrough_utility_share,
+                    config_with, nws_eligible_bounds, capacity_allocation_factor,
+                    per_customer_label, CAPACITY_SAVINGS_ALLOCATIONS)
 from .report import compute_insights, render_report_html
 from .roe_sweep import (run_roe_sweep, run_corrected_sweep, compute_roe_metrics, quadrant_table,
                         data_quality_flags)

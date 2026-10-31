@@ -56,5 +56,9 @@
   "nws_eligible_capex_share_max": 0.35,
 
   "_dist_upgrade_VERIFY": "Northern Virginia (data centre corridor) has dense suburban/urban network approaching Con Edison cost levels. Rest of Dominion territory predominantly overhead suburban and rural, similar to RG&E. Blended estimate $1.5-2.0M/MW. NEEDS VERIFICATION FROM SCC CAPITAL FILINGS.",
-  "dist_upgrade_cost_per_mw": 1.8
+  "dist_upgrade_cost_per_mw": 1.8,
+
+  "_class_shares_note": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Virginia Electric & Power Co, VA + NC: bundled (Part A) + delivery-only (Part C) rows, so retail-choice load is included. Residential sales 30,307,702 of 98,637,838 MWh = 30.7%; residential customers 2,492,204 of 2,783,257 = 89.5%. VA and NC rows combined (this JSON covers both). Used only when CAPACITY_SAVINGS_ALLOCATION = 'sales_share' (CORRECTED): the residential capacity credit is scaled by sales share / customer share.",
+  "residential_sales_share": 0.3073,
+  "residential_customer_share": 0.8954
 }

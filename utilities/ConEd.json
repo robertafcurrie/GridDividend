@@ -32,5 +32,9 @@
   "_dc_note": "NYC data centre load estimated ~1,500 MW (2026). dc_load_growth_rate calibrated to 6%/yr (down from an initially-proposed 12%/yr, which compounds to a 5.0% total-peak CAGR over 24 years — roughly double Con Edison's published load growth forecast). At 6%/yr, combined with BASELINE_LOAD_GROWTH (0.5%) and ELECTRIFICATION_RAMP, total peak CAGR is 2.4% and BAU 2050 monthly bill is ~$426 — both consistent with Con Edison's published load growth forecast and with pre-segmentation model results (~$424). NYISO large load project requests show a significant data centre pipeline for NYC/Westchester supporting continued growth at this segment-specific rate. Source: Con Edison 2025 DSIP; NYISO 2025 reliability needs assessment.",
 
   "_sources": "Rate base & capital: Joint Proposal, NYPSC Case 25-E-0072, approved January 22 2026 (annual_capex_m = average of RY1 $4,550M / RY2 $4,474M / RY3 $4,712M; total_revenue_m estimated). ROE and equity_ratio: Joint Proposal 2026-2028. Customers, peak_demand_mw, annual_energy_gwh: Con Edison 2024 Form 10-K. DER baseline: CLCPA progress reports; NYSERDA data.",
-  "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
+  "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global.",
+
+  "_class_shares_note": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Consolidated Edison Co-NY Inc, NY: bundled (Part A) + delivery-only (Part C) rows, so retail-choice load is included. Residential sales 13,643,968 of 52,425,970 MWh = 26.0%; residential customers 3,064,038 of 3,646,787 = 84.0%. Used only when CAPACITY_SAVINGS_ALLOCATION = 'sales_share' (CORRECTED): the residential capacity credit is scaled by sales share / customer share.",
+  "residential_sales_share": 0.2603,
+  "residential_customer_share": 0.8402
 }

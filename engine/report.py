@@ -283,12 +283,25 @@ def _starting_data_rows(utility_json):
     return rows
 
 
-def _mechanism_param_rows(model_config):
+# Section 1 keys a utility JSON may override (engine: nws_eligible_bounds()).
+_JSON_OVERRIDABLE = {'NWS_ELIGIBLE_CAPEX_SHARE_START': 'nws_eligible_capex_share_start',
+                     'NWS_ELIGIBLE_CAPEX_SHARE_MAX': 'nws_eligible_capex_share_max'}
+
+
+def _mechanism_param_rows(model_config, utility_json=None):
+    """Mechanism parameters as the engine applies them: a utility JSON value
+    for the NWS-eligible share bounds wins unless explicitly overridden."""
+    utility_json = utility_json or {}
+    overrides = model_config.get('CONFIG_OVERRIDES', ())
     rows = []
     for key, label, fmt, desc in MECHANISM_PARAM_FIELDS:
-        if key not in model_config or model_config[key] is None:
+        val = model_config.get(key)
+        jkey = _JSON_OVERRIDABLE.get(key)
+        if jkey and key not in overrides and utility_json.get(jkey) is not None:
+            val = utility_json[jkey]
+        if val is None:
             continue
-        rows.append((label, fmt(model_config[key]), desc))
+        rows.append((label, fmt(val), desc))
     return rows
 
 
@@ -528,7 +541,7 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
         f"<tr><td>{label}</td><td>{value}</td><td>{note}</td></tr>"
         for label, value, note in starting_rows
     )
-    param_rows = _mechanism_param_rows(model_config)
+    param_rows = _mechanism_param_rows(model_config, utility_json)
     param_html = "".join(
         f"<tr><td>{label}</td><td>{value}</td><td>{desc}</td></tr>"
         for label, value, desc in param_rows

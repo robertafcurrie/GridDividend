@@ -32,5 +32,9 @@
   "_dc_note": "Upstate NY data centre load estimated at ~300 MW (2026) reflecting 179% increase in requested MVA at RG&E 2022-2024 per Avangrid SCC testimony. Growth rate 5%/yr reflects projects already approved and under construction proceeding, constrained by Governor Hochul's May 2026 moratorium on new data centres over 50 MW. Source: Avangrid 'Powering New York' SCC presentation July 2025; NY Executive Order No. 62 June 2026.",
 
   "_sources": "Rate base, annual_capex_m and total_revenue_m are ESTIMATED, back-calculated from the June 2025 filing under NYPSC Case 25-E-0379. PSC set temporary rates June 1 2026 (+4.0% electric); final order still pending — update these figures when the final order is issued. ROE is the utility's requested rate (10.0%), not yet approved. Data centre load parameters reflect upstate NY DC siting activity.",
-  "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global."
+  "_notes": "capacity_market / capacity_market_zone are descriptive metadata pointing to shared/capacity_markets/NYISO.json; not yet consumed by the model engine at this refactoring stage — CAPACITY_COST_START remains a notebook-level global.",
+
+  "_class_shares_note": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Rochester Gas & Electric Corp, NY: bundled (Part A) + delivery-only (Part C) rows, so retail-choice load is included. Residential sales 2,842,349 of 6,871,716 MWh = 41.4%; residential customers 351,481 of 392,342 = 89.6%. Used only when CAPACITY_SAVINGS_ALLOCATION = 'sales_share' (CORRECTED): the residential capacity credit is scaled by sales share / customer share.",
+  "residential_sales_share": 0.4136,
+  "residential_customer_share": 0.8959
 }

@@ -217,3 +217,85 @@ def test_pepco_md_base_cumulative_saving_unchanged(md):
                               {k: {'bau': bau}}, md['MODEL_CONFIG'])
     assert _cum_saving(bau, base) == pytest.approx(PEPCO_MD_BASE_CUM_SAVING_PER_CUSTOMER,
                                                    rel=1e-12)
+
+
+# ── Dominion VA (Virginia notebook) ──────────────────────────────────────────
+
+# Dominion VA BASE (EASE Case) cumulative bill saving per customer vs BAU,
+# 2026–2050, undiscounted nominal — default settings, with the engine using
+# Dominion_VA.json's NWS-eligible shares (22% / 35%) rather than Section 1's
+# 30% / 50% (bug fix on branch corrections-2).
+DOMVA_BASE_CUM_SAVING_PER_CUSTOMER = 11640.525549731597
+
+
+def _load_setup(nb_name):
+    nb_dir = os.path.join(ROOT, 'notebooks')
+    nb = json.load(open(os.path.join(nb_dir, nb_name)))
+    sources = [''.join(c['source']) for c in nb['cells'] if c['cell_type'] == 'code']
+    ns, cwd = {}, os.getcwd()
+    os.chdir(nb_dir)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            for prefix in SETUP_CELL_PREFIXES:
+                matches = [s for s in sources if s.startswith(prefix)]
+                assert len(matches) == 1, f'setup cell not found: {prefix!r}'
+                exec(matches[0], ns)
+    finally:
+        os.chdir(cwd)
+    return ns
+
+
+@pytest.fixture(scope='module')
+def va():
+    """Namespace after running the VA notebook's Section 0, 1, 1b and 2 cells."""
+    return _load_setup('GridDividend_Virginia.ipynb')
+
+
+def test_domva_base_cumulative_saving_unchanged(va):
+    k = 'DomVA'
+    bau = project(va['utility_data'][k], 'bau', config=va['MODEL_CONFIG'])
+    base = run_named_scenario(k, va['SCENARIO_DEFS']['BASE'], va['utility_data'],
+                              {k: {'bau': bau}}, va['MODEL_CONFIG'])
+    assert _cum_saving(bau, base) == pytest.approx(DOMVA_BASE_CUM_SAVING_PER_CUSTOMER, rel=1e-12)
+
+
+# ── corrections-2 options ─────────────────────────────────────────────────────
+
+from engine import (nws_eligible_bounds, config_with, capacity_allocation_factor,   # noqa: E402
+                    capacity_cost_in_year)
+
+
+def test_nws_bounds_precedence(va, ny):
+    cfg = va['MODEL_CONFIG']
+    p = va['utility_data']['DomVA']
+    assert nws_eligible_bounds(p, cfg) == (0.22, 0.35)                     # JSON wins
+    assert nws_eligible_bounds(p, config_with(cfg, NWS_ELIGIBLE_CAPEX_SHARE_START=0.4))[0] == 0.4
+    ny_cfg = ny['MODEL_CONFIG']                                             # NY JSON lacks fields
+    assert nws_eligible_bounds(ny['utility_data']['ConEd'], ny_cfg) == (
+        ny_cfg['NWS_ELIGIBLE_CAPEX_SHARE_START'], ny_cfg['NWS_ELIGIBLE_CAPEX_SHARE_MAX'])
+
+
+def test_capacity_allocation_sales_share(ny):
+    p = ny['utility_data']['ConEd']
+    cfg = ny['MODEL_CONFIG']
+    assert capacity_allocation_factor(p, cfg) == 1.0
+    f = capacity_allocation_factor(p, {**cfg, 'CAPACITY_SAVINGS_ALLOCATION': 'sales_share'})
+    assert f == pytest.approx(p['residential_sales_share'] / p['residential_customer_share'])
+    k = 'ConEd'
+    bau = project(p, 'bau', config=cfg)
+    per_head = run_named_scenario(k, ny['SCENARIO_DEFS']['BASE'], ny['utility_data'], {k: {'bau': bau}}, cfg)
+    by_class = run_named_scenario(k, ny['SCENARIO_DEFS']['BASE'], ny['utility_data'], {k: {'bau': bau}},
+                                  {**cfg, 'CAPACITY_SAVINGS_ALLOCATION': 'sales_share'})
+    np.testing.assert_allclose(by_class['pt_monthly_bill_reduction'],
+                               per_head['pt_monthly_bill_reduction'] * f)
+
+
+def test_corrected_capacity_growth_is_inflation(ny):
+    cfg = ny['MODEL_CONFIG']
+    corr = apply_preset(cfg, 'CORRECTED')
+    assert corr['CAPACITY_COST_GROWTH'] == cfg['INFLATION_RATE']
+    assert corr['CAPACITY_SAVINGS_ALLOCATION'] == 'sales_share'
+    sens = apply_preset(cfg, 'CORRECTED_MARKET_CAPACITY_GROWTH')
+    assert sens['CAPACITY_COST_GROWTH'] == cfg['CAPACITY_COST_GROWTH']      # 3% default kept
+    assert capacity_cost_in_year(corr, 'ConEd', 2027) == pytest.approx(
+        cfg['CAPACITY_COST_START']['ConEd'] * (1 + cfg['INFLATION_RATE']))

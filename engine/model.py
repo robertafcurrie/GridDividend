@@ -101,6 +101,10 @@ PRESETS = {
     #  - savings pool measured as the delivery RR reduction vs BAU
     #  - negative early-year pools carried forward, not charged to the utility
     #  - all scenarios' bills indexed to the BAU 2026 revenue requirement
+    #  - capacity pass-through credited to residential bills by class sales
+    #    share (CAPACITY_SAVINGS_ALLOCATION = 'sales_share')
+    #  - capacity prices grow at INFLATION_RATE (flat in real terms) in every
+    #    market
     'CORRECTED': {
         'INCLUDE_DEPRECIATION_EXPENSE': True,
         'SAVINGS_POOL_BASIS':           'revenue_requirement',
@@ -108,15 +112,85 @@ PRESETS = {
         'BILL_INDEX_BASE':              'bau',
         'NWS_COST_TREATMENT':           'expense',
         'ROE_OVERRIDE_REBASE_BILL':     True,
+        'CAPACITY_SAVINGS_ALLOCATION':  'sales_share',
+        'CAPACITY_COST_GROWTH':         'INFLATION_RATE',
     },
 }
+# Named sensitivity: CORRECTED, but capacity prices keep each notebook's
+# default growth (NYISO 3%/yr, PJM 5%/yr; PEPCO's zone override still applies).
+PRESETS['CORRECTED_MARKET_CAPACITY_GROWTH'] = {
+    k: v for k, v in PRESETS['CORRECTED'].items() if k != 'CAPACITY_COST_GROWTH'}
+
+CAPACITY_SAVINGS_ALLOCATIONS = ('per_customer', 'sales_share')
 
 
 def apply_preset(config, name):
-    """Return a copy of config with the named PRESETS entry applied."""
+    """
+    Return a copy of config with the named PRESETS entry applied. A preset
+    value of 'INFLATION_RATE' is resolved to config['INFLATION_RATE'].
+    """
     if name not in PRESETS:
         raise ValueError(f"Unknown preset {name!r}; choose from {list(PRESETS)}")
-    return {**config, **PRESETS[name], 'MODEL_PRESET': name}
+    vals = {k: (config['INFLATION_RATE'] if v == 'INFLATION_RATE' else v)
+            for k, v in PRESETS[name].items()}
+    return {**config, **vals, 'MODEL_PRESET': name}
+
+
+def config_with(config, **overrides):
+    """
+    Copy of config with explicit overrides, recorded in CONFIG_OVERRIDES so
+    they take precedence over utility-JSON values (see nws_eligible_bounds()).
+    Use for sensitivities that vary a parameter a utility JSON may also set.
+    """
+    prev = tuple(config.get('CONFIG_OVERRIDES', ()))
+    return {**config, **overrides,
+            'CONFIG_OVERRIDES': tuple(dict.fromkeys(prev + tuple(overrides)))}
+
+
+def nws_eligible_bounds(params, config):
+    """
+    (start, max) NWS-eligible CAPEX share for a utility. Precedence:
+    explicit override (CONFIG_OVERRIDES, e.g. a named scenario) > utility JSON
+    (nws_eligible_capex_share_start / _max) > config (notebook Section 1).
+    """
+    ovr = config.get('CONFIG_OVERRIDES', ())
+    out = []
+    for ckey, jkey in (('NWS_ELIGIBLE_CAPEX_SHARE_START', 'nws_eligible_capex_share_start'),
+                       ('NWS_ELIGIBLE_CAPEX_SHARE_MAX', 'nws_eligible_capex_share_max')):
+        if ckey not in ovr and params.get(jkey) is not None:
+            out.append(params[jkey])
+        else:
+            out.append(config[ckey])
+    return tuple(out)
+
+
+def capacity_allocation_factor(params, config):
+    """
+    Multiplier on the per-head residential capacity credit.
+    'per_customer' (default, v1.0): 1.0 — the customer share is spread
+      equally over ALL customers and credited to the residential bill.
+    'sales_share': residential share of sales / residential share of
+      customers (utility JSON, EIA-861), so the residential class receives its
+      sales share; outputs are then per RESIDENTIAL customer.
+    """
+    mode = config.get('CAPACITY_SAVINGS_ALLOCATION', 'per_customer')
+    if mode not in CAPACITY_SAVINGS_ALLOCATIONS:
+        raise ValueError(f"CAPACITY_SAVINGS_ALLOCATION must be one of "
+                         f"{CAPACITY_SAVINGS_ALLOCATIONS}, got {mode!r}")
+    if mode == 'per_customer':
+        return 1.0
+    try:
+        return params['residential_sales_share'] / params['residential_customer_share']
+    except KeyError as e:
+        raise KeyError(f"{params.get('key', '?')}: {e.args[0]} missing from utility JSON "
+                       "(needed for CAPACITY_SAVINGS_ALLOCATION='sales_share')") from None
+
+
+def per_customer_label(config):
+    """'per residential customer' under sales_share allocation, else 'per customer'."""
+    return ('per residential customer'
+            if config.get('CAPACITY_SAVINGS_ALLOCATION', 'per_customer') == 'sales_share'
+            else 'per customer')
 
 
 def capacity_cost_in_year(config, utility_key, year):
@@ -360,6 +434,13 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
     if scenario == 'shared' and INDEX_BASE == 'bau':
         prev_delivery_rr = bau_first_delivery_rr   # first-year ratio = SS / BAU
     prev_capex_spent = None
+    # NWS-eligible share bounds: utility JSON values when present (unless
+    # explicitly overridden), else Section 1 config. See nws_eligible_bounds().
+    _nws0, _nws1 = nws_eligible_bounds(params, cfg)
+    nws_cfg = (cfg if (_nws0, _nws1) == (cfg['NWS_ELIGIBLE_CAPEX_SHARE_START'],
+                                         cfg['NWS_ELIGIBLE_CAPEX_SHARE_MAX'])
+               else {**cfg, 'NWS_ELIGIBLE_CAPEX_SHARE_START': _nws0,
+                     'NWS_ELIGIBLE_CAPEX_SHARE_MAX': _nws1})
     dc_step_mw   = params.get('dc_load_step_mw', 0) or 0
     dc_step_year = params.get('dc_load_step_year', 9999)
 
@@ -425,7 +506,7 @@ def project(params, scenario='bau', apply_freeze=False, config=None, bau_ref=Non
 
         cum_elec_load += (elr + dcr_capex)
         annual_capex   = capex0 * cum_load
-        eligible_share = get_nws_eligible_share(cum_elec_load, cfg)
+        eligible_share = get_nws_eligible_share(cum_elec_load, nws_cfg)
         eligible_capex = annual_capex * eligible_share
 
         smw = get_storage_mw(params, year, scenario, pk, cfg)
@@ -685,9 +766,7 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
        reference (BAU peak is unaffected by NWS programme parameters).
     """
     param_overrides = sdef.get('params', {})
-    cfg = {**base_config}
-    for pname, val in param_overrides.items():
-        cfg[pname] = val
+    cfg = config_with(base_config, **param_overrides) if param_overrides else {**base_config}
 
     freeze_years = param_overrides.get('RATE_FREEZE_YEARS', base_config['RATE_FREEZE_YEARS'])
 
@@ -728,6 +807,7 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
     # with results[k]['shared'] for the same utility.
     bau_df = results[utility_key]['bau']
     pt_share, pt_in_pool = passthrough_utility_share(cfg)
+    alloc = capacity_allocation_factor(p, cfg)
 
     pt_total, pt_customer, pt_utility, pt_monthly = [], [], [], []
     for yr in cfg['YEARS']:
@@ -739,6 +819,8 @@ def run_named_scenario(utility_key, sdef, utility_data, results, base_config):
         cust_share_m = saving_m * (1 - pt_share)
         util_share_m = saving_m * pt_share
         monthly_red  = (cust_share_m * 1e6) / (s_row['customers'] * 12)
+        if alloc != 1.0:
+            monthly_red *= alloc
         pt_total.append(saving_m)
         pt_customer.append(cust_share_m)
         pt_utility.append(util_share_m)
@@ -803,6 +885,7 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
     k = utility_key
     p_util = utility_data[k]
     pt_share, pt_in_pool = passthrough_utility_share(config)
+    alloc = capacity_allocation_factor(p_util, config)
     bau_df = results[k]['bau'].copy()
     sh_df  = results[k]['shared'].copy()
 
@@ -823,6 +906,8 @@ def apply_passthrough_savings(results, utility_key, utility_data, config):
         # Convert customer share to monthly bill reduction
         cust_count = s_row['customers']
         monthly_reduction = (cust_share_m * 1e6) / (cust_count * 12)
+        if alloc != 1.0:
+            monthly_reduction *= alloc
         pt_savings_m.append(saving_m)
         pt_customer_m.append(cust_share_m)
         pt_utility_m.append(util_share_m)
