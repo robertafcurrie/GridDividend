@@ -858,8 +858,34 @@ def render_layered_section(utility_key, utility_json, utility_params):
               'load_enabled': 'Load enabled: residential bill effect only (the benefit of faster connections goes to '
                               'the customers being connected; see Access)',
               'capacity': 'Capacity',
-              'mechanism': 'Shared savings earnings', 'Shared savings': 'Shared-savings bill'}
+              'wholesale_energy': 'Wholesale energy: flexible load shifted to off-peak hours',
+              'transmission': 'Avoided transmission', 'losses': 'Avoided distribution losses',
+              'mechanism': 'Shared savings earnings', 'roe': 'ROE lever (allowed ROE vs BAU)',
+              'Shared savings': 'Shared-savings bill'}
     wf_rows = [(labels[k], (_fmt(v, 2) if k in ('BAU', 'Shared savings') else f"{v:+.2f}")) for k, v in wf.items()]
+    # System-wide summary (Central) and each layer's contribution
+    sm = LY.system_summary(c)
+    def _b(v):
+        v = 0.0 if abs(v) < 0.005 else v
+        return f"-${-v:,.2f}B" if v < 0 else f"${v:,.2f}B"
+    sys_rows = [[k.replace('($B, undiscounted nominal)', '').replace('($B, NPV 3%, 2026 $)', '(NPV 3%, 2026 $)').strip(),
+                 _b(v) if '$B' in k else (_fmt(v, 0, suffix='M') if '$M' in k else f"{v:,.2f}" if '(avg yr' in k else f"{v:,.0f}")]
+                for k, v in sm.items()]
+    lc = LY.layer_contributions(uj, p)
+    lc_rows = [[labels.get(l, l).split(':')[0], _b(r['Customer savings ($B, undiscounted nominal)']),
+                _b(r['Customer savings ($B, NPV 3%, 2026 $)']), f"{r['Monthly bill 2035 ($, nominal)']:+.2f}",
+                f"{r['Monthly bill 2050 ($, nominal)']:+.2f}",
+                _b(r['Shared savings earnings attributable ($B, undiscounted nominal)']),
+                _b(r['Shared savings earnings attributable ($B, NPV 3%, 2026 $)'])]
+               for l, r in lc.iterrows()]
+    roe_rows = []
+    for lev, lbl in (('low', 'ROE lower'), ('high', 'ROE higher')):
+        rr_ = LY.project_layers(uj, p, overrides={('roe', 'roe_delta'): lev})
+        d_ = rr_['assumptions']['roe'].get('roe_delta', 0.0)
+        smr = LY.system_summary(rr_)
+        roe_rows.append([f"{lbl} ({d_ * 1e4:+.0f} bp)", _b(smr['Customer savings ($B, undiscounted nominal)']),
+                         f"{at(rr_['bau'], 2050) - at(rr_['ss'], 2050):,.2f}",
+                         _b(rr_['ss']['equity_return_m'].sum() / 1e3), _b(rr_['bau']['equity_return_m'].sum() / 1e3)])
     # Value stack
     vs = LY.value_stack(c, p, years=(2035, 2050))
     vs_rows = []
@@ -986,6 +1012,25 @@ def render_layered_section(utility_key, utility_json, utility_params):
     <h2>2050 Waterfall, Central</h2>
     <p class="section-intro">BAU to shared-savings average residential bill, $/month nominal, one step per layer.</p>
     {_tbl(['Step', '$/month'], wf_rows)}
+    <h2>System-Wide Results, Central</h2>
+    <p class="section-intro">BAU minus shared savings, all customers. Customer savings = delivery (net of shared savings
+      earnings and any ROE change), program and capacity costs, plus efficiency energy at today's residential supply rate
+      (all classes; likely an overstatement for commercial and industrial customers), wholesale energy (flexible load shifted
+      to off-peak hours), avoided transmission and avoided marginal distribution losses. Efficiency energy is counted once.
+      $B undiscounted nominal unless marked NPV.</p>
+    {_tbl(['Measure', 'Value'], sys_rows)}
+    <h2>Contribution by Layer, Central</h2>
+    <p class="section-intro">Layers added one at a time in waterfall order. Customer savings in $B; monthly bill change in
+      $/month nominal (negative = lower bill); shared savings earnings attributable to each layer (computed with the
+      mechanism on throughout). Not on the bill and reported separately: access benefits (below); next candidates, not yet
+      modelled: resilience, capacity price suppression, the economic value of faster connections and emissions.</p>
+    {_tbl(['Layer', 'Customer savings ($B undiscounted nominal)', 'Customer savings ($B NPV 3%, 2026 $)', 'Bill 2035',
+           'Bill 2050', 'Shared savings earnings ($B undiscounted nominal)', 'Shared savings earnings ($B NPV 3%, 2026 $)'],
+          lc_rows)}
+    <p class="section-intro">ROE lever (Central is no change in allowed ROE; outside the shared-savings pool, so it moves the
+      equity return, not shared savings earnings):</p>
+    {_tbl(['Setting', 'Customer savings ($B undiscounted nominal)', '2050 monthly saving ($, nominal)',
+           'SS equity return ($B undiscounted nominal)', 'BAU equity return ($B undiscounted nominal)'], roe_rows)}
     <h2>Value Stack for Flexible Resources, Central</h2>
     <p class="section-intro">$ per kW-year of incremental flexible capacity, nominal. Cost at which flexibility pays for
       itself (MW-weighted, 2026 $): {'; '.join(pays)}.</p>

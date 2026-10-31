@@ -94,8 +94,11 @@ def test_bau_year_zero_rr_matches_rate_case_target(key, nb):
         sum(d['month'] for d in LY.starting_lines(uj)))
 
 
-def test_hook_layers_cannot_be_enabled():
+def test_placeholder_layers_cannot_be_enabled():
+    """Older forward_assumptions carry wholesale_energy and roe as placeholders (hook: true)."""
     uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    legacy = json.load(open(os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')))['ConEd']
+    uj = {**uj, 'forward_assumptions': legacy['forward_assumptions']}
     with pytest.raises(NotImplementedError):
         LY.project_layers(uj, p, enabled={'roe': True})
 
@@ -236,6 +239,7 @@ def test_access_zero_with_layers_off(key, nb):
 # ── Network block: defaults, sub-band, override order ─────────────────────────
 
 _FIXTURE_1B09 = os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')
+NEW_LAYERS_OFF = {'wholesale_energy': False, 'transmission': False, 'losses': False, 'roe': False}
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
 
@@ -243,10 +247,9 @@ SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 @pytest.mark.parametrize('source', ['current_json', 'legacy_json'])
 def test_network_defaults_reproduce_1b09e20(key, nb, source):
     """
-    The 1b09e20 JSON (no network block) reproduces 1b09e20 exactly. With the
-    current JSON, Cautious and Ambitious reproduce it as they stand, and Central
-    does with the constrained sub-band switched off (it is on for Central since
-    the sub-band became a Central default).
+    The 1b09e20 JSON (no network block) reproduces 1b09e20 exactly, and so does
+    the current JSON with the constrained sub-band switched off and the
+    value-stream and ROE layers (added since) disabled.
     """
     from engine.report import TIGHT_NETWORK
     fx = json.load(open(_FIXTURE_1B09))[key]
@@ -255,9 +258,10 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
         uj = {**uj, 'forward_assumptions': fx['forward_assumptions']}
     for name, ref in fx['runs'].items():
         scn = name.replace('_tight', '')
-        nw = {'subband_enabled': False} if (source == 'current_json' and scn == 'Central') else None
+        cur = source == 'current_json'
         r = LY.project_layers(uj, p, scenario=scn, overrides=TIGHT_NETWORK if name.endswith('_tight') else None,
-                              network=nw)
+                              network={'subband_enabled': False} if cur else None,
+                              enabled=NEW_LAYERS_OFF if cur else None)
         for col, d in ref.items():
             for case in ('bau', 'ss'):
                 np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
@@ -367,12 +371,18 @@ def test_headroom_sweep_grid():
 # ── Upgrade Delay for Interconnection ─────────────────────────────────────────
 
 @pytest.mark.parametrize('key,nb', UTILS)
-def test_subband_on_in_central_only(key, nb):
+def test_subband_on_in_every_scenario_and_switchable(key, nb):
+    import copy
     uj, p = _utility(key, nb)
-    for sc, on in (('Central', True), (None, True), ('Cautious', False), ('Ambitious', False)):
+    for sc in (None,) + LY.SCENARIOS:
         r = LY.project_layers(uj, p, scenario=sc)
-        assert any(b['subband'] for b in r['bands']) is on
-        assert (r['bau']['upgrade_wait_mw'].max() > 0) is on
+        assert any(b['subband'] for b in r['bands'])
+        assert r['bau']['upgrade_wait_mw'].max() > 0
+    uj2 = copy.deepcopy(uj)
+    uj2['forward_assumptions']['scenarios']['Cautious']['network'] = {'subband_enabled': False}
+    assert not any(b['subband'] for b in LY.project_layers(uj2, p, scenario='Cautious')['bands'])
+    assert any(b['subband'] for b in LY.project_layers(uj2, p, scenario='Central')['bands'])
+    assert not any(b['subband'] for b in LY.project_layers(uj, p, network={'subband_enabled': False})['bands'])
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -411,3 +421,65 @@ def test_flexibility_never_lengthens_upgrade_delay(key, nb, scenario):
     r = LY.project_layers(uj, p, scenario=scenario, network={'subband_enabled': True})
     assert r['ss']['upgrade_delay_mw_yr'].sum() <= r['bau']['upgrade_delay_mw_yr'].sum() + 1e-9
     assert r['ss']['upgrade_delay_mw_affected'].sum() <= r['bau']['upgrade_delay_mw_affected'].sum() + 1e-9
+
+
+# ── Value-stream and ROE layers ───────────────────────────────────────────────
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_value_layers_add_savings_and_sum(key, nb):
+    """Each value layer adds customer savings; the waterfall and the contributions sum to the full case."""
+    uj, p = _utility(key, nb)
+    lc = LY.layer_contributions(uj, p)
+    for l in LY.VALUE_LAYERS:
+        assert lc.loc[l, 'Customer savings ($B, undiscounted nominal)'] > 0
+        assert lc.loc[l, 'Monthly bill 2050 ($, nominal)'] < 0
+    full = LY.project_layers(uj, p)
+    sm = LY.system_summary(full)
+    assert lc['Customer savings ($B, undiscounted nominal)'].sum() == pytest.approx(
+        sm['Customer savings ($B, undiscounted nominal)'], abs=1e-9)
+    assert lc['Shared savings earnings attributable ($B, undiscounted nominal)'].sum() == pytest.approx(
+        sm['Shared savings earnings ($B, undiscounted nominal)'], abs=1e-9)
+    wf = LY.waterfall(uj, p, years=(2050,)).iloc[0]
+    assert wf['BAU'] + wf.drop(['BAU', 'Shared savings']).sum() == pytest.approx(wf['Shared savings'], abs=1e-9)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_wholesale_counts_only_load_shifting(key, nb):
+    """No incremental flexible MW -> no wholesale value, even with energy efficiency (already counted)."""
+    uj, p = _utility(key, nb)
+    pr = uj['forward_assumptions']['layers']['programs']['params']
+    ov = {('programs', f'mw_{y}_{k}'): pr[f'mw_start_{k}']['value'] for k in LY.FLEX_TYPES for y in (2035, 2050)}
+    s = LY.project_layers(uj, p, overrides=ov)['ss']
+    assert (s['ee_gwh'] > 0).any() and (s['wholesale_value_m'] == 0).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_losses_energy_value_only_above_average(key, nb):
+    uj, p = _utility(key, nb)
+    s = LY.project_layers(uj, p, overrides={('losses', 'marginal_mult_energy'): 1.0})['ss']
+    assert (s['losses_energy_value_m'] == 0).all() and (s['losses_peak_value_m'] > 0).any()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_roe_lever(key, nb):
+    """ROE +delta raises the shared-savings bill and equity return; shared savings earnings unchanged (outside the pool)."""
+    uj, p = _utility(key, nb)
+    c = LY.project_layers(uj, p)
+    hi = LY.project_layers(uj, p, overrides={('roe', 'roe_delta'): 'high'})
+    lo = LY.project_layers(uj, p, overrides={('roe', 'roe_delta'): 'low'})
+    np.testing.assert_array_equal(c['ss']['avg_bill_total'].values,
+                                  LY.project_layers(uj, p, enabled={'roe': False})['ss']['avg_bill_total'].values)
+    assert hi['ss']['avg_bill_total'].iloc[-1] > c['ss']['avg_bill_total'].iloc[-1] > lo['ss']['avg_bill_total'].iloc[-1]
+    assert hi['ss']['equity_return_m'].sum() > c['ss']['equity_return_m'].sum() > lo['ss']['equity_return_m'].sum()
+    np.testing.assert_allclose(hi['ss']['shared_savings_earnings_m'], c['ss']['shared_savings_earnings_m'], atol=1e-9)
+    np.testing.assert_array_equal(hi['bau']['avg_bill_total'].values, c['bau']['avg_bill_total'].values)
+
+
+def test_transmission_bill_basis():
+    """New York: avoided transmission lowers the delivery bill; PJM: it lowers the transmission lines."""
+    off = {'transmission': False}
+    for key, nb, cat in (('ConEd', 'GridDividend_NewYork.ipynb', 'avg_bill_distribution_base'),
+                         ('DomVA', 'GridDividend_Virginia.ipynb', 'avg_bill_transmission')):
+        uj, p = _utility(key, nb)
+        on_, off_ = LY.project_layers(uj, p)['ss'], LY.project_layers(uj, p, enabled=off)['ss']
+        assert on_[cat].iloc[-1] < off_[cat].iloc[-1]

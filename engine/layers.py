@@ -50,8 +50,9 @@ import pandas as pd
 from .model import RATE_BASE_DECAY, delivery_rr_reconciliation
 
 YEARS = list(range(2026, 2051))
-LAYERS = ('system_needs', 'programs', 'deferral', 'load_enabled', 'capacity', 'mechanism')
-HOOK_LAYERS = ('wholesale_energy', 'roe')
+LAYERS = ('system_needs', 'programs', 'deferral', 'load_enabled', 'capacity', 'wholesale_energy', 'transmission',
+          'losses', 'mechanism', 'roe')
+VALUE_LAYERS = ('wholesale_energy', 'transmission', 'losses')     # value streams added in the shared-savings pool
 SAVINGS_LAYERS = LAYERS[1:]                    # layers that separate shared savings from BAU
 LEVELS = ('low', 'central', 'high')
 SCENARIOS = ('Cautious', 'Central', 'Ambitious')
@@ -236,9 +237,9 @@ def resolve(fa, level='central', overrides=None, enabled=None, scenario=None, ne
         if enabled is not None and lname in enabled:
             on = enabled[lname]
         out['_enabled'][lname] = bool(on)
-    for h in HOOK_LAYERS:
-        if out['_enabled'].get(h):
-            raise NotImplementedError(f"layer {h!r} is a hook for a later step; keep it disabled")
+    for lname, layer in fa['layers'].items():
+        if layer.get('hook') and out['_enabled'].get(lname):
+            raise NotImplementedError(f"layer {lname!r} is a placeholder in this forward_assumptions; keep it disabled")
     return out
 
 
@@ -568,6 +569,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     ee_kw_per_mwh = (pr['ee_kw_per_mwh'] if pr.get('ee_kw_per_mwh') is not None
                      else pr['ee_peak_coincidence'] / (8.76 * lf_new))
     price0 = cap['price_m_per_mw_yr']
+    # Value-stream layers (absent in older forward_assumptions = off)
+    we, tx, lo, ro = (a.get(k, {}) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
+    sup0_kwh = sum(d['month'] for d in lines0 if d['category'] == 'supply_energy') / kwh_b
+    tx_on_lines = tx.get('bill_basis', 'transmission_lines') == 'transmission_lines'
     bands = network_bands(nw, DN[0], h)
     NB = range(len(bands))
     op_x = operating_limit(nw)
@@ -613,6 +618,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         Le = ss and on['load_enabled']
         Lc = ss and on['capacity']
         Lm = ss and on['mechanism']
+        Lw, Lt, Ll, Lr = (ss and on.get(k, False) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
         rb = params['rate_base_start_m']
         reg_vint, reg_asset = [], 0.0
         carry = 0.0
@@ -778,8 +784,12 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             ptax = rb * ptr * (1 + infl * 0.5) ** t
             dep = RATE_BASE_DECAY * rb_open
             om = om0 * _infl(infl, t) + inc_om
-            rr_dist = rb * wacc + ptax + dep + om
-            prog_rr = prog_opex + prog_amort + reg_asset * wacc
+            # ROE layer: allowed ROE in shared savings = BAU ROE + roe_delta from the transition year
+            roe_d = ro['roe_delta'] if (Lr and y >= trans_year) else 0.0
+            wacc_c = wacc + params['equity_ratio'] * roe_d if roe_d else wacc
+            rr_dist = rb * wacc_c + ptax + dep + om
+            prog_rr = prog_opex + prog_amort + reg_asset * wacc_c
+            roe_cost = rb_earning * params['equity_ratio'] * roe_d
             rr_core = rr_dist + prog_rr
             # ── Capacity (bulk system): all firm MW at peak, derated by type ─
             price = price0 * _infl(cap['price_growth'], t)
@@ -789,6 +799,25 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 sys_peak += ee_mw      # EE peak value is booked in the capacity layer
             cap_cost = (sys_peak - mw_red) * price
             prog_bill_cost = 0.0 if active else bau_spend
+            # ── Value streams (shared savings, once programs are active) ─────
+            mw_firm = min(firm_flex + ee_mw, P[t]) if active else 0.0
+            sup_kwh = sup0_kwh * _infl(pj['supply_energy_growth'], t)            # $/kWh
+            whl = tx_av = loss_e = loss_p = mw_loss = 0.0
+            if Lw and active:      # load shifted from on-peak to off-peak hours
+                spread = we['spread_mwh'] * _infl(pj['supply_energy_growth'], t)
+                off = we['offpeak_price_mwh'] * _infl(pj['supply_energy_growth'], t)
+                per = {k: spread for k in FLEX_TYPES}
+                per['storage'] = spread - off * (1 / we['storage_rte'] - 1)      # round-trip losses
+                whl = sum(inc[k] * we[f'mwh_per_mw_{k}'] * per[k] for k in FLEX_TYPES) / 1e6
+            if Lt and active:      # transmission cost avoided by peak reduction
+                tx_av = (mw_firm * tx['cost_kw_yr'] * 1000 * tx['avoidable_share']
+                         * _infl(pj['transmission_growth'], t) / 1e6)
+            if Ll and active:      # marginal distribution losses avoided (above the average in retail rates)
+                loss_e = (ee_gwh * lo['avg_loss_pct'] * (lo['marginal_mult_energy'] - 1)) * sup_kwh
+                mw_loss = min(mw_firm * lo['avg_loss_pct'] * lo['marginal_mult_peak'], max(0.0, sys_peak - mw_red))
+                loss_p = mw_loss * price
+            vpool = (whl * bool(we.get('in_pool', True)) + tx_av * bool(tx.get('in_pool', True))
+                     + (loss_e + loss_p) * bool(lo.get('in_pool', True)))
             # ── Mechanism ────────────────────────────────────────────────────
             earnings = credit = 0.0
             pool = np.nan
@@ -797,8 +826,12 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 if mech['pool_basis'] == 'revenue_requirement':
                     pool = ((b['rr_core_m'].iloc[t] + b['program_bill_cost_m'].iloc[t] + b['capacity_cost_m'].iloc[t])
                             - (rr_core + prog_bill_cost + cap_cost))
+                    if roe_cost and not ro.get('roe_in_pool', False):
+                        pool += roe_cost                 # the ROE lever sits outside the pool
                 else:
                     pool = (b['capex_m'].iloc[t] - capex) - new_spend + (b['capacity_cost_m'].iloc[t] - cap_cost)
+                if vpool:
+                    pool += vpool
                 if Lm:
                     net = pool + carry
                     carry = min(0.0, net)
@@ -813,6 +846,11 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # ── Bills ────────────────────────────────────────────────────────
             usage = (S[t] - (ee_gwh if active else 0.0)) / S[t]
             dist_bill = dist0 * (rr_dist / rr_ref) * (S0 / S_case)
+            if tx_av and not tx_on_lines:          # transmission recovered in delivery rates (New York)
+                dist_bill *= 1 - tx_av / rr_dist
+            f_sup = (whl + loss_e) / (sup_kwh * S_case) if (whl or loss_e) and sup_kwh > 0 else 0.0
+            f_tx = (tx_av / (P[t] * tx['cost_kw_yr'] * 1000 * _infl(pj['transmission_growth'], t) / 1e6)
+                    if tx_av and tx_on_lines else 0.0)
             rider = dict(id='core_program_and_earnings_recovery',
                          name='Core programs and shared savings earnings (per kWh)',
                          category='program_surcharge', bill_section='delivery', unit='$/kWh', core=False,
@@ -831,10 +869,14 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                                   else d['month'] * _infl(pj['program_surcharge_growth'], t))
                 elif c == 'supply_energy':
                     e['month'] = d['month'] * _infl(pj['supply_energy_growth'], t)
+                    if f_sup:
+                        e['month'] *= 1 - f_sup
                 elif c == 'transmission':
                     e['month'] = d['month'] * _infl(pj['transmission_growth'], t)
+                    if f_tx:
+                        e['month'] *= 1 - f_tx
                 elif c == 'capacity':
-                    e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red) / P0) / (S_case / S0)
+                    e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red - mw_loss) / P0) / (S_case / S0)
                 elif c == 'taxes_and_fees' and d.get('pct') is None:
                     e['month'] = d['month']
                 bench.append(e)
@@ -867,7 +909,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 firm_mw=firm_flex + (ee_mw if active else 0.0), flex_mw_incremental=sum(inc.values()),
                 peak_reduction_mw=mw_red, capacity_price_m_per_mw_yr=price, capacity_cost_m=cap_cost,
                 savings_pool_m=pool, shared_savings_earnings_m=earnings, customer_credit_m=credit,
-                equity_return_m=rb_earning * eq_roe, utility_earnings_m=rb_earning * eq_roe + earnings))
+                wholesale_value_m=whl, transmission_avoided_m=tx_av, losses_energy_value_m=loss_e,
+                losses_peak_value_m=loss_p, roe_delta=roe_d, roe_cost_m=roe_cost,
+                equity_return_m=rb_earning * eq_roe + roe_cost,
+                utility_earnings_m=rb_earning * eq_roe + roe_cost + earnings))
             if ss:
                 mw_rows.append(dict(year=y, **{f'{k}_bau_mw': mw_b[k] for k in FLEX_TYPES},
                                     **{f'{k}_ss_mw': mw_s[k] for k in FLEX_TYPES},
@@ -936,7 +981,8 @@ def waterfall(utility_json, params, years=MILESTONES, measure='average', scenari
     """BAU -> shared-savings bill, one bar per layer (LAYERS order). System needs bar is zero."""
     col = MEASURE_COL[measure]
     fa = utility_json['forward_assumptions']
-    base_on = {l: fa['layers'][l].get('enabled', True) for l in LAYERS}
+    base_on = {l: bool(fa['layers'].get(l, {}).get('enabled', False)) and not fa['layers'].get(l, {}).get('hook')
+               for l in LAYERS}
     state = {**base_on, **{l: False for l in SAVINGS_LAYERS}}
     prev = project_layers(utility_json, params, enabled=state, scenario=scenario)
     out = {y: {'BAU': _at(prev['bau'], y, col), 'system_needs': 0.0} for y in years}
@@ -1249,11 +1295,15 @@ def system_summary(run):
     """
     System-wide results, BAU minus shared savings, $M nominal unless stated.
     Customer savings = what all customers pay for delivery (revenue requirement,
-    net of shared savings earnings) + program surcharges + capacity, plus the
-    energy no longer bought because of efficiency, valued at today's
-    residential supply rate grown at supply_energy_growth (applied to every
-    class, so it likely overstates the commercial and industrial share).
-    Wires capex avoided = BAU capex - shared-savings capex - connection capex.
+    net of shared savings earnings and including any ROE change) + program
+    surcharges + capacity, plus the energy no longer bought because of
+    efficiency, valued at today's residential supply rate grown at
+    supply_energy_growth (applied to every class, so it likely overstates the
+    commercial and industrial share), plus the value-stream layers: wholesale
+    energy (load shifted to off-peak hours), avoided transmission and avoided
+    marginal distribution losses. Efficiency energy is counted once (the
+    wholesale layer values only load shifting). Each component is reported
+    as its own line. Wires capex avoided = BAU capex - SS capex - connection capex.
     """
     b, s = run['bau'], run['ss']
     yrs = s['year'].values
@@ -1262,7 +1312,11 @@ def system_summary(run):
     delivery = (pay(b) - pay(s)).values
     g = run['assumptions']['projection']['supply_energy_growth']
     ee_energy = s['ee_gwh'].values * supply_rate_kwh(run) * (1 + g) ** t
-    total = delivery + ee_energy
+    col = lambda c: s[c].values if c in s.columns else np.zeros(len(s))
+    whl, txa = col('wholesale_value_m'), col('transmission_avoided_m')
+    loss = col('losses_energy_value_m') + col('losses_peak_value_m')
+    roe = col('roe_cost_m')
+    total = delivery + ee_energy + whl + txa + loss
     capex = (b['capex_m'] - s['capex_m'] - s['conn_capex_m']).values
     capc = (b['capacity_cost_m'] - s['capacity_cost_m']).values
     earn = s['shared_savings_earnings_m'].values
@@ -1271,6 +1325,10 @@ def system_summary(run):
         'Customer savings ($B, undiscounted nominal)': total.sum() / 1e3,
         'Customer savings ($B, NPV 3%, 2026 $)': _npv(total, yrs, 0.03) / 1e3,
         'of which efficiency energy ($B, undiscounted nominal)': ee_energy.sum() / 1e3,
+        'of which wholesale energy, load shifted ($B, undiscounted nominal)': whl.sum() / 1e3,
+        'of which avoided transmission ($B, undiscounted nominal)': txa.sum() / 1e3,
+        'of which avoided distribution losses ($B, undiscounted nominal)': loss.sum() / 1e3,
+        'of which ROE change, cost to customers ($B, undiscounted nominal)': -roe.sum() / 1e3,
         'Wires capex avoided or deferred ($B, undiscounted nominal)': capex.sum() / 1e3,
         'Wires capex avoided or deferred ($B, NPV 3%, 2026 $)': _npv(capex, yrs, 0.03) / 1e3,
         'Reinforcement deferred (MW)': float(b['reinforcement_in_service_mw'].sum() - s['reinforcement_in_service_mw'].sum()),
@@ -1322,3 +1380,62 @@ def headroom_sweep(utility_json, params, means=SWEEP_MEANS, shares=SWEEP_SUBBAND
                 row.update(system_summary(r))
                 rows.append(row)
     return pd.DataFrame(rows)
+
+
+def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050), measure='average'):
+    """
+    Each savings layer's contribution, adding layers one at a time in LAYERS
+    order (the waterfall order): customer savings ($B, undiscounted nominal and
+    NPV 3%, 2026 $), the monthly bill in each year ($/month nominal, negative =
+    lower bill), shared savings earnings ($B) and the utility's equity return
+    on rate base ($B, undiscounted nominal). Rows sum to the full shared-savings case.
+    In that order all earnings fall on the mechanism step, so 'earnings
+    attributable' repeats the pass with the mechanism on from the start: each
+    layer's change in shared savings earnings (it sums to the same total).
+    """
+    col = MEASURE_COL[measure]
+    fa = utility_json['forward_assumptions']
+    base_on = {l: bool(fa['layers'].get(l, {}).get('enabled', False)) and not fa['layers'].get(l, {}).get('hook')
+               for l in LAYERS}
+    state = {**base_on, **{l: False for l in SAVINGS_LAYERS}}
+
+    def stats(r):
+        sm = system_summary(r)
+        yrs = r['ss']['year'].values
+        return {'cs': sm['Customer savings ($B, undiscounted nominal)'], 'cs3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+                **{y: _at(r['ss'], y, col) for y in years},
+                'earn': r['ss']['shared_savings_earnings_m'].sum() / 1e3,
+                'earn3': _npv(r['ss']['shared_savings_earnings_m'].values, yrs, 0.03) / 1e3,
+                'eq': r['ss']['equity_return_m'].sum() / 1e3}
+
+    prev = stats(project_layers(utility_json, params, enabled=state, scenario=scenario))
+    rows = []
+    for l in SAVINGS_LAYERS:
+        if base_on[l]:
+            state[l] = True
+            cur = stats(project_layers(utility_json, params, enabled=dict(state), scenario=scenario))
+        else:
+            cur = prev
+        rows.append({'layer': l,
+                     'Customer savings ($B, undiscounted nominal)': cur['cs'] - prev['cs'],
+                     'Customer savings ($B, NPV 3%, 2026 $)': cur['cs3'] - prev['cs3'],
+                     **{f'Monthly bill {y} ($, nominal)': cur[y] - prev[y] for y in years},
+                     'Shared savings earnings ($B, undiscounted nominal)': cur['earn'] - prev['earn'],
+                     'Shared savings earnings ($B, NPV 3%, 2026 $)': cur['earn3'] - prev['earn3'],
+                     'Utility equity return ($B, undiscounted nominal)': cur['eq'] - prev['eq']})
+        prev = cur
+    out = pd.DataFrame(rows).set_index('layer')
+    state = {**base_on, **{l: False for l in SAVINGS_LAYERS}, 'mechanism': base_on['mechanism']}
+    prev = stats(project_layers(utility_json, params, enabled=state, scenario=scenario))
+    attr = {}
+    for l in SAVINGS_LAYERS:
+        if l != 'mechanism' and base_on[l]:
+            state[l] = True
+            cur = stats(project_layers(utility_json, params, enabled=dict(state), scenario=scenario))
+            attr[l] = (cur['earn'] - prev['earn'], cur['earn3'] - prev['earn3'])
+            prev = cur
+        else:
+            attr[l] = (0.0, 0.0)
+    out['Shared savings earnings attributable ($B, undiscounted nominal)'] = [attr[l][0] for l in out.index]
+    out['Shared savings earnings attributable ($B, NPV 3%, 2026 $)'] = [attr[l][1] for l in out.index]
+    return out

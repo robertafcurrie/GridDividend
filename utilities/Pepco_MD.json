@@ -377,9 +377,7 @@
           "deferral": "low",
           "load_enabled": "low"
         },
-        "network": {
-          "subband_enabled": false
-        }
+        "network": {}
       },
       "Central": {
         "description": "Every assumption at central; flexible MW anchored to Maryland DRIVE Act and NGEA storage.",
@@ -395,9 +393,7 @@
           "deferral": "high",
           "load_enabled": "high"
         },
-        "network": {
-          "subband_enabled": false
-        }
+        "network": {}
       }
     },
     "projection": {
@@ -972,6 +968,155 @@
           }
         }
       },
+      "wholesale_energy": {
+        "enabled": true,
+        "label": "Wholesale energy: flexible load shifted from on-peak to off-peak hours",
+        "_note": "Values the MWh that incremental flexible resources move out of on-peak hours at the on/off-peak price spread (storage net of round-trip losses). Efficiency's lower energy purchases are already counted (lower usage on the bill; efficiency energy line in system_summary), so they are not added here.",
+        "params": {
+          "spread_mwh": {
+            "low": 11.24,
+            "central": 19.0,
+            "high": 38.68,
+            "unit": "$/MWh on-peak minus off-peak, 2026 (grows at supply_energy_growth)",
+            "source": "Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57.08 / off peak $38.08 per MWh (spread $19.00); 2024 $37.32 / $26.08 ($11.24); Table 3-39: July 2025 load-weighted on peak $77.77 / off peak $39.08 ($38.68). Low 2024, central 2025, high July 2025.",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "offpeak_price_mwh": {
+            "value": 38.08,
+            "unit": "$/MWh off-peak price, 2026 (grows at supply_energy_growth); prices storage round-trip losses",
+            "source": "Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57.08 / off peak $38.08 per MWh (spread $19.00); 2024 $37.32 / $26.08 ($11.24); Table 3-39: July 2025 load-weighted on peak $77.77 / off peak $39.08 ($38.68).",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "storage_rte": {
+            "value": 0.85,
+            "unit": "battery round-trip efficiency",
+            "source": "Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85% for a 4-hour battery",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "mwh_per_mw_dr": {
+            "low": 61,
+            "central": 61,
+            "high": 74,
+            "unit": "MWh shifted per MW of demand response per year (event hours)",
+            "source": "Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 total 61 event-hours across Zones A-K (21-22 Jan, 23-25 Jun, 16 Jul, 28-30 Jul) and 74 in Zone J (adding 17 Jul G-K and 25 Jul J-K). Low and central statewide, high New York City. Used as a proxy for this utility (_VERIFY).",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_ev": {
+            "low": 500,
+            "central": 900,
+            "high": 1460,
+            "unit": "MWh shifted per MW of managed EV charging per year",
+            "source": "Assumption: managed MW is evening-peak charging moved overnight; low 2 h x 250 days, central 3 h x 300 days, high 4 h x 365 days. No utility program reports shifted MWh per MW",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_storage": {
+            "low": 1000,
+            "central": 1200,
+            "high": 1460,
+            "unit": "MWh discharged per MW of distributed storage per year",
+            "source": "4-hour duration (the NYISO 2025 State of the Market reference battery) x cycles a year: low 250, central 300, high 365 (daily). Cycle counts are an assumption",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_der": {
+            "low": 61,
+            "central": 61,
+            "high": 74,
+            "unit": "MWh shifted per MW of other DER per year",
+            "source": "Treated like demand response (event-based dispatch): Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 total 61 event-hours across Zones A-K (21-22 Jan, 23-25 Jun, 16 Jul, 28-30 Jul) and 74 in Zone J (adding 17 Jul G-K and 25 Jul J-K)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-10-31",
+            "status": "setting"
+          }
+        }
+      },
+      "transmission": {
+        "enabled": true,
+        "label": "Avoided transmission: transmission cost avoided by peak reduction",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service.",
+        "params": {
+          "cost_kw_yr": {
+            "value": 60.49,
+            "unit": "$/kW-yr, 2026 (grows at transmission_growth)",
+            "source": "PJM, Annual Transmission Revenue Requirements and NITS Rates (effective 1 Jun 2026): PEPCO zone $60,491.36/MW-yr (zonal ATRR / network service peak load)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "avoidable_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of that cost avoided by each kW of peak reduction",
+            "source": "PJM NITS is an average embedded rate: low 0 (cost shift within the zone), central 0.5, high 1.0 (embedded cost fully avoidable in the long run). Assumption",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "bill_basis": {
+            "value": "transmission_lines",
+            "unit": "'transmission_lines' = lowers the transmission lines on the bill in proportion to peak reduction; 'delivery' = transmission is recovered in delivery rates, so the avoided cost lowers the delivery bill",
+            "source": "Starting bill structure (starting_bill)",
+            "as_of": "2026-10-31",
+            "status": "setting"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-10-31",
+            "status": "setting"
+          }
+        }
+      },
+      "losses": {
+        "enabled": true,
+        "label": "Avoided distribution losses: marginal losses avoided by efficiency and peak reduction",
+        "_note": "Retail rates already price average losses into every kWh, so the energy value is efficiency GWh x average loss x (marginal multiplier - 1) at the supply rate. Capacity is priced at the meter, so peak losses are firm flexible + efficiency peak MW x average loss x peak multiplier at the capacity price.",
+        "params": {
+          "avg_loss_pct": {
+            "value": 0.0492,
+            "unit": "average distribution (or T&D) energy losses, share of energy",
+            "source": "EIA-861 2024 Operational Data, Potomac Electric Power Co (DC and MD combined): total energy losses 490,255 / total disposition 9,965,263 MWh = 4.92% (transmission and distribution; no Maryland distribution-only figure found)",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "marginal_mult_energy": {
+            "low": 1.0,
+            "central": 1.5,
+            "high": 2.0,
+            "unit": "marginal / average losses, energy",
+            "source": "Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), and Lazar, ACEEE 2011 slides: marginal resistive losses are 2x average resistive losses each hour; with ~25% no-load losses, avoided marginal energy losses are about 1.5x system-average losses; on-peak marginal losses about 3x average losses (resistive losses can be ~4x as great at the summer afternoon peak). Low 1.0 = no value above average losses; high 2.0 = all losses resistive",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "marginal_mult_peak": {
+            "low": 2.0,
+            "central": 3.0,
+            "high": 4.0,
+            "unit": "marginal / average losses at the system peak",
+            "source": "Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), and Lazar, ACEEE 2011 slides: marginal resistive losses are 2x average resistive losses each hour; with ~25% no-load losses, avoided marginal energy losses are about 1.5x system-average losses; on-peak marginal losses about 3x average losses (resistive losses can be ~4x as great at the summer afternoon peak). Low 2.0 (resistive rule at any hour), central 3.0 (on-peak), high 4.0",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-10-31",
+            "status": "setting"
+          }
+        }
+      },
       "mechanism": {
         "enabled": true,
         "label": "Shared savings mechanism and earnings opportunity",
@@ -994,22 +1139,33 @@
           }
         }
       },
-      "wholesale_energy": {
-        "enabled": false,
-        "hook": true,
-        "label": "Hook for a later step: wholesale energy price effects",
-        "params": {}
-      },
       "roe": {
-        "enabled": false,
-        "hook": true,
-        "label": "Hook for a later step: allowed ROE",
-        "params": {}
+        "enabled": true,
+        "label": "ROE: allowed return on equity in the shared-savings case relative to BAU (separate lever)",
+        "_note": "Applies from the transition year to the wires rate base and the program regulatory asset. Outside the shared-savings pool, so it changes the equity return, not shared savings earnings. Central 0: the reform rewards through shared savings earnings with the allowed ROE unchanged.",
+        "params": {
+          "roe_delta": {
+            "low": -0.006,
+            "central": 0.0,
+            "high": 0.006,
+            "unit": "change in allowed ROE, shared savings vs BAU (0.006 = 60 basis points)",
+            "source": "Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren, Illinois Energy Legislation slides, 13 Sep 2021); Ameren Illinois electric multi-year rate plan (ICC order Dec 2023): seven metrics, +/- 24 basis points in total. Low / high = the CEJA maximum penalty / incentive; central 0 (no ROE change)",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "roe_in_pool": {
+            "value": false,
+            "unit": "count the ROE change inside the shared-savings pool (false keeps it a separate lever)",
+            "source": "Model setting",
+            "as_of": "2026-10-31",
+            "status": "setting"
+          }
+        }
       }
     },
     "network": {
       "label": "Network: existing headroom, planning limit, constrained sub-band, reinforcement, flexibility targeting",
-      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values. Dominion PUR-2026-00164 proxy throughout (_VERIFY) until this utility's feeder-loading data is found. Constrained sub-band on for Central (network block); Cautious and Ambitious keep it off through their scenario network values, so they are unchanged.",
+      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values. Dominion PUR-2026-00164 proxy throughout (_VERIFY) until this utility's feeder-loading data is found. Constrained sub-band on in every scenario.",
       "params": {
         "band_mode": {
           "value": "explicit",
@@ -1088,7 +1244,7 @@
         },
         "subband_enabled": {
           "value": true,
-          "unit": "per-utility switch: carve a constrained sub-band (load above the planning limit) out of the most loaded bands. On for Central (scenario None = Central); Cautious and Ambitious switch it off in their scenario network values",
+          "unit": "per-utility switch: carve a constrained sub-band (load above the planning limit) out of the most loaded bands; on in every scenario (a scenario's network values or NETWORK_OVERRIDES can switch it off)",
           "source": "Model setting",
           "as_of": "2026-10-31",
           "status": "setting"
