@@ -353,7 +353,7 @@ def render_report_html(utility_key, utility_json, utility_params, scenario_label
                         years, bau_df, scenario_df, insights, chart_png_path,
                         generated_at, git_sha, model_config=None,
                         bau_freeze_df=None, scenario_freeze_df=None,
-                        pool_basis_note=False):
+                        pool_basis_note=False, layered_html=None):
     """Self-contained HTML string for one utility/scenario. System font stack
     only — no embedded custom font, so this works portably with zero new deps
     and no third-party font redistribution.
@@ -711,6 +711,7 @@ footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-w
       <tbody>{fin_rows()}</tbody>
     </table>
   </section>
+  {layered_html or ''}
   {verify_html}
   <section>
     <h2 class="flag">Model Caveats</h2>
@@ -723,3 +724,128 @@ footer {{ position: fixed; left: 0; right: 0; bottom: 8px; margin: 0 auto; max-w
 </div>
 </body>
 </html>"""
+
+
+# ── Layered section (engine/layers.py) ───────────────────────────────────────
+
+TIGHT_NETWORK = {('system_needs', 'planning_headroom'): 'low',
+                 ('system_needs', 'reinforcement_lead_years'): 'high',
+                 ('system_needs', 'max_build_pct'): 'low'}
+
+
+def _tbl(header, rows):
+    th = ''.join(f'<th>{h}</th>' for h in header)
+    body = ''.join('<tr>' + ''.join(f'<td>{c}</td>' for c in r) + '</tr>' for r in rows)
+    return f'<table><thead><tr>{th}</tr></thead><tbody>{body}</tbody></table>'
+
+
+def render_layered_section(utility_key, utility_json, utility_params):
+    """
+    HTML block: layered bill projection (engine/layers.py) for one utility.
+    Leads with the monthly bill difference, then cumulative and NPV savings.
+    Every $ figure is labelled with its basis.
+    """
+    from . import layers as LY
+    uj, p = utility_json, utility_params
+    name = uj.get('short_name', utility_key)
+    kwh = uj['starting_bill']['benchmark_kwh_month']
+    runs = {sc: LY.project_layers(uj, p, scenario=sc) for sc in LY.SCENARIOS}
+    c = runs['Central']
+    col = 'avg_bill_total'
+    at = lambda df, y: float(df.loc[df['year'] == y, col].iloc[0])
+    lead = []
+    for y in (2035, 2050):
+        b, s_ = at(c['bau'], y), at(c['ss'], y)
+        lead.append(f"In {y}, the average residential bill is {_fmt(s_, 2)}/month under shared savings versus "
+                    f"{_fmt(b, 2)}/month under BAU (Central scenario): {_fmt(b - s_, 2)}/month lower "
+                    f"($/month, nominal).")
+    cs = LY.cumulative_savings(c)
+    lead.append(f"Cumulative saving per residential customer, 2026&ndash;2050 (Central): {_fmt(cs['undiscounted nominal $'])} "
+                f"undiscounted nominal; {_fmt(cs['NPV 3% (2026 $)'])} NPV at 3% and {_fmt(cs['NPV 7% (2026 $)'])} NPV at 7% "
+                f"(2026 dollars). Range across scenarios: "
+                + ', '.join(f"{sc} {_fmt(LY.cumulative_savings(runs[sc])['undiscounted nominal $'])}" for sc in LY.SCENARIOS)
+                + ' (undiscounted nominal).')
+    # Starting bill by category
+    cat0 = LY.by_category(c['starting_lines'])
+    start_rows = [(k.replace('_', ' ').capitalize(), _fmt(v, 2)) for k, v in cat0.items() if abs(v) > 0.005]
+    start_rows.append(('<strong>Total</strong>', f'<strong>{_fmt(sum(cat0.values()), 2)}</strong>'))
+    # Bills by scenario
+    bill_rows = []
+    for y in (2026, 2035, 2050):
+        bill_rows.append([str(y), _fmt(at(c['bau'], y), 2)] + [_fmt(at(runs[sc]['ss'], y), 2) for sc in LY.SCENARIOS])
+    # Waterfall 2050
+    wf = LY.waterfall(uj, p, years=(2050,)).iloc[0]
+    labels = {'BAU': 'BAU bill', 'system_needs': 'System needs (both cases)', 'programs': 'Programs as core business',
+              'deferral': 'Deferral', 'load_enabled': 'Load enabled', 'capacity': 'Capacity',
+              'mechanism': 'Shared savings earnings', 'Shared savings': 'Shared-savings bill'}
+    wf_rows = [(labels[k], (_fmt(v, 2) if k in ('BAU', 'Shared savings') else f"{v:+.2f}")) for k, v in wf.items()]
+    # Value stack
+    vs = LY.value_stack(c, p, years=(2035, 2050))
+    vs_rows = []
+    for y, r in vs.iterrows():
+        if r.get('flexible kW (incremental)', 0) <= 0:
+            continue
+        vs_rows.append([str(y), f"{r['cost $/kW-yr']:,.0f}", f"{r['capacity value $/kW-yr']:,.0f}",
+                        f"{r['deferral value $/kW-yr']:,.0f}", f"{r['load-enabled value $/kW-yr']:,.0f}",
+                        f"{r['total value $/kW-yr']:,.0f}"])
+    pays = []
+    for tg, lbl in ((2050, 'average bill equal to BAU in 2050'), ('npv3', 'cumulative 2026-2050 saving zero at 3% NPV')):
+        cost, note = LY.flex_pays_cost(uj, p, target=tg)
+        pays.append(f"{lbl}: " + (f'${cost:,.0f}/kW-yr' if cost is not None else 'n/a') + f" ({note})")
+    # Network
+    net_rows = []
+    for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
+        for sc in LY.SCENARIOS:
+            r = LY.project_layers(uj, p, scenario=sc, overrides=ov)
+            b_, s_ = r['bau'].set_index('year'), r['ss'].set_index('year')
+            net_rows.append([lbl, sc, f"{s_.loc[2035, 'capacity_uplift_pct']:.1%}", f"{s_.loc[2050, 'capacity_uplift_pct']:.1%}",
+                             f"{s_.loc[2050, 'enabled_mw']:,.0f}",
+                             f"{b_.loc[2050, 'avg_connection_delay_yr']:.2f} &rarr; {s_.loc[2050, 'avg_connection_delay_yr']:.2f}"])
+    # MW by type
+    mt = LY.mw_table(c, (2035, 2050))
+    ma = LY.mw_table(runs['Ambitious'], (2050,))
+    mw_rows = []
+    for k in LY.FLEX_TYPES:
+        lab = LY.FLEX_LABEL[k]
+        mw_rows.append([lab, f"{mt.loc[2035, f'{lab} MW (today)']:,.0f}", f"{mt.loc[2035, f'{lab} MW (SS)']:,.0f}",
+                        f"{mt.loc[2050, f'{lab} MW (SS)']:,.0f}", f"{ma.loc[2050, f'{lab} MW (SS)']:,.0f}"])
+    # Earnings
+    et = LY.earnings_table(c).sum()
+    earn_rows = [('BAU: equity return on rate base', _fmt(et['BAU equity return'], 0, suffix='M')),
+                 ('Shared savings: equity return on rate base', _fmt(et['SS equity return'], 0, suffix='M')),
+                 ('Shared savings: shared savings earnings (earnings opportunity)', _fmt(et['SS shared savings earnings'], 0, suffix='M')),
+                 ('Shared savings: total', _fmt(et['SS total earnings'], 0, suffix='M'))]
+    return f"""
+  <section class="page-break">
+    <h2>Layered Projection: Today's Bill to 2050</h2>
+    <p class="section-intro">GridDividend layer engine (engine/layers.py), separate from the projections above. Bills are the
+      <strong>average residential bill</strong> ($/month, nominal; energy efficiency lowers usage). Scenarios: Cautious /
+      Central / Ambitious (forward_assumptions in the utility data file). Directional illustration, not a forecast.</p>
+    <ul class="lede">{''.join(f'<li>{x}</li>' for x in lead)}</ul>
+    <h2>Starting Bill by Category</h2>
+    <p class="section-intro">Today's residential bill at {kwh:,} kWh/month, $/month nominal (starting_bill, with derived
+      capacity carve-out and adjustments).</p>
+    {_tbl(['Category', '$/month'], start_rows)}
+    <h2>Average Residential Bill by Scenario</h2>
+    <p class="section-intro">$/month, nominal.</p>
+    {_tbl(['Year', 'BAU', 'Cautious', 'Central', 'Ambitious'], bill_rows)}
+    <h2>2050 Waterfall, Central</h2>
+    <p class="section-intro">BAU to shared-savings average residential bill, $/month nominal, one step per layer.</p>
+    {_tbl(['Step', '$/month'], wf_rows)}
+    <h2>Value Stack for Flexible Resources, Central</h2>
+    <p class="section-intro">$ per kW-year of incremental flexible capacity, nominal. Cost at which flexibility pays for
+      itself (MW-weighted, 2026 $): {'; '.join(pays)}.</p>
+    {_tbl(['Year', 'Cost', 'Capacity value', 'Deferral value', 'Load-enabled value', 'Total value'], vs_rows)}
+    <h2>Network Capacity: Effective Uplift and Load Connected Sooner</h2>
+    <p class="section-intro">Effective capacity uplift = flexible headroom / network capacity. MW connected sooner and average
+      connection delay (years, BAU &rarr; shared savings) for 2050. Tight network = low planning headroom, long lead time,
+      low build rate (sensitivity).</p>
+    {_tbl(['Network', 'Scenario', 'Uplift 2035', 'Uplift 2050', 'MW connected sooner 2050', 'Avg delay 2050 (yr)'], net_rows)}
+    <h2>Flexible MW by Resource Type</h2>
+    <p class="section-intro">Nameplate MW: today's programs, Central 2035 and 2050, Ambitious 2050.</p>
+    {_tbl(['Resource', 'Today', 'Central 2035', 'Central 2050', 'Ambitious 2050'], mw_rows)}
+    <h2>Utility Earnings, Central</h2>
+    <p class="section-intro">Cumulative 2026&ndash;2050, $M undiscounted nominal. Shared savings earnings are the
+      utility's earnings opportunity under the reform.</p>
+    {_tbl(['Series', '$M'], earn_rows)}
+  </section>"""

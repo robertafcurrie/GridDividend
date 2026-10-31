@@ -370,26 +370,26 @@
     "as_of": "2026-10-31",
     "scenarios": {
       "Cautious": {
-        "description": "Low flexible MW and EE savings, high cost per kW-year, high capitalised share, low locational match and utilisation; growth and utility share central.",
+        "description": "Today's programs grown modestly, no flexible connections, high cost per kW-year, low locational match; growth and utility share central.",
         "default_level": "central",
         "levels": {
           "programs": "low",
           "deferral": "low",
-          "utilisation": "low"
+          "load_enabled": "low"
         }
       },
       "Central": {
-        "description": "Every assumption at central.",
+        "description": "Every assumption at central; flexible MW anchored to Maryland DRIVE Act and NGEA storage.",
         "default_level": "central",
         "levels": {}
       },
       "Ambitious": {
-        "description": "High flexible MW and EE savings, low cost per kW-year, low capitalised share, high locational match and utilisation; growth and utility share central.",
+        "description": "DOE national range (20% of peak) or the state anchor if higher, low cost per kW-year, high locational match, more flexible connections; growth and utility share central.",
         "default_level": "central",
         "levels": {
           "programs": "high",
           "deferral": "high",
-          "utilisation": "high"
+          "load_enabled": "high"
         }
       }
     },
@@ -495,6 +495,33 @@
             "source": "utilities/Pepco_MD.json _dist_upgrade_VERIFY: White Flint $1.74-3.08M/MW (Order No. 92607)",
             "as_of": "2026-10-31",
             "status": "derived"
+          },
+          "planning_headroom": {
+            "low": 0.05,
+            "central": 0.1,
+            "high": 0.15,
+            "unit": "firm network capacity above network peak, share",
+            "source": "No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity); Pepco must file feeder-level constraint data under COMAR 20.50.15. Neither is aggregated to a system headroom %.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "reinforcement_lead_years": {
+            "low": 2,
+            "central": 3,
+            "high": 5,
+            "unit": "years from order to in service",
+            "source": "Assumption: distribution feeder and substation reinforcement typically takes 2-5 years",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "max_build_pct": {
+            "low": 0.02,
+            "central": 0.035,
+            "high": 0.05,
+            "unit": "maximum reinforcement ordered per year, share of capacity",
+            "source": "Assumption (supply chain, outages, crews)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
           }
         }
       },
@@ -523,68 +550,37 @@
             "as_of": "2026-10-31",
             "status": "sourced"
           },
-          "flex_share_2026": {
-            "value": 0.04,
-            "unit": "flexible MW / system peak, today (BAU held flat)",
-            "source": "DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update (80-160 GW by 2030 = 10-20% of US peak; ~33 GW operating today): 33 GW / ~800 GW US peak = 4%. National figure, not utility-specific",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "flex_share_2030": {
-            "low": 0.1,
-            "central": 0.15,
-            "high": 0.2,
-            "unit": "flexible MW / system peak",
-            "source": "DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update (80-160 GW by 2030 = 10-20% of US peak; ~33 GW operating today): 10-20% of peak by 2030",
-            "as_of": "2026-10-31",
-            "status": "sourced",
-            "note": "National potential applied to this utility; replace with a utility potential study."
-          },
-          "flex_share_2035": {
-            "low": 0.1,
-            "central": 0.175,
-            "high": 0.25,
-            "unit": "flexible MW / system peak",
-            "source": "Extrapolation beyond the DOE 2030 horizon: low holds 10%, central +2.5 pts, high +5 pts",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "flex_share_2050": {
-            "low": 0.1,
-            "central": 0.2,
-            "high": 0.3,
-            "unit": "flexible MW / system peak",
-            "source": "Extrapolation beyond the DOE 2030 horizon: low holds 10%, central 20%, high 30%",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
           "split_dr": {
             "value": 0.45,
             "unit": "share of flexible MW",
             "source": "Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
           },
           "split_ev": {
             "value": 0.25,
             "unit": "share of flexible MW",
             "source": "Illustrative split (managed EV charging)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
           },
           "split_storage": {
             "value": 0.2,
             "unit": "share of flexible MW",
             "source": "Illustrative split (behind-the-meter and distribution-connected batteries)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
           },
           "split_der": {
             "value": 0.1,
             "unit": "share of flexible MW",
             "source": "Illustrative split (distributed solar and other DER)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
           },
           "cost_kw_yr_dr": {
             "low": 80,
@@ -732,12 +728,144 @@
             "source": "Assumption (EE regulatory asset, e.g. EmPOWER amortisation)",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
+          },
+          "mw_start_dr": {
+            "value": 300.0,
+            "unit": "MW enrolled today (BAU holds this)",
+            "source": "Energy Wise Rewards direct load control ~300 MW (Comverge/PHI, roughly a decade old; current MW not published)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2035_dr": {
+            "low": 450.0,
+            "central": 418.9,
+            "high": 418.9,
+            "unit": "MW nameplate",
+            "source": "Central: Existing Energy Wise Rewards (~300 MW) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2050_dr": {
+            "low": 600.0,
+            "central": 475.8,
+            "high": 475.8,
+            "unit": "MW nameplate",
+            "source": "Central: Existing Energy Wise Rewards (~300 MW) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_start_ev": {
+            "value": 0.0,
+            "unit": "MW enrolled today (BAU holds this)",
+            "source": "Not found",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2035_ev": {
+            "low": 0.0,
+            "central": 66.1,
+            "high": 196.7,
+            "unit": "MW nameplate",
+            "source": "Central: DRIVE Act proposal, EV share (see DR). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2050_ev": {
+            "low": 0.0,
+            "central": 75.0,
+            "high": 223.4,
+            "unit": "MW nameplate",
+            "source": "Central: DRIVE Act proposal, EV share (see DR). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_start_storage": {
+            "value": 0.0,
+            "unit": "MW enrolled today (BAU holds this)",
+            "source": "NGEA tranche not yet in service",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "mw_2035_storage": {
+            "low": 0.0,
+            "central": 34.1,
+            "high": 157.3,
+            "unit": "MW nameplate",
+            "source": "Central: Next Generation Energy Act: 150 MW distribution-connected storage statewide x Pepco share of MD retail sales (22.7%, EIA-861 2024); 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "mw_2050_storage": {
+            "low": 0.0,
+            "central": 38.7,
+            "high": 178.7,
+            "unit": "MW nameplate",
+            "source": "Central: Next Generation Energy Act: 150 MW distribution-connected storage statewide x Pepco share of MD retail sales (22.7%, EIA-861 2024); 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "mw_start_der": {
+            "value": 0.0,
+            "unit": "MW enrolled today (BAU holds this)",
+            "source": "Not separately identified",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2035_der": {
+            "low": 0.0,
+            "central": 39.3,
+            "high": 78.7,
+            "unit": "MW nameplate",
+            "source": "Central: No Maryland target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "mw_2050_der": {
+            "low": 0.0,
+            "central": 44.7,
+            "high": 89.4,
+            "unit": "MW nameplate",
+            "source": "Central: No Maryland target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ev_hub_share": {
+            "value": 0.2,
+            "unit": "share of EV peak growth at large charging hubs",
+            "source": "Assumption",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "flex_conn_share": {
+            "low": 0.0,
+            "central": 0.1,
+            "high": 0.25,
+            "unit": "share of new distribution-connected DC and EV-hub MW on flexible connections",
+            "source": "Duke University Nicholas Institute, \"Rethinking Load Growth\" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk system with 0.25% / 0.5% / 1% of annual energy curtailed. Bulk-system study; evidence for distribution-level flexible connections is thinner. Central modest; Cautious zero.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "flex_conn_peak_depth": {
+            "value": 1.0,
+            "unit": "share of a flexible connection curtailable at network peak",
+            "source": "Assumption: flexible connections accept full curtailment in constrained hours",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "flex_conn_energy_curtailed": {
+            "low": 0.01,
+            "central": 0.005,
+            "high": 0.0025,
+            "unit": "share of the flexible load's annual energy curtailed",
+            "source": "Duke University Nicholas Institute, \"Rethinking Load Growth\" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk system with 0.25% / 0.5% / 1% of annual energy curtailed. Bulk-system study; evidence for distribution-level flexible connections is thinner",
+            "as_of": "2026-10-31",
+            "status": "sourced"
           }
         }
       },
       "deferral": {
         "enabled": true,
-        "label": "Deferral and avoidance of growth-driven capex",
+        "label": "Deferral: flexible headroom counted by the network planner",
         "params": {
           "locational_match": {
             "low": 0.2,
@@ -747,44 +875,55 @@
             "source": "Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
-          },
-          "deferral_fraction": {
-            "low": 0.6,
-            "central": 0.3,
-            "high": 0.0,
-            "unit": "share of avoided capex that re-enters rate base",
-            "source": "notebooks/GridDividend_Maryland.ipynb Chart 7 \"central estimate\" 0.30; CLAUDE.md 0.40-0.60 for dense urban",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
-          "deferral_period_years": {
-            "value": 10,
-            "unit": "years",
-            "source": "notebooks/GridDividend_Maryland.ipynb Section 1 DEFERRAL_PERIOD_YEARS",
-            "as_of": "2026-10-31",
-            "status": "sourced"
           }
         }
       },
-      "utilisation": {
+      "load_enabled": {
         "enabled": true,
-        "label": "Utilisation: more kWh over the same wires",
+        "label": "Load enabled: waiting load connects sooner without reinforcement",
         "params": {
-          "per_flex_share": {
-            "low": 0.75,
-            "central": 1.5,
-            "high": 2.25,
-            "unit": "share of load growth served from headroom per unit of firm flexible MW / peak",
-            "source": "Derived: v1.0 notebooks/GridDividend_Maryland.ipynb Section 1 FLEX_LOAD_UTILISATION_SHARE_SS 0.15 paired with a 10% flexible share (DOE 2030 low); x0.5 / x1.5",
+          "enable_share": {
+            "low": 0.5,
+            "central": 1.0,
+            "high": 1.0,
+            "unit": "share of flexible headroom offered to waiting load first (rest to deferral)",
+            "source": "Setting: priority to connecting waiting load where the network is constrained",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
-          "max_share": {
-            "value": 0.3,
-            "unit": "cap",
-            "source": "notebooks/GridDividend_Maryland.ipynb Section 1 Parameter Guidance upper bound (0.30)",
+          "connection_cost_kw": {
+            "low": 300,
+            "central": 150,
+            "high": 50,
+            "unit": "$ per kW connected, not covered by CIAC (2026 $)",
+            "source": "Assumption: connection works not paid by the customer",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "incremental_om_mwh": {
+            "low": 5.0,
+            "central": 2.0,
+            "high": 0.0,
+            "unit": "$ per MWh served to enabled load (2026 $)",
+            "source": "Assumption",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "uplift_mode": {
+            "value": "derived",
+            "unit": "'derived' | 'direct'",
+            "source": "Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network capacity (what-if)",
             "as_of": "2026-10-31",
             "status": "sourced"
+          },
+          "direct_uplift_pct": {
+            "low": 0.02,
+            "central": 0.05,
+            "high": 0.1,
+            "unit": "uplift in existing network capacity (direct mode)",
+            "source": "What-if lever, no source",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
           }
         }
       },

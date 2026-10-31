@@ -2,6 +2,9 @@
 # GridDividend layer engine — a separate, additive model. It does not change
 # project(), run_named_scenario() or any v1.0 / CORRECTED result.
 #
+# The distribution network has explicit firm capacity: it grows only through
+# reinforcement (lead time, maximum build rate); load above capacity waits.
+#
 # Year zero is each utility's `starting_bill` (utilities/*.json): today's
 # residential bill at benchmark usage, by line and category. Each category is
 # projected 2026-2050 on its own driver, in two cases: BAU and SHARED SAVINGS.
@@ -15,9 +18,11 @@
 #                 kW-year (demand response, managed EV charging, distributed
 #                 storage, other DER) + energy efficiency (levelised $/kWh);
 #                 today's surcharge-funded spend is the starting level.
-#   deferral      the same MW (derated, locationally matched) avoid
-#                 growth-driven capex
-#   utilisation   flexible MW let more kWh flow over the same wires
+#   deferral      flexible headroom (firm MW x locational match) counted by
+#                 the network planner, so reinforcement is ordered later
+#   load_enabled  flexible headroom lets load waiting for network capacity
+#                 connect sooner, spreading fixed wires costs over more kWh
+#                 (each MW of headroom has one use: deferral OR load enabled)
 #   capacity      derated MW (and EE peak) priced at the zonal capacity price
 #   mechanism     utility share of the savings pool: shared savings earnings
 #   hooks (off):  wholesale_energy, roe
@@ -34,7 +39,7 @@ import pandas as pd
 from .model import RATE_BASE_DECAY, delivery_rr_reconciliation
 
 YEARS = list(range(2026, 2051))
-LAYERS = ('system_needs', 'programs', 'deferral', 'utilisation', 'capacity', 'mechanism')
+LAYERS = ('system_needs', 'programs', 'deferral', 'load_enabled', 'capacity', 'mechanism')
 HOOK_LAYERS = ('wholesale_energy', 'roe')
 SAVINGS_LAYERS = LAYERS[1:]                    # layers that separate shared savings from BAU
 LEVELS = ('low', 'central', 'high')
@@ -210,52 +215,39 @@ def _infl(r, t):
 
 def system_path(params, a, on):
     """
-    Layer 1. Sales (GWh), peak (MW) and forward capex ($M), BAU, by year.
-    Total electrification energy growth is split between EVs and
-    buildings/other by ev_share_of_electrification. Off: flat sales and peak,
-    capex at the rate-case level.
+    Layer 1. Demand path, BAU, by year: energy (GWh) by segment, system peak
+    (MW, for capacity markets) and distribution-network peak (MW: non-DC peak +
+    the distribution-connected share of data-centre load), plus new large-load
+    MW eligible for flexible connections. Total electrification energy growth
+    is split between EVs and buildings by ev_share_of_electrification.
+    Off: flat demand.
     """
     s = a['system_needs']
-    infl = a['projection']['inflation_rate']
     S0, P0 = params['annual_energy_gwh'], params['peak_demand_mw']
     dc0 = params.get('dc_load_mw_start', 0) or 0
+    dshare = params.get('dc_distribution_share', 0)
     lf = s['dc_load_factor']
-    dce0 = dc0 * 8.76 * lf
-    N0 = S0 - dce0
+    N0 = S0 - dc0 * 8.76 * lf
     g_ev = s['electrification_growth'] * s['ev_share_of_electrification']
     g_bld = s['electrification_growth'] * (1 - s['ev_share_of_electrification'])
+    e = s['peak_elasticity']
     rows = []
-    for t, y in enumerate(YEARS + [YEARS[-1] + 1]):
+    for t, y in enumerate(YEARS):
         if on:
             base = N0 * (1 + s['baseline_energy_growth']) ** t
             ev = N0 * ((1 + g_ev) ** t - 1)
             build = N0 * ((1 + g_bld) ** t - 1)
             dc = dc0 * (1 + s['dc_growth']) ** t
-            dce = dc * 8.76 * lf
-            non_dc = base + build + ev
-            peak = (P0 - dc0) * (non_dc / N0) ** s['peak_elasticity'] + dc
         else:
-            base, build, ev, dc, dce, non_dc, peak = N0, 0.0, 0.0, dc0, dce0, N0, P0
+            base, build, ev, dc = N0, 0.0, 0.0, dc0
+        non_dc_e = base + build + ev
+        non_dc_pk = (P0 - dc0) * (non_dc_e / N0) ** e
+        ev_pk = non_dc_pk - (P0 - dc0) * ((base + build) / N0) ** e
         rows.append(dict(year=y, baseline_gwh=base, buildings_gwh=build, ev_gwh=ev, dc_mw=dc,
-                         dc_gwh=dce, sales_gwh=non_dc + dce, peak_mw=peak, non_dc_peak=peak - dc))
-    df = pd.DataFrame(rows)
-    dshare = params.get('dc_distribution_share', 0)
-    d_non = df['non_dc_peak'].diff().shift(-1).fillna(0).clip(lower=0)
-    d_dc = df['dc_mw'].diff().shift(-1).fillna(0).clip(lower=0)
-    growth = ((d_non + d_dc * dshare) * s['dist_upgrade_cost_per_mw']
-              * df.index.map(lambda t: _infl(infl, t)))
-    df = df.iloc[:-1].copy()
-    growth = growth.iloc[:-1]
-    capex0 = params['annual_capex_m']
-    if on:
-        cond0 = max(0.0, capex0 - growth.iloc[0])
-        df['growth_capex_m'] = growth.values
-        df['condition_capex_m'] = [cond0 * _infl(infl, t) for t in range(len(df))]
-    else:
-        df['growth_capex_m'] = 0.0
-        df['condition_capex_m'] = capex0
-    df['capex_m'] = df['growth_capex_m'] + df['condition_capex_m']
-    return df
+                         dc_gwh=dc * 8.76 * lf, sales_gwh=non_dc_e + dc * 8.76 * lf,
+                         peak_mw=non_dc_pk + dc, net_peak_mw=non_dc_pk + dc * dshare,
+                         ev_peak_mw=ev_pk, dc_dist_new_mw=max(0.0, dc - dc0) * dshare))
+    return pd.DataFrame(rows)
 
 
 def _program_spend0(utility_json, params):
@@ -279,37 +271,46 @@ def _program_spend0(utility_json, params):
     return total, parts
 
 
-def _share_path(pr, year):
-    """Flexible MW as a share of peak: interpolate today (2026) -> 2030 -> 2035 -> 2050."""
-    xs = [2026, 2030, 2035, 2050]
-    ys = [pr['flex_share_2026'], pr['flex_share_2030'], pr['flex_share_2035'], pr['flex_share_2050']]
-    return float(np.interp(year, xs, ys))
+def flex_mw(pr, year, active):
+    """
+    Nameplate MW by type. BAU holds today's programs (mw_start_*); shared
+    savings interpolates today -> 2035 -> 2050 (mw_2035_*, mw_2050_*) once active.
+    """
+    out = {}
+    for k in FLEX_TYPES:
+        start = pr[f'mw_start_{k}']
+        out[k] = (float(np.interp(year, [2026, 2035, 2050], [start, pr[f'mw_2035_{k}'], pr[f'mw_2050_{k}']]))
+                  if active else start)
+    return out
 
 
-def flex_mw(pr, peak, year, active):
-    """Nameplate MW by type: BAU holds today's share; shared savings follows the path when active."""
-    share = _share_path(pr, year) if active else pr['flex_share_2026']
-    return {t: peak * share * pr[f'split_{t}'] for t in FLEX_TYPES}
+def _seed_pipeline(D, h, lead):
+    """Projects already under way at 2026: the next `lead` years of growth, keeping headroom."""
+    return [(YEARS[i], max(0.0, (D[i + 1] - D[i]) * (1 + h))) for i in range(min(lead, len(D) - 1))]
 
 
 # ── Projection ───────────────────────────────────────────────────────────────
 
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
-                   pool_basis=None, scenario=None, flex_cost_scale=1.0):
+                   pool_basis=None, scenario=None, flex_cost_scale=1.0, uplift_mode=None):
     """
-    BAU and shared-savings projection.
+    BAU and shared-savings projection with an explicit distribution-network
+    capacity constraint.
 
-    utility_json : utility JSON (starting_bill, forward_assumptions)
-    params       : loaded utility params (notebook load_utility())
-    level        : 'low' | 'central' | 'high' for every assumption
-    scenario     : 'Cautious' | 'Central' | 'Ambitious' (forward_assumptions['scenarios'])
-    overrides    : {(layer, param): level or value}
-    enabled      : {layer: bool}; default from the JSON
-    pool_basis   : override mechanism pool_basis
-    flex_cost_scale : multiplies every flexible-resource cost per kW-year
-                   (used to find the cost at which flexibility pays for itself)
+    Network: firm capacity starts at network peak x (1 + planning headroom) and
+    grows only through reinforcement, ordered when demand x (1 + headroom)
+    exceeds capacity in service + pipeline (+ headroom counted for deferral),
+    arriving after the lead time, capped at a maximum build rate. Served load
+    = min(demand, capacity [+ flexible headroom]); the rest waits.
 
-    Returns dict: 'bau', 'ss' (yearly DataFrames), 'mw' (MW by resource type),
+    Flexible headroom (shared savings) = firm flexible MW x locational match
+    + flexible large-load connections ('derived' mode), or an assumed % of
+    capacity ('direct' mode). Each year it is split, never double-used:
+    load enabled (waiting load connects sooner, up to enable_share of the
+    headroom) first where the network is constrained, the rest to deferral
+    (counted by the planner, so reinforcement is ordered later).
+
+    Returns dict: 'bau', 'ss' (yearly DataFrames), 'mw' (MW by type),
     'system', 'assumptions', and year-zero details.
     """
     fa = utility_json['forward_assumptions']
@@ -319,73 +320,73 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         a['mechanism']['pool_basis'] = pool_basis
     pj = a['projection']
     infl = pj['inflation_rate']
+    sn, pr, dfr, le, cap, mech = (a['system_needs'], a['programs'], a['deferral'], a['load_enabled'],
+                                  a['capacity'], a['mechanism'])
+    mode = uplift_mode or le['uplift_mode']
     sysdf = system_path(params, a, on['system_needs'])
     S = sysdf['sales_gwh'].values
     P = sysdf['peak_mw'].values
+    DN = sysdf['net_peak_mw'].values
     S0, P0 = S[0], P[0]
+    lf_new = S0 / (P0 * 8.76)                        # load factor of new load (system average)
+    h = sn['planning_headroom']
+    lead = int(round(sn['reinforcement_lead_years']))
+    cost_mw = sn['dist_upgrade_cost_per_mw']
 
     lines0 = starting_lines(utility_json)
     dist0 = sum(d['month'] for d in lines0 if d['category'] in DIST_CATS)
-
     rec = delivery_rr_reconciliation(params, {})
     om0 = max(0.0, rec['other_om_recalibrated_m'])
     wacc, ptr = params['wacc'], params['property_tax_rate']
     eq_roe = params['equity_ratio'] * params['roe']
     spend0, spend_parts = _program_spend0(utility_json, params)
-    # Residential allocation of program costs moved into rates: keep today's
-    # class split, i.e. the residential core-surcharge $/kWh relative to the
-    # all-class average (spend0 / sales). 1.0 where spend0 was derived from
-    # the residential rate.
     kwh_b = utility_json['starting_bill']['benchmark_kwh_month']
     core0 = sum(d['month'] for d in lines0 if d['category'] == 'program_surcharge' and d['core'])
     res_alloc = (core0 / kwh_b) / (spend0 / S0) if spend0 > 0 else 1.0
-
-    pr, dfr, ut, cap, mech = a['programs'], a['deferral'], a['utilisation'], a['capacity'], a['mechanism']
     trans_year = int(pr['transition_year'])
-    sys_lf = S0 / (P0 * 8.76)
-    ee_kw_per_mwh = pr['ee_peak_coincidence'] / (8.76 * sys_lf)     # kW of peak per MWh/yr saved
+    ee_kw_per_mwh = pr['ee_peak_coincidence'] / (8.76 * lf_new)
     price0 = cap['price_m_per_mw_yr']
-    cost_mw = a['system_needs']['dist_upgrade_cost_per_mw']
+    seed = _seed_pipeline(DN, h, lead) if on['system_needs'] else []
+    cond0 = None
 
     res, mw_rows = {}, []
     for case in ('bau', 'ss'):
         ss = case == 'ss'
         Lp = ss and on['programs']
         Ld = ss and on['deferral']
-        Lu = ss and on['utilisation']
+        Le = ss and on['load_enabled']
         Lc = ss and on['capacity']
         Lm = ss and on['mechanism']
         rb = params['rate_base_start_m']
         reg_vint, reg_asset = [], 0.0
-        deferred, carry = [], 0.0
-        av_stock = 0.0
-        ee_vint = []                      # (year, first-year GWh saved)
-        u_idx = 1.0
-        prev_firm = 0.0
-        prev_S_case = None
-        rr_ref = res['bau']['rr_m'].iloc[0] if ss else None
+        carry = 0.0
+        ee_vint = []
+        C = DN[0] * (1 + h)
+        pipeline = list(seed)
+        cum_wait_mwyr = cum_new_mw = 0.0
+        prev_enabled = 0.0
+        rr_ref = res['bau']['rr_dist_m'].iloc[0] if ss else None
         rows = []
         for t, y in enumerate(YEARS):
             active = Lp and y >= trans_year
-            # ── Programs: flexible MW and energy efficiency ───────────────────
-            mw_b = flex_mw(pr, P[t], y, False)
-            mw_s = flex_mw(pr, P[t], y, active)
+            # ── Programs: flexible MW, EE, flexible connections ──────────────
+            mw_b, mw_s = flex_mw(pr, y, False), flex_mw(pr, y, active)
             inc = {k: max(0.0, mw_s[k] - mw_b[k]) for k in FLEX_TYPES}
             flex_cost = {k: inc[k] * 1000 * pr[f'cost_kw_yr_{k}'] * flex_cost_scale * _infl(infl, t) / 1e6
                          for k in FLEX_TYPES}
             if active:
                 ee_vint.append((y, S[t] * pr['ee_incremental_savings_pct']))
-            life = int(pr['ee_measure_life'])
-            ee_gwh = sum(g for (yy, g) in ee_vint if 0 <= y - yy < life)
-            ee_cost = ee_gwh * pr['ee_levelised_cost_kwh'] * _infl(infl, t)       # GWh x $/kWh = $M
-            ee_mw = ee_gwh * ee_kw_per_mwh                                       # GWh x kW/MWh = MW
-            S_case = S[t] - ee_gwh
+            ee_gwh = sum(g for (yy, g) in ee_vint if 0 <= y - yy < int(pr['ee_measure_life']))
+            ee_cost = ee_gwh * pr['ee_levelised_cost_kwh'] * _infl(infl, t)
+            ee_mw = ee_gwh * ee_kw_per_mwh
+            large_new = sysdf['dc_dist_new_mw'].iloc[t] + pr['ev_hub_share'] * sysdf['ev_peak_mw'].iloc[t]
+            fc_mw = (large_new * pr['flex_conn_share'] * pr['flex_conn_peak_depth']) if active else 0.0
+            fc_gwh = (large_new * pr['flex_conn_share'] * 8.76 * lf_new * pr['flex_conn_energy_curtailed']) if active else 0.0
             bau_spend = spend0 * (S[t] / S0) * _infl(pj['program_surcharge_growth'], t)
             new_spend = (sum(flex_cost.values()) + ee_cost) if active else 0.0
             ss_spend = bau_spend + new_spend if active else 0.0
             cap_amt = (sum(flex_cost[k] * pr[f'capitalised_{k}'] for k in FLEX_TYPES)
-                       + ee_cost * pr['ee_capitalised']
-                       + bau_spend * pr['existing_capitalised']) if active else 0.0
+                       + ee_cost * pr['ee_capitalised'] + bau_spend * pr['existing_capitalised']) if active else 0.0
             prog_opex = (ss_spend - cap_amt) if active else 0.0
             amort_years = int(pr['amortisation_years'])
             prog_amort = sum(v / amort_years for (yy, v) in reg_vint if 0 < y - yy <= amort_years)
@@ -393,42 +394,77 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 reg_vint.append((y, cap_amt))
             reg_asset = reg_asset - prog_amort + cap_amt
             firm_flex = sum(inc[k] * pr[f'derate_{k}'] for k in FLEX_TYPES)
-            firm = firm_flex + ee_mw
-            # ── Deferral: firm MW, locationally matched, against growth capex ─
-            growth = sysdf['growth_capex_m'].iloc[t]
-            capex = sysdf['capex_m'].iloc[t]
-            avoided = payback = 0.0
-            if Ld:
-                new_firm = max(0.0, firm - prev_firm)
-                avoided = min(growth, new_firm * dfr['locational_match'] * cost_mw * _infl(infl, t))
-                deferred.append((y, avoided * dfr['deferral_fraction']))
-                payback = sum(v for (yy, v) in deferred if y - yy == int(dfr['deferral_period_years']))
-            prev_firm = firm
+            # ── Network capacity ─────────────────────────────────────────────
+            D = DN[t] - (ee_mw if active else 0.0)                  # network demand
+            arriving = sum(m for (yy, m) in pipeline if yy == y)
+            pipeline = [(yy, m) for (yy, m) in pipeline if yy != y]
+            C += arriving
+            if ss and (Ld or Le) and active:
+                H = (firm_flex * dfr['locational_match'] + fc_mw) if mode == 'derived' else le['direct_uplift_pct'] * C
+            else:
+                H = 0.0
+            # Priority to load enabled only where BAU leaves load waiting
+            waiting_bau = res['bau']['waiting_mw'].iloc[t] if ss else 0.0
+            H_en = min(H * le['enable_share'], waiting_bau) if (Le and waiting_bau > 0) else 0.0
+            H_def = (H - H_en) if Ld else 0.0
+            # Deferral headroom only carries load BAU would serve anyway (it
+            # substitutes for reinforcement); only load-enabled headroom can
+            # connect load that BAU leaves waiting. One use per MW.
+            bau_served = res['bau']['served_mw'].iloc[t] if ss else D
+            served = min(D, min(C + H_def, max(C, bau_served)) + H_en)
+            used = min(max(0.0, served - C), H_en + H_def)
+            waiting = D - served
+            # Reinforcement ordering (reactive), capped at the maximum build rate
+            target = D * (1 + h)
+            view = C + sum(m for (_, m) in pipeline) + H_def
+            order = min(max(0.0, target - view), sn['max_build_pct'] * C) if on['system_needs'] else 0.0
+            if order > 0:
+                pipeline.append((y + lead, order))
+            growth = arriving * cost_mw * _infl(infl, t)
+            if cond0 is None:
+                cond0 = max(0.0, params['annual_capex_m'] - growth)
+            capex = growth + cond0 * _infl(infl, t) if on['system_needs'] else params['annual_capex_m']
+            # Delay metrics
+            new_mw = max(0.0, DN[t] - DN[t - 1]) if t else 0.0
+            cum_new_mw += new_mw
+            cum_wait_mwyr += waiting
+            enabled_mw = max(0.0, res['bau']['waiting_mw'].iloc[t] - waiting) if ss else 0.0   # connected sooner
+            new_enabled = max(0.0, enabled_mw - prev_enabled)
+            prev_enabled = max(prev_enabled, enabled_mw)
+            # Load enabled: incremental cost of serving the newly connected load
+            conn_capex = new_enabled * 1000 * le['connection_cost_kw'] * _infl(infl, t) / 1e6 if Le else 0.0
+            served_gwh_loss = waiting * 8.76 * lf_new
+            S_case = S[t] - (ee_gwh if active else 0.0) - served_gwh_loss - fc_gwh
+            inc_om = (max(0.0, enabled_mw) * 8.76 * lf_new * le['incremental_om_mwh'] * _infl(infl, t) / 1000
+                      if Le else 0.0)
+            # ── Revenue requirement ──────────────────────────────────────────
             rb_open = rb
-            rb = rb * (1 - RATE_BASE_DECAY) + capex - avoided + payback
-            av_stock = av_stock * (1 - RATE_BASE_DECAY) + avoided - payback
+            rb = rb * (1 - RATE_BASE_DECAY) + capex + conn_capex
             rb_earning = rb + reg_asset
             ptax = rb * ptr * (1 + infl * 0.5) ** t
             dep = RATE_BASE_DECAY * rb_open
-            om = om0 * _infl(infl, t)
-            rr_dist = rb * wacc + ptax + dep + om                 # wires revenue requirement
-            prog_rr = prog_opex + prog_amort + reg_asset * wacc   # core programs in rates
+            om = om0 * _infl(infl, t) + inc_om
+            rr_dist = rb * wacc + ptax + dep + om
+            prog_rr = prog_opex + prog_amort + reg_asset * wacc
             rr_core = rr_dist + prog_rr
-            # ── Capacity ─────────────────────────────────────────────────────
+            # ── Capacity (bulk system): all firm MW at peak, derated by type ─
             price = price0 * _infl(cap['price_growth'], t)
-            mw_red = min(firm, P[t]) if Lc else 0.0
-            cap_cost = (P[t] - mw_red) * price
+            sys_peak = P[t] - (DN[t] - served) - (ee_mw if active else 0.0)
+            mw_red = min(firm_flex + (ee_mw if active else 0.0), sys_peak) if Lc else 0.0
+            if not Lc and active:
+                sys_peak += ee_mw      # EE peak value is booked in the capacity layer
+            cap_cost = (sys_peak - mw_red) * price
             prog_bill_cost = 0.0 if active else bau_spend
             # ── Mechanism ────────────────────────────────────────────────────
             earnings = credit = 0.0
             pool = np.nan
             if ss:
+                b = res['bau']
                 if mech['pool_basis'] == 'revenue_requirement':
-                    pool = ((res['bau']['rr_core_m'].iloc[t] + res['bau']['program_bill_cost_m'].iloc[t]
-                             + res['bau']['capacity_cost_m'].iloc[t])
+                    pool = ((b['rr_core_m'].iloc[t] + b['program_bill_cost_m'].iloc[t] + b['capacity_cost_m'].iloc[t])
                             - (rr_core + prog_bill_cost + cap_cost))
-                else:   # 'capex': avoided capex net of new program spend, plus capacity saving
-                    pool = avoided - new_spend + (res['bau']['capacity_cost_m'].iloc[t] - cap_cost)
+                else:
+                    pool = (b['capex_m'].iloc[t] - capex) - new_spend + (b['capacity_cost_m'].iloc[t] - cap_cost)
                 if Lm:
                     net = pool + carry
                     carry = min(0.0, net)
@@ -440,22 +476,11 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             rr = rr_core + adj
             if not ss and t == 0:
                 rr_ref = rr_dist
-            # ── Utilisation ──────────────────────────────────────────────────
-            uc = 0.0
-            if Lu and prev_S_case:
-                g_s = S_case / prev_S_case - 1
-                uc = min(ut['max_share'], ut['per_flex_share'] * firm_flex / P[t])
-                u_idx *= (1 - uc * max(0.0, g_s))
-            prev_S_case = S_case
             # ── Bills ────────────────────────────────────────────────────────
-            usage = S_case / S[t]                       # residential usage vs BAU (EE lowers it)
-            # Wires: distribution lines indexed to the wires RR per kWh. Core program
-            # costs and the utility's shared savings earnings (or the capex-basis
-            # customer credit) are recovered per kWh with today's residential
-            # allocation of the core surcharges (res_alloc).
-            dist_bill = dist0 * (rr_dist / rr_ref) * (S0 / S_case) * u_idx
+            usage = (S[t] - (ee_gwh if active else 0.0)) / S[t]
+            dist_bill = dist0 * (rr_dist / rr_ref) * (S0 / S_case)
             rider = dict(id='core_program_and_earnings_recovery',
-                         name='Core programs and shared savings earnings (uniform $/kWh)',
+                         name='Core programs and shared savings earnings (per kWh)',
                          category='program_surcharge', bill_section='delivery', unit='$/kWh', core=False,
                          program_type=None, origin='projection', volumetric=True,
                          month=(prog_rr + adj) / S_case * kwh_b * res_alloc)
@@ -475,7 +500,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 elif c == 'transmission':
                     e['month'] = d['month'] * _infl(pj['transmission_growth'], t)
                 elif c == 'capacity':
-                    e['month'] = d['month'] * (price / price0) * ((P[t] - mw_red) / P0) / (S_case / S0)
+                    e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red) / P0) / (S_case / S0)
                 elif c == 'taxes_and_fees' and d.get('pct') is None:
                     e['month'] = d['month']
                 bench.append(e)
@@ -489,31 +514,34 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             rows.append(dict(
                 year=y, **{f'bill_{c}': v for c, v in cb.items()}, bill_total=sum(cb.values()),
                 **{f'avg_bill_{c}': v for c, v in ca.items()}, avg_bill_total=sum(ca.values()),
-                residential_usage_index=usage, sales_gwh=S_case, ee_gwh=ee_gwh, peak_mw=P[t],
-                capex_m=capex, growth_capex_m=growth, avoided_capex_m=avoided,
-                deferred_payback_m=payback, avoided_rb_stock_m=av_stock,
-                rate_base_m=rb_earning, regulatory_asset_m=reg_asset, rr_dist_m=rr_dist,
+                residential_usage_index=usage, sales_gwh=S_case, ee_gwh=ee_gwh if active else 0.0,
+                peak_mw=P[t], network_demand_mw=D, network_capacity_mw=C, headroom_created_mw=H,
+                headroom_enable_mw=H_en, headroom_defer_mw=H_def, headroom_used_mw=used,
+                served_mw=served, waiting_mw=waiting, mwh_not_served_gwh=served_gwh_loss,
+                enabled_mw=enabled_mw, reinforcement_ordered_mw=order, reinforcement_in_service_mw=arriving,
+                avg_connection_delay_yr=(cum_wait_mwyr / cum_new_mw if cum_new_mw > 0 else 0.0),
+                capacity_uplift_pct=(H / C if C else 0.0), flex_conn_mw=fc_mw,
+                capex_m=capex, growth_capex_m=growth, conn_capex_m=conn_capex, incremental_om_m=inc_om,
+                rate_base_m=rb_earning, wires_rate_base_m=rb, regulatory_asset_m=reg_asset, rr_dist_m=rr_dist,
                 program_rr_m=prog_rr, rr_core_m=rr_core, rr_m=rr,
                 program_spend_m=(ss_spend if active else bau_spend), new_program_spend_m=new_spend,
-                flex_spend_m=sum(flex_cost.values()) if active else 0.0,
-                ee_spend_m=ee_cost if active else 0.0,
-                program_bill_cost_m=prog_bill_cost, firm_mw=firm, firm_flex_mw=firm_flex, ee_mw=ee_mw,
-                flex_mw_incremental=sum(inc.values()), peak_reduction_mw=mw_red,
-                capacity_price_m_per_mw_yr=price, capacity_cost_m=cap_cost,
+                flex_spend_m=sum(flex_cost.values()) if active else 0.0, ee_spend_m=ee_cost if active else 0.0,
+                program_bill_cost_m=prog_bill_cost, firm_flex_mw=firm_flex, ee_mw=ee_mw if active else 0.0,
+                firm_mw=firm_flex + (ee_mw if active else 0.0), flex_mw_incremental=sum(inc.values()),
+                peak_reduction_mw=mw_red, capacity_price_m_per_mw_yr=price, capacity_cost_m=cap_cost,
                 savings_pool_m=pool, shared_savings_earnings_m=earnings, customer_credit_m=credit,
-                equity_return_m=rb_earning * eq_roe, utility_earnings_m=rb_earning * eq_roe + earnings,
-                utilisation_share=uc, utilisation_index=u_idx))
+                equity_return_m=rb_earning * eq_roe, utility_earnings_m=rb_earning * eq_roe + earnings))
             if ss:
                 mw_rows.append(dict(year=y, **{f'{k}_bau_mw': mw_b[k] for k in FLEX_TYPES},
                                     **{f'{k}_ss_mw': mw_s[k] for k in FLEX_TYPES},
                                     **{f'{k}_incremental_mw': inc[k] for k in FLEX_TYPES},
-                                    ee_peak_mw=ee_mw, ee_gwh=ee_gwh,
+                                    ee_peak_mw=ee_mw if active else 0.0, flex_conn_mw=fc_mw,
                                     flex_share_of_peak_ss=sum(mw_s.values()) / P[t],
-                                    firm_mw=firm, peak_mw=P[t]))
+                                    firm_mw=firm_flex + (ee_mw if active else 0.0), peak_mw=P[t]))
         res[case] = pd.DataFrame(rows)
     return dict(bau=res['bau'], ss=res['ss'], mw=pd.DataFrame(mw_rows), system=sysdf, assumptions=a,
                 program_spend0_m=spend0, program_spend0_parts=spend_parts, starting_lines=lines0,
-                ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc)
+                ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc, uplift_mode=mode)
 
 
 # ── Outputs ──────────────────────────────────────────────────────────────────
@@ -551,10 +579,7 @@ def cumulative_savings(run, measure='average'):
 
 
 def waterfall(utility_json, params, years=MILESTONES, measure='average', scenario=None):
-    """
-    BAU -> shared-savings bill, one bar per layer, adding layers in LAYERS order.
-    System needs applies to both cases, so its bar is zero.
-    """
+    """BAU -> shared-savings bill, one bar per layer (LAYERS order). System needs bar is zero."""
     col = MEASURE_COL[measure]
     fa = utility_json['forward_assumptions']
     base_on = {l: fa['layers'][l].get('enabled', True) for l in LAYERS}
@@ -576,7 +601,7 @@ def waterfall(utility_json, params, years=MILESTONES, measure='average', scenari
     return pd.DataFrame(out).T
 
 
-def scenario_table(utility_json, params, years=(2035, 2050), measure='average'):
+def scenario_table(utility_json, params, years=(2026, 2035, 2050), measure='average'):
     """Cautious / Central / Ambitious: BAU and shared-savings bills and cumulative saving."""
     col = MEASURE_COL[measure]
     rows = []
@@ -592,11 +617,7 @@ def scenario_table(utility_json, params, years=(2035, 2050), measure='average'):
 
 
 def tornado(utility_json, params, years=(2035, 2050), measure='average'):
-    """
-    One-at-a-time sensitivity on the SAVING (BAU minus shared-savings monthly
-    bill): each assumption at low and high, others central. Values are changes
-    vs the central saving, $/month nominal. Sorted by the last year's swing.
-    """
+    """One-at-a-time sensitivity of the SAVING (BAU minus shared-savings bill), $/month nominal."""
     col = MEASURE_COL[measure]
 
     def sav(run, y):
@@ -620,16 +641,17 @@ def tornado(utility_json, params, years=(2035, 2050), measure='average'):
 
 
 def mw_table(run, years=(2030, 2035, 2050)):
-    """MW by resource type (shared savings and incremental over BAU) and share of peak."""
+    """MW by resource type (shared savings and incremental over today's programs)."""
     m = run['mw']
     rows = []
     for y in years:
         r = m[m['year'] == y].iloc[0]
         row = {'year': y}
         for k in FLEX_TYPES:
+            row[f'{FLEX_LABEL[k]} MW (today)'] = r[f'{k}_bau_mw']
             row[f'{FLEX_LABEL[k]} MW (SS)'] = r[f'{k}_ss_mw']
-            row[f'{FLEX_LABEL[k]} MW (incremental)'] = r[f'{k}_incremental_mw']
         row['EE peak MW'] = r['ee_peak_mw']
+        row['Flexible connections MW'] = r['flex_conn_mw']
         row['Flexible share of peak (SS)'] = r['flex_share_of_peak_ss']
         row['Firm MW (derated flex + EE)'] = r['firm_mw']
         row['Peak MW (BAU)'] = r['peak_mw']
@@ -637,51 +659,82 @@ def mw_table(run, years=(2030, 2035, 2050)):
     return pd.DataFrame(rows).set_index('year')
 
 
+def connection_table(run, years=(2030, 2035, 2050)):
+    """Network capacity outcomes, BAU vs shared savings."""
+    b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
+    rows = []
+    for y in years:
+        rows.append({'year': y,
+                     'BAU waiting MW': b.loc[y, 'waiting_mw'], 'SS waiting MW': s.loc[y, 'waiting_mw'],
+                     'MW connected sooner (SS)': s.loc[y, 'enabled_mw'],
+                     'BAU avg connection delay (yr)': b.loc[y, 'avg_connection_delay_yr'],
+                     'SS avg connection delay (yr)': s.loc[y, 'avg_connection_delay_yr'],
+                     'BAU GWh not served on time': b.loc[y, 'mwh_not_served_gwh'],
+                     'SS GWh not served on time': s.loc[y, 'mwh_not_served_gwh'],
+                     'Effective capacity uplift %': s.loc[y, 'capacity_uplift_pct'],
+                     'Headroom created MW': s.loc[y, 'headroom_created_mw'],
+                     'to load enabled MW': s.loc[y, 'headroom_enable_mw'],
+                     'to deferral MW': s.loc[y, 'headroom_defer_mw'],
+                     'Reinforcement deferred MW (cum.)': (b.loc[:y, 'reinforcement_in_service_mw'].sum()
+                                                          - s.loc[:y, 'reinforcement_in_service_mw'].sum())})
+    return pd.DataFrame(rows).set_index('year')
+
+
 def value_stack(run, params, years=(2030, 2035, 2050)):
     """
-    Flexible resources only (DR, managed EV, storage, other DER), per year:
-    cost per kW-year (nameplate, nominal) vs value per kW-year:
-      capacity    = derated flexible MW x capacity price
-      deferral    = flexible share of firm MW x RR value of avoided rate base
-                    (avoided stock x [WACC + property tax rate + depreciation rate])
-      utilisation = wires revenue requirement x (1 - utilisation index)
+    Flexible resources only (DR, managed EV, storage, other DER), per year, $ per
+    kW-year of incremental nameplate (nominal):
+      cost         = flexible spend / kW
+      capacity     = derated flexible MW x capacity price
+      deferral     = flexible share of firm MW x RR value of the avoided wires
+                     rate base (BAU - SS wires rate base) x (WACC + property tax + depreciation)
+      load enabled = wires RR carried by the extra kWh served (BAU-unserved load
+                     connected sooner), net of its incremental cost
     """
-    s = run['ss']
+    s, b = run['ss'], run['bau']
     wacc, ptr = params['wacc'], params['property_tax_rate']
     rows = []
     for y in years:
         r = s[s['year'] == y].iloc[0]
+        rb_ = b[b['year'] == y].iloc[0]
         kw = r['flex_mw_incremental'] * 1000
         if kw <= 0:
             rows.append({'year': y, 'flexible kW (incremental)': 0.0})
             continue
         flex_frac = r['firm_flex_mw'] / r['firm_mw'] if r['firm_mw'] > 0 else 0.0
         capv = min(r['firm_flex_mw'], r['peak_reduction_mw']) * r['capacity_price_m_per_mw_yr'] * 1e6
-        defv = flex_frac * r['avoided_rb_stock_m'] * (wacc + ptr + RATE_BASE_DECAY) * 1e6
-        utilv = r['rr_dist_m'] * (1 - r['utilisation_index']) * 1e6
+        avoided_rb = max(0.0, rb_['wires_rate_base_m'] - r['wires_rate_base_m'])
+        defv = flex_frac * avoided_rb * (wacc + ptr + RATE_BASE_DECAY) * 1e6
+        extra_gwh = max(0.0, r['sales_gwh'] - rb_['sales_gwh'] + r['ee_gwh'])
+        lev = ((r['rr_dist_m'] * extra_gwh / r['sales_gwh'] if r['sales_gwh'] else 0.0)
+               - r['incremental_om_m'] - r['conn_capex_m']) * 1e6
         cost = r['flex_spend_m'] * 1e6
         rows.append({'year': y, 'flexible kW (incremental)': kw,
                      'cost $/kW-yr': cost / kw, 'capacity value $/kW-yr': capv / kw,
-                     'deferral value $/kW-yr': defv / kw, 'utilisation value $/kW-yr': utilv / kw,
-                     'total value $/kW-yr': (capv + defv + utilv) / kw})
+                     'deferral value $/kW-yr': defv / kw, 'load-enabled value $/kW-yr': lev / kw,
+                     'total value $/kW-yr': (capv + defv + lev) / kw})
     return pd.DataFrame(rows).set_index('year')
 
 
-def weighted_flex_cost(utility_json, scenario=None):
-    """MW-weighted flexible cost per kW-year, 2026 $, at the resolved assumptions."""
+def weighted_flex_cost(utility_json, scenario=None, year=2035):
+    """Incremental-MW-weighted flexible cost per kW-year, 2026 $, at the resolved assumptions."""
     pr = resolve(utility_json['forward_assumptions'], scenario=scenario)['programs']
-    w = {k: pr[f'split_{k}'] for k in FLEX_TYPES}
-    return sum(w[k] * pr[f'cost_kw_yr_{k}'] for k in FLEX_TYPES) / sum(w.values())
+    w = {k: max(0.0, float(np.interp(year, [2026, 2035, 2050],
+                                     [pr[f'mw_start_{k}'], pr[f'mw_2035_{k}'], pr[f'mw_2050_{k}']]))
+                - pr[f'mw_start_{k}']) for k in FLEX_TYPES}
+    tot = sum(w.values())
+    if tot <= 0:
+        return float('nan')
+    return sum(w[k] * pr[f'cost_kw_yr_{k}'] for k in FLEX_TYPES) / tot
 
 
 def flex_pays_cost(utility_json, params, target='npv3', scenario=None, measure='average',
                    lo=0.0, hi=20.0, tol=1e-3):
     """
-    Cost at which flexibility pays for itself: the MW-weighted flexible cost
-    per kW-year (2026 $) at which the shared-savings bill equals BAU.
-    target: a year (int) -> monthly bill equal in that year; 'npv3' ->
-    cumulative 2026-2050 saving at 3% NPV equal to zero. All flexible costs
-    are scaled together (bisection). Returns (cost or None, note).
+    Cost at which flexibility pays for itself: the incremental-MW-weighted
+    flexible cost per kW-year (2026 $) at which the shared-savings bill equals
+    BAU. target: a year -> bills equal that year; 'npv3' -> cumulative saving at
+    3% NPV equal to zero. All flexible costs are scaled together (bisection).
     """
     col = MEASURE_COL[measure]
     base = weighted_flex_cost(utility_json, scenario)
@@ -692,6 +745,8 @@ def flex_pays_cost(utility_json, params, target='npv3', scenario=None, measure='
             return cumulative_savings(r, measure)['NPV 3% (2026 $)']
         return _at(r['bau'], target, col) - _at(r['ss'], target, col)
 
+    if not np.isfinite(base):
+        return None, 'no incremental flexible MW'
     if gap(lo) < 0:
         return None, 'shared savings costs more than BAU even with free flexibility'
     if gap(hi) > 0:

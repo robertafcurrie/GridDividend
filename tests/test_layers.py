@@ -104,8 +104,11 @@ def test_hook_layers_cannot_be_enabled():
 def test_program_transfer_is_neutral_without_new_resources(key, nb):
     """Moving today's core programs from surcharges into rates, with no new MW or EE, leaves bills at BAU."""
     uj, p = _utility(key, nb)
-    ov = {('programs', 'flex_share_2030'): 0.04, ('programs', 'flex_share_2035'): 0.04,
-          ('programs', 'flex_share_2050'): 0.04, ('programs', 'ee_incremental_savings_pct'): 0.0}
+    pr = uj['forward_assumptions']['layers']['programs']['params']
+    ov = {('programs', 'ee_incremental_savings_pct'): 0.0, ('programs', 'flex_conn_share'): 0.0}
+    for k in LY.FLEX_TYPES:
+        for y in (2035, 2050):
+            ov[('programs', f'mw_{y}_{k}')] = pr[f'mw_start_{k}']['value']
     en = {l: False for l in LY.SAVINGS_LAYERS}
     en['programs'] = True
     r = LY.project_layers(uj, p, overrides=ov, enabled=en)
@@ -139,3 +142,26 @@ def test_scenarios_are_ordered(key, nb):
     cum = [LY.cumulative_savings(LY.project_layers(uj, p, scenario=sc))['undiscounted nominal $']
            for sc in LY.SCENARIOS]
     assert cum[0] < cum[1] < cum[2]
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('scenario', LY.SCENARIOS)
+def test_headroom_used_never_exceeds_headroom_created(key, nb, scenario):
+    """One use per MW of headroom: load enabled + deferral <= created, and used <= created."""
+    uj, p = _utility(key, nb)
+    for mode in ('derived', 'direct'):
+        s = LY.project_layers(uj, p, scenario=scenario, uplift_mode=mode)['ss']
+        tol = 1e-9
+        assert (s['headroom_enable_mw'] + s['headroom_defer_mw'] <= s['headroom_created_mw'] + tol).all()
+        assert (s['headroom_used_mw'] <= s['headroom_created_mw'] + tol).all()
+        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + tol).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_network_served_never_exceeds_demand_or_capacity(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    for case in ('bau', 'ss'):
+        d = r[case]
+        assert (d['served_mw'] <= d['network_demand_mw'] + 1e-9).all()
+        assert (d['served_mw'] <= d['network_capacity_mw'] + d['headroom_created_mw'] + 1e-9).all()
