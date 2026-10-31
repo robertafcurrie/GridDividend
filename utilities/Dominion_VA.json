@@ -532,5 +532,312 @@
         "status": "_VERIFY"
       }
     ]
+  },
+
+  "forward_assumptions": {
+    "_note": "Forward assumptions for the layer engine (engine/layers.py). Data only for v1.0 / CORRECTED, which do not read this section. Levels: for layer assumptions, 'low' is the value that gives customers a SMALLER shared-savings effect and 'high' a LARGER one, so all-low / all-high bracket the outcome. For load-growth and price-growth assumptions (system_needs, projection, capacity price growth) 'low'/'high' mean lower/higher growth. 'derived' = computed from a cited input by the stated method; '_VERIFY' = judgement or placeholder needing a utility-specific source.",
+    "as_of": "2026-10-31",
+    "projection": {
+      "inflation_rate": {
+        "value": 0.025,
+        "unit": "per year",
+        "source": "notebooks/GridDividend_Virginia.ipynb Section 1 INFLATION_RATE",
+        "as_of": "2026-10-31",
+        "status": "sourced"
+      },
+      "supply_energy_growth": {
+        "low": 0.015,
+        "central": 0.025,
+        "high": 0.04,
+        "unit": "per year, nominal",
+        "source": "Assumption: central = INFLATION_RATE (flat real energy prices); range +/-",
+        "as_of": "2026-10-31",
+        "status": "_VERIFY"
+      },
+      "transmission_growth": {
+        "low": 0.015,
+        "central": 0.025,
+        "high": 0.05,
+        "unit": "per year, nominal",
+        "source": "Assumption: central = INFLATION_RATE; high reflects transmission build-out",
+        "as_of": "2026-10-31",
+        "status": "_VERIFY"
+      },
+      "program_surcharge_growth": {
+        "low": 0.0,
+        "central": 0.025,
+        "high": 0.05,
+        "unit": "per year, nominal $/kWh",
+        "source": "Assumption: BAU surcharge rates grow with inflation (policy-driven)",
+        "as_of": "2026-10-31",
+        "status": "_VERIFY"
+      }
+    },
+    "layers": {
+      "system_needs": {
+        "enabled": true,
+        "label": "System needs: load, peak and forward capex",
+        "params": {
+          "baseline_energy_growth": {
+            "low": -0.002,
+            "central": 0.003,
+            "high": 0.008,
+            "unit": "per year",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 BASELINE_LOAD_GROWTH (central); +/-0.5 pt",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "buildings_electrification_growth": {
+            "low": 0.006489194927749927,
+            "central": 0.012978389855499853,
+            "high": 0.01946758478324978,
+            "unit": "per year, share of 2026 non-DC sales",
+            "source": "Derived: mean notebooks/GridDividend_Virginia.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 (0.0159) minus EV energy growth implied by the EV curve (0.0029); low/high x0.5 / x1.5",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "ev_kwh_per_year": {
+            "low": 3000,
+            "central": 3600,
+            "high": 4200,
+            "unit": "kWh per EV per year",
+            "source": "Assumption: 12,000 miles x 0.30 kWh/mile = 3,600; EV count from notebook EV_ADOPTION_CURVE x territory share",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "dc_growth": {
+            "low": 0.0,
+            "central": 0.04,
+            "high": 0.08,
+            "unit": "per year",
+            "source": "utilities JSON dc_load_growth_rate (central); low none, high double",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "dc_load_factor": {
+            "low": 0.6,
+            "central": 0.75,
+            "high": 0.9,
+            "unit": "fraction",
+            "source": "Assumption for data-centre energy from MW",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "peak_elasticity": {
+            "low": 0.8,
+            "central": 1.0,
+            "high": 1.2,
+            "unit": "peak growth / non-DC energy growth",
+            "source": "Assumption: v1.0 grows peak with load one-for-one (central)",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "dist_upgrade_cost_per_mw": {
+            "low": 1.0,
+            "central": 1.8,
+            "high": 3.5,
+            "unit": "$M per MW of new peak",
+            "source": "utilities/Dominion_VA.json _dist_upgrade_VERIFY: suburban/rural $0.8-1.5M/MW, Northern VA $3-4M/MW",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          }
+        }
+      },
+      "deferral": {
+        "enabled": true,
+        "label": "Deferral and avoidance of growth-driven capex",
+        "params": {
+          "avoidance_start": {
+            "low": 0.1,
+            "central": 0.2,
+            "high": 0.35,
+            "unit": "share of growth capex, year 1",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 NWS_AVOIDANCE_OF_ELIGIBLE_START; high = ACCELERATED scenario",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "avoidance_mature": {
+            "low": 0.5,
+            "central": 0.8,
+            "high": 0.9,
+            "unit": "share of growth capex at maturity",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 NWS_AVOIDANCE_OF_ELIGIBLE_MATURE; range from Parameter Guidance (0.50-0.90)",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "ramp_years": {
+            "low": 15,
+            "central": 9,
+            "high": 6,
+            "unit": "years",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 NWS_AVOIDANCE_RAMP_YEARS; guidance range 5-15; ACCELERATED 6",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "deferral_fraction": {
+            "low": 0.6,
+            "central": 0.3,
+            "high": 0.0,
+            "unit": "share of avoided capex that re-enters rate base",
+            "source": "notebooks/GridDividend_Virginia.ipynb Chart 7 \"central estimate\" 0.30; CLAUDE.md 0.40-0.60 for dense urban; 0 = permanent avoidance",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "deferral_period_years": {
+            "value": 10,
+            "unit": "years",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 DEFERRAL_PERIOD_YEARS",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          }
+        }
+      },
+      "programs": {
+        "enabled": true,
+        "label": "Programs as core business",
+        "params": {
+          "transition_year": {
+            "value": 2028,
+            "unit": "year",
+            "source": "Setting (default 2028)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "spend_multiple": {
+            "low": 1.0,
+            "central": 1.5,
+            "high": 2.0,
+            "unit": "x today's surcharge-funded spend",
+            "source": "Assumption; today's spend derived from starting_bill core program lines",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "capitalised_fraction": {
+            "low": 1.0,
+            "central": 0.5,
+            "high": 0.0,
+            "unit": "share of program spend capitalised",
+            "source": "Assumption: capitalised spend earns WACC (higher customer cost); low = all capitalised",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "amortisation_years": {
+            "value": 10,
+            "unit": "years",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 NWS_AMORTISATION_YEARS",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "cost_per_mw_yr": {
+            "low": 0.3,
+            "central": 0.15,
+            "high": 0.05,
+            "unit": "$M per MW-yr of peak reduction delivered",
+            "source": "Placeholder for a blended EE / electrification / DR portfolio. Anchors: Brattle Ontario (2026) $50/kW-yr DER capacity cost (high case, DR-like resources; cited in notebook Section 1 OPEX_RATIO note); Pepco Rider R-DLC pays $40-80 per controlled device per year (Pepco MD tariff p. 49). Efficiency and electrification deliver peak kW at higher cost, so central $150/kW-yr and low $300/kW-yr are judgement.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          }
+        }
+      },
+      "utilisation": {
+        "enabled": true,
+        "label": "Utilisation: more kWh over the same wires",
+        "params": {
+          "share": {
+            "low": 0.0,
+            "central": 0.15,
+            "high": 0.3,
+            "unit": "share of load growth served from headroom",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 FLEX_LOAD_UTILISATION_SHARE_SS; guidance 0.00-0.30 (Brattle base ~0.33)",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "ramp_years": {
+            "value": 9,
+            "unit": "years",
+            "source": "v1.0 get_utilisation_credit() ramp (30% -> 100%)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          }
+        }
+      },
+      "capacity": {
+        "enabled": true,
+        "label": "Capacity: MW of peak reduction at the zonal price",
+        "params": {
+          "price_m_per_mw_yr": {
+            "value": 0.12,
+            "unit": "$M per MW-yr (2026 anchor)",
+            "source": "shared/capacity_markets/PJM.json zone DOM (2026/27 BRA $329.17/MW-day)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          },
+          "price_growth": {
+            "low": 0.0,
+            "central": 0.025,
+            "high": 0.05,
+            "unit": "per year, nominal",
+            "source": "central = INFLATION_RATE (flat real); high = market file growth (5%); low = flat nominal",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "flex_capture_incremental": {
+            "low": 0.16,
+            "central": 0.32,
+            "high": 0.48,
+            "unit": "share of peak growth captured by flexible load (SS minus BAU)",
+            "source": "Derived: notebooks/GridDividend_Virginia.ipynb Section 1 FLEX_LOAD_CAPTURE_SHARED (0.40) - FLEX_LOAD_CAPTURE_BAU (0.08); range x0.5 / x1.5",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          }
+        }
+      },
+      "mechanism": {
+        "enabled": true,
+        "label": "Shared savings mechanism and earnings opportunity",
+        "params": {
+          "utility_share": {
+            "low": 0.4,
+            "central": 0.3,
+            "high": 0.1,
+            "unit": "share of savings pool (shared savings earnings)",
+            "source": "notebooks/GridDividend_Virginia.ipynb Section 1 UTILITY_SAVINGS_SHARE (0.30); guidance range 0.10-0.40 (low = larger utility share)",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "pool_basis": {
+            "value": "revenue_requirement",
+            "unit": "'revenue_requirement' | 'capex'",
+            "source": "Setting. 'revenue_requirement' = reduction in total customer cost vs BAU (no double count); 'capex' = v1.0 avoided-capex pool with customer credit (upper bound)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
+          }
+        }
+      },
+      "wholesale_energy": {
+        "enabled": false,
+        "hook": true,
+        "label": "Hook for a later step: wholesale energy price effects",
+        "params": {}
+      },
+      "roe": {
+        "enabled": false,
+        "hook": true,
+        "label": "Hook for a later step: allowed ROE",
+        "params": {}
+      }
+    },
+    "capacity_carve_out": {
+      "parent_line": "generation_kwh",
+      "price_usd_per_mw_day": 329.17,
+      "peak_mw": 20000,
+      "residential_share": 0.3073,
+      "residential_customers": 2492204,
+      "obligation_scaling": 0.9401,
+      "source": "Price: DOM zone 2026/27 BRA $329.17/MW-day (shared/capacity_markets/PJM.json). Peak: Dominion_VA.json peak_demand_mw. Residential share and customers: EIA-861 2024 (VA + NC). Scaling: PJM FPR 0.9401 (2028/29 BRA).",
+      "status": "_VERIFY",
+      "method": "Residential capacity obligation per customer = peak_mw x residential_share x obligation_scaling / residential_customers; $/month = obligation (kW) x price ($/kW-day) x 365/12. Assumes the residential share of the capacity obligation equals its share of sales; residential load is peakier, so this likely understates residential capacity. The derived amount is moved out of the parent line; the total bill is unchanged.",
+      "as_of": "2026-10-31"
+    }
   }
 }

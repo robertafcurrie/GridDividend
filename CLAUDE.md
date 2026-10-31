@@ -183,6 +183,14 @@ Top level: `as_of`, `benchmark_kwh_month`, `location`, `notes`, optional `publis
 
 Validate with `python scripts/check_starting_bill.py` (add `--json` for machine output). It prices each line at the benchmark usage, totals by category and section, compares the delivery and supply subtotals with `delivery_rate_kwh`, `supply_rate_kwh` and `basic_charge_month` (from the JSON, or the notebook's `UTILITY_BILL_PARAMS` for Con Edison and RG&E), and reports the core-business program share. It never changes those fields.
 
+## Layer engine (`engine/layers.py`) and `forward_assumptions`
+
+A separate, additive model; v1.0 and CORRECTED do not use it. Year zero is `starting_bill`, with two additions from `forward_assumptions`: `capacity_carve_out` (where capacity is embedded in supply or generation, a derived capacity line is split out of the parent line, total unchanged) and `starting_adjustments` (Pepco MD: the Order No. 92607 +$3.94/month, not yet billed). Each bill category is projected 2026-2050 on its own driver in BAU and SHARED SAVINGS: distribution lines by distribution revenue requirement / sales (2026 RR built as in `delivery_rr_reconciliation()`, rate base decaying at `RATE_BASE_DECAY`); program surcharges, supply energy and transmission by their own growth rates; capacity by zonal price x peak; percentage taxes on the lines they apply to.
+
+Layers, each with `enabled` and low / central / high values (every value has `source`, `as_of`, `status`): `system_needs` (load by segment, peak, growth vs asset-condition capex; applies to both cases), `deferral`, `programs` (core-business surcharges leave the bill from `transition_year` and become utility OPEX / capitalised regulatory asset), `utilisation`, `capacity`, `mechanism` (utility share of the savings pool = shared savings earnings; `pool_basis` `revenue_requirement` or `capex`). Hooks `wholesale_energy` and `roe` must stay disabled. Level convention: for layer assumptions, low = smaller shared-savings effect; for growth assumptions, low = lower growth.
+
+Outputs (`bill_table`, `waterfall`, `ranges`, `tornado`, `cumulative_savings`, `earnings_table`) feed Section 13 of each state notebook. `tests/test_layers.py` checks that all layers off reproduces BAU, that year zero equals the `starting_bill` total, and that 2026 BAU RR equals the rate-case target.
+
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.
