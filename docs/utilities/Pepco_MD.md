@@ -52,7 +52,7 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
 - **Demand response today:** Energy Wise Rewards, 247 MW (EmPOWER report, Table 13).
 - **Demand response path:** the DRIVE Act proposal (Case 9761, up to 185 MW of flexible load).
 - **Ramp limits:** Energy Wise Rewards additions, 2009–2025. These are used for all four utilities.
-- **Capacity price:** PJM PEPCO zone, $0.1217M per MW-year (2027/28 BRA $333.44/MW-day), growing at inflation in the earlier model.
+- **Capacity price:** PJM PEPCO zone 2026/27 BRA, $329.17/MW-day ($0.12015M per MW-year), the same price as the capacity carve-out. The earlier model reads `PJM.json` (2027/28, $333.44/MW-day, growing at inflation).
 - **Avoided transmission:** PJM network service rate, PEPCO zone, $60.49/kW-year.
 - **Losses:** 4.92% (EIA-861).
 - **Upgrade cost:** $1.74 / 2.2 / 3.08M per MW (White Flint, Order No. 92607).
@@ -84,7 +84,6 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
 3. **Unposted riders** (BSA, DT, MES) and the Prince George's County energy tax, as an alternative location.
 4. **Managed EV and other DER enrolled today.** These are not found and are set to 0 MW.
 5. **Capacity carve-out inputs.** The residential share of the obligation is assumed equal to its share of sales.
-6. **Capacity price anchor.** The carve-out uses the 2026/27 BRA price ($329.17/MW-day), while the capacity layer uses 2027/28 ($333.44/MW-day). Bills are consistent, because the bill line scales with the price ratio, but the two year-zero prices differ slightly.
 
 ## Notes
 

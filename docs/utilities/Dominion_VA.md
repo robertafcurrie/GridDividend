@@ -49,7 +49,7 @@ The local consumer utility tax varies by locality and is excluded. The published
 - **Avoided transmission:** PJM network service rate, DOM zone, $85.19/kW-year (June 2026).
 - **Efficiency:** SCC 2025 DSM report (VCEA savings targets).
 - **Flexible MW paths:**
-  - Demand response: Dominion 2025 IRP Update (DSM 341 MW in 2025; 1,076 MW by 2030).
+  - Demand response: Dominion 2025 IRP Update, DSM 341 MW in 2025 and 1,076 MW by 2030 (efficiency and demand response together), less the efficiency part (the IRP's DSM energy savings, 1,462 GWh and 3,011 GWh, x `ee_kw_per_mwh`): 181.2 MW today and 746.9 MW in 2030–2035.
   - Storage: VCEA (2,700 MW by 2035, of which at least 10% behind the meter = 270 MW).
   - Managed EV and other DER: DOE low end.
   - Ambitious: DOE's VPP Liftoff range.
@@ -77,7 +77,7 @@ Dominion has the most utility-specific network data of the four, and its filing 
 ## Main `_VERIFY` gaps to close
 
 1. **Rate base, capex and total revenue**, distribution-only, from PUR-2025-00058. The 2026 reconciliation implies other O&M at 55% of the delivery revenue requirement, which suggests the rate base is understated.
-2. **Demand response today and its path.** The IRP's 341 MW and 1,076 MW combine efficiency and demand response. The efficiency layer adds efficiency peak MW separately, so part of Dominion's efficiency peak may be counted in both the DR path and the efficiency layer. Separating DR from EE in the IRP figures would close this gap.
+2. **Demand response today and its path.** The IRP does not split DSM MW between efficiency and demand response. The efficiency part is now removed using the EmPOWER kW per MWh ratio, a proxy. Dominion's own DR program MW (Smart Thermostat DR, Non-Residential Curtailment and Distributed Generation, Peak Time Rebate) would replace the derivation.
 3. **Ordinary-load upgrade delay** in constrained areas. The grid utilization filing reports constrained feeders but no connection timeline.
 4. **Upgrade cost per MW:** $1.0 / 1.8 / 3.5M (suburban and rural vs Northern Virginia).
 5. **The shape of the loading distribution.** The filing gives the mean and the count above 100%; the band spread and the sub-band loading (112.5%) are assumed.

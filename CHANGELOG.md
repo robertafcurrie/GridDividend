@@ -6,7 +6,57 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-10-31: Documentation and methodology pass (this commit)
+## 2026-10-31: Code fixes from the independent check (this commit)
+
+**What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
+1. **Capacity counts each efficiency MW once.** Capacity MW are now peak − MW waiting − (firm flexible MW + EE MW) with the capacity layer on, and peak − MW waiting with it off. Before, EE MW were subtracted three times with the layer on and once with it off.
+   - **Dominion's demand-response MW no longer embed efficiency.** The IRP's DSM MW combine EE and DR: 341 MW in 2025 and 1,076 MW by 2030. The EE part is removed at `ee_kw_per_mwh` x the IRP's DSM energy savings (1,462 and 3,011 GWh). DR is now 181.2 MW today and 746.9 MW in 2030–2035 (2050: 1,079.3 MW; Cautious 271.8 / 362.4 MW).
+   - Neither Dominion's IRP nor the SCC DSM reports give a DR-only MW figure, so the split is derived and stays `_VERIFY`.
+2. **Flexible connections count once.** They count as network headroom (deferral or load enabled), and are no longer also credited as connection cost avoided by new customers.
+3. **Earnings attributable is proportional to the pool.** `layer_contributions()` splits total shared savings earnings across layers in proportion to each layer's contribution to the savings pool, which is now its own column.
+   - Total earnings are unchanged.
+   - Programs takes a negative share, because its costs come before the savings they enable.
+   - Deferral now earns a positive share (Con Edison Central $0.90B, previously zero).
+4. **Efficiency is not counted as MW connected sooner.** MW connected sooner are load served above what BAU serves, per band, so efficiency is neither counted nor charged connection cost. Electrification brought forward is now the energy of the MW connected sooner.
+5. **The `'capex'` pool basis is removed from the layered model.** The `pool_basis` argument and the `customer_credit_m` column are gone, and any JSON value other than `'revenue_requirement'` raises an error. The earlier model's `SAVINGS_POOL_BASIS` is unchanged.
+6. **Six inputs relabelled `setting`,** as their sources say: `transition_year`, `existing_capitalised`, `uplift_mode`, `customer_funded_share`, `pool_basis`, `enable_share`, in all four utilities. The `_VERIFY` shares are now Con Edison 46%, Dominion 43%, Pepco 49%, RG&E 58%.
+7. **Pepco's capacity layer now starts from its carve-out price:** the 2026/27 BRA, $329.17/MW-day = $0.12015M per MW-year (was $0.1217M, 2027/28). `shared/capacity_markets/PJM.json` and the earlier model are unchanged.
+
+**Tests.** Eight new tests, one per fix, plus one for the Dominion DR derivation (177 in total):
+- The headroom test is tightened: MW connected sooner ≤ load-enabled headroom.
+- The ebb0c04 and 1b09e20 fixture tests now compare BAU exactly, and every shared-savings column except those the fixes change on purpose: capacity, bills, RR, earnings, connection cost avoided, MW connected sooner.
+- With the current JSON they also skip Dominion's shared-savings case and Pepco's capacity columns (this commit's data changes).
+- The pinned fixture files are unchanged.
+
+**Also updated:** notebooks and reports regenerated; the assumptions register; the README table; METHODOLOGY.md (3.4, 3.5, 3.6, 3.10, 4.5, 6, 8, 10.2, glossary); utility notes; CLAUDE.md.
+
+**Effect on results.** The opportunity remains substantial: Central customer savings of $14.4B (Con Edison), $13.4B (Dominion), $4.0B (Pepco) and $1.1B (RG&E), undiscounted nominal, with Ambitious up to $29.8B, $37.8B, $5.6B and $2.6B. Most of the reduction is the capacity fix.
+- **Dominion:** of its −$3.65B Central change, −$3.03B is the engine fixes and −$0.62B the DR data change.
+- **Pepco:** the price alignment is −$0.01B; the rest is the engine fixes.
+- **Shared savings earnings** fall more in proportion than customer savings: the removed capacity overcount had been inflating the pool, and carry-forward absorbs more of the smaller pool in early years.
+- **Unchanged:** wires capex avoided, Upgrade Delay avoided and flexible MW, except at Dominion, where the smaller BAU demand-response base slightly lowers Central and raises Ambitious incremental MW.
+- **Access:** connection cost avoided falls by over 90% (flexible connections and efficiency no longer counted there), and MW connected sooner roughly halve.
+
+| Measure (Central; Cautious–Ambitious in brackets) | Con Edison | Dominion | Pepco | RG&E |
+|---|---|---|---|---|
+| Customer savings, $B undiscounted | 16.58 (5.41–34.49) → **14.38** (4.33–29.75) | 17.05 (5.65–44.24) → **13.40** (3.58–37.79) | 4.67 (2.46–6.46) → **3.98** (1.93–5.59) | 1.27 (0.47–2.89) → **1.15** (0.39–2.63) |
+| Customer savings, $B NPV 3% (2026 $) | 10.22 (3.39–21.21) → **8.85** (2.73–18.27) | 10.55 (3.56–27.29) → **8.30** (2.30–23.31) | 2.93 (1.57–4.05) → **2.51** (1.25–3.50) | 0.78 (0.29–1.78) → **0.71** (0.25–1.61) |
+| Bill $/month lower, 2035 | 7.71 (2.33–14.31) → **6.37** (1.73–11.41) | 5.96 (2.55–14.04) → **5.22** (2.21–12.78) | 9.52 (5.73–12.37) → **8.67** (5.22–11.30) | 2.22 (0.95–4.85) → **1.96** (0.78–4.29) |
+| Bill $/month lower, 2050 | 19.18 (4.84–33.74) → **16.63** (3.65–28.26) | 11.36 (4.09–28.08) → **9.89** (3.16–25.61) | 17.55 (7.35–25.43) → **15.88** (5.40–23.31) | 4.92 (1.39–11.88) → **4.44** (1.06–10.84) |
+| Cumulative saving per customer, $ undiscounted | 3,002 (796–5,404) → **2,544** (586–4,421) | 1,992 (784–4,837) → **1,738** (635–4,403) | 3,229 (1,629–4,402) → **2,935** (1,342–4,029) | 797 (268–1,849) → **711** (211–1,663) |
+| Shared savings earnings, $B undiscounted | 3.21 (0.37–6.98) → **2.26** (0.05–4.95) | 2.96 (0.17–9.72) → **1.39** (0.01–6.95) | 0.48 (0.07–0.96) → **0.18** (0.01–0.59) | 0.06 (0.00–0.27) → **0.01** (0.00–0.16) |
+| Capacity cost avoided, $B undiscounted | 10.22 (2.90–17.13) → **7.07** (1.50–10.36) | 11.46 (3.64–28.35) → **6.38** (1.33–18.98) | 2.10 (1.20–3.16) → **1.12** (0.61–1.91) | 0.80 (0.13–1.15) → **0.62** (0.05–0.76) |
+| Wires capex avoided, $B undiscounted | 6.25 (1.59–10.68) → **6.25** (1.59–10.68) | 3.80 (0.97–9.70) → **3.57** (0.93–9.81) | 0.38 (0.17–0.73) → **0.38** (0.17–0.73) | 0.34 (0.05–0.52) → **0.34** (0.05–0.52) |
+| New flexible MW, 2050 | 3,576 (466–3,729) → **3,576** (466–3,729) | 2,863 (341–6,854) → **2,547** (181–7,014) | 327 (169–660) → **327** (169–660) | 545 (7–545) → **545** (7–545) |
+| Upgrade Delay avoided, MW-years | 178 (31–215) → **178** (31–215) | 501 (41–635) → **482** (32–637) | 36 (11–49) → **36** (11–49) | 24 (1–26) → **24** (1–26) |
+| MW connected sooner, peak year | 15.6 (2.0–22.3) → **7.5** (0.2–14.7) | 29.5 (3.1–38.2) → **7.7** (0.1–28.7) | 3.4 (1.1–6.2) → **1.4** (0.1–3.4) | 1.8 (0.1–1.9) → **1.2** (0.0–1.3) |
+| Connection cost avoided, $M undiscounted | 705 (9–1,687) → **32** (1–62) | 656 (6–1,562) → **15** (0–55) | 51 (3–121) → **3** (0–8) | 46 (0–110) → **2** (0–2) |
+
+All $ nominal. Bills are the average residential bill, $/month; the Upgrade Delay figures are MW-years 2026–2050.
+
+---
+
+## 2026-10-31: `50a3f96` Documentation and methodology pass
 
 **What changed**
 - `docs/METHODOLOGY.md`: the full methodology of the layered model, for policy readers, with technical subsections:
@@ -39,7 +89,7 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 **Effect on results:** none. No engine logic, default or input changed. Every test passes, including the three pins, and the regenerated notebooks give identical numeric outputs.
 
-**Found, not changed** (each would change results): see METHODOLOGY.md section 10.2 and the independent check below.
+**Found, not changed in that commit** (each would change results): fixed in the next commit, "Code fixes from the independent check".
 
 **Independent check.** A separate agent compared METHODOLOGY.md with the code. Its findings, and how each was resolved, are listed under [Independent documentation check](#independent-documentation-check-2026-10-31) at the end of this file.
 
@@ -188,7 +238,7 @@ A separate agent that had not seen this work read `docs/METHODOLOGY.md` alongsid
 
 Every documentation item was fixed in METHODOLOGY.md, without code changes. Items where the code itself looks wrong were documented and left unchanged, because fixing them would change results.
 
-**Code looks wrong (documented, not changed):**
+**Code looks wrong (documented, not changed in 50a3f96; F1 and F3–F8 fixed in the next commit, F2 kept by design):**
 
 | # | Finding | Resolution |
 |---|---|---|

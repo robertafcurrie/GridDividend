@@ -857,9 +857,6 @@ def render_layered_section(utility_key, utility_json, utility_params):
     # Methodology note: scenario, dollar basis and pool setting used
     a_c = c['assumptions']
     mech = a_c['mechanism']
-    pool_desc = {'revenue_requirement': 'the reduction in what customers pay versus BAU (distribution revenue '
-                                        'requirement, program surcharges and capacity cost)',
-                 'capex': 'avoided wires capex net of new program spend, plus capacity cost avoided'}
     in_pool = [lbl for k, lbl in (('wholesale_energy', 'wholesale energy'), ('transmission', 'avoided transmission'),
                                   ('losses', 'avoided distribution losses'))
                if a_c['_enabled'].get(k) and a_c.get(k, {}).get('in_pool', True)]
@@ -879,7 +876,8 @@ def render_layered_section(utility_key, utility_json, utility_params):
         f"<p class=\"section-intro\"><strong>Settings used.</strong> Scenario: <strong>Central</strong> for every "
         f"figure unless marked; Cautious and Ambitious give the range. Dollar basis: nominal dollars; cumulative "
         f"figures are undiscounted unless marked NPV, which is in 2026 dollars at 3% (and 7% where shown). Savings "
-        f"pool: {pool_desc.get(mech['pool_basis'], mech['pool_basis'])} (<code>{mech['pool_basis']}</code>)"
+        f"pool: the reduction in what customers pay versus BAU (distribution revenue requirement, program surcharges "
+        f"and capacity cost)"
         + (f", plus {', '.join(in_pool[:-1]) + ' and ' + in_pool[-1] if len(in_pool) > 1 else in_pool[0]}"
            if in_pool else '')
         + f"; the utility's share is {mech['utility_share']:.0%} (its shared savings earnings) and customers keep the "
@@ -1079,9 +1077,9 @@ def render_layered_section(utility_key, utility_json, utility_params):
     {_tbl(['Measure', 'Value'], sys_rows)}
     <h2>Contribution by Layer, Central</h2>
     <p class="section-intro">Layers added one at a time in waterfall order. Customer savings in $B; monthly bill change in
-      $/month nominal (negative = lower bill); shared savings earnings attributable to each layer (computed with the
-      mechanism on throughout, in this order: negative pools carried forward from the programs layer absorb the next
-      layers' savings, so earlier layers can show zero). Not on the bill and reported separately: access benefits (below); next candidates, not yet
+      $/month nominal (negative = lower bill); shared savings earnings attributable to each layer: total earnings split in
+      proportion to each layer's contribution to the savings pool (programs takes a negative share, because its costs
+      come before the savings they enable). Not on the bill and reported separately: access benefits (below); next candidates, not yet
       modelled: resilience, capacity price suppression, the economic value of faster connections and emissions.</p>
     {_tbl(['Layer', 'Customer savings ($B undiscounted nominal)', 'Customer savings ($B NPV 3%, 2026 $)', 'Bill 2035',
            'Bill 2050', 'Shared savings earnings ($B undiscounted nominal)', 'Shared savings earnings ($B NPV 3%, 2026 $)'],
@@ -1139,9 +1137,10 @@ def render_layered_section(utility_key, utility_json, utility_params):
     <p class="section-intro">Benefits to the customers being connected, reported separately from the residential bill.
       Upgrade Delay for Interconnection: MW of new load that waits under BAU, the average wait BAU &rarr; shared savings
       (years per MW that waits under BAU) and MW-years avoided. Connection cost avoided = network upgrade cost
-      ($/MW at the utility's distribution upgrade cost) for MW connected sooner or on flexible connections: an upper bound,
+      ($/MW at the utility's distribution upgrade cost) for MW connected sooner (flexible connections count once, as network
+      headroom, not here): an upper bound,
       since the share paid by new customers through CIAC is tariff-specific. Electrification GWh brought forward = energy
-      served sooner, electrification share of load growth.</p>
+      of the MW connected sooner, electrification share of load growth. Efficiency is not counted as MW connected sooner.</p>
     {_tbl(['Network', 'Scenario', 'MW affected (BAU)', 'Upgrade Delay (yr, BAU &rarr; SS)',
            'Upgrade Delay avoided (MW-yr, 2026-2050)', 'MW connected sooner (peak year)',
            'Connection cost avoided ($M undiscounted nominal)',

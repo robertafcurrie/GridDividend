@@ -162,8 +162,8 @@ def test_headroom_used_never_exceeds_headroom_created(key, nb, scenario):
         tol = 1e-9
         assert (s['headroom_enable_mw'] + s['headroom_defer_mw'] <= s['headroom_created_mw'] + tol).all()
         assert (s['headroom_used_mw'] <= s['headroom_created_mw'] + tol).all()
-        # where BAU leaves load waiting, efficiency also frees capacity for it
-        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + s['ee_mw'] + tol).all()
+        # only load-enabled headroom connects load sooner (efficiency is not counted)
+        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + tol).all()
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -180,6 +180,28 @@ def test_network_served_never_exceeds_demand_or_capacity(key, nb):
 _FIXTURE = os.path.join(ROOT, 'tests', 'fixtures', 'layers_single_pool_ebb0c04.json')
 # Columns renamed since the fixtures were written (values unchanged)
 RENAMED = {'waiting_mw': 'upgrade_wait_mw', 'delay_mw_yr_avoided': 'upgrade_delay_mw_yr_avoided'}
+# Shared-savings columns the code fixes after 50a3f96 change on purpose (efficiency counted once in
+# capacity; MW connected sooner = served above BAU, so efficiency is not counted and flexible
+# connections are not credited twice); each fix has its own test below. BAU and every other column
+# must still reproduce the fixtures exactly.
+FIXED_SS = {'capacity_cost_m', 'avg_bill_total', 'bill_total', 'rr_m', 'shared_savings_earnings_m',
+            'connection_cost_avoided_m', 'enabled_mw'}
+# Current-JSON data changed after 50a3f96: Pepco's capacity price aligned with its carve-out (moves
+# its capacity line in both cases) and Dominion's demand-response path without embedded efficiency
+# (moves its whole shared-savings case)
+DATA_CHANGED = {'PepcoMD': {'bau': {'capacity_cost_m', 'avg_bill_total', 'bill_total', 'rr_m'}, 'ss': 'all'},
+                'DomVA': {'bau': set(), 'ss': 'all'}}
+
+
+def _compare_fixture(r, ref, name, skip=None):
+    skip = skip or {}
+    for col, d in ref.items():
+        for case in ('bau', 'ss'):
+            sk = skip.get(case, set())
+            if sk == 'all' or col in sk or (case == 'ss' and col in FIXED_SS):
+                continue
+            np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
+                                          err_msg=f'{name} {col} {case}')
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -192,10 +214,7 @@ def test_one_band_equals_single_pool_model(key, nb):
     for name, ref in fx['runs'].items():
         r = LY.project_layers(uj, p, scenario=name.replace('_tight', ''),
                               overrides=TIGHT_NETWORK if name.endswith('_tight') else None)
-        for col, d in ref.items():
-            for case in ('bau', 'ss'):
-                np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
-                                              err_msg=f'{name} {col} {case}')
+        _compare_fixture(r, ref, name)
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -262,10 +281,7 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
         r = LY.project_layers(uj, p, scenario=scn, overrides=TIGHT_NETWORK if name.endswith('_tight') else None,
                               network={'subband_enabled': False} if cur else None,
                               enabled=NEW_LAYERS_OFF if cur else None)
-        for col, d in ref.items():
-            for case in ('bau', 'ss'):
-                np.testing.assert_array_equal(r[case][RENAMED.get(col, col)].values, np.array(d[case]),
-                                              err_msg=f'{name} {col} {case}')
+        _compare_fixture(r, ref, name, DATA_CHANGED.get(key) if cur else None)
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -277,8 +293,8 @@ def test_headroom_used_never_exceeds_created_with_subband(key, nb, scenario):
         tol = 1e-9
         assert (s['headroom_enable_mw'] + s['headroom_defer_mw'] <= s['headroom_created_mw'] + tol).all()
         assert (s['headroom_used_mw'] <= s['headroom_created_mw'] + tol).all()
-        # where BAU leaves load waiting, efficiency also frees capacity for it
-        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + s['ee_mw'] + tol).all()
+        # only load-enabled headroom connects load sooner (efficiency is not counted)
+        assert (s['enabled_mw'] <= s['headroom_enable_mw'] + tol).all()
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -483,3 +499,98 @@ def test_transmission_bill_basis():
         uj, p = _utility(key, nb)
         on_, off_ = LY.project_layers(uj, p)['ss'], LY.project_layers(uj, p, enabled=off)['ss']
         assert on_[cat].iloc[-1] < off_[cat].iloc[-1]
+
+
+# ── Code fixes after 50a3f96 (independent documentation check) ────────────────
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_efficiency_counted_once_in_capacity(key, nb):
+    """Capacity MW = peak - waiting - firm flexible MW - EE MW (layer on); peak - waiting (layer off)."""
+    uj, p = _utility(key, nb)
+    for on in (True, False):
+        s = LY.project_layers(uj, p, enabled={'capacity': on})['ss']
+        red = (s['firm_flex_mw'] + s['ee_mw']) if on else 0.0
+        mw = s['peak_mw'] - s['upgrade_wait_mw'] - red
+        np.testing.assert_allclose(s['capacity_cost_m'], mw * s['capacity_price_m_per_mw_yr'], rtol=1e-9)
+        assert (s['ee_mw'] > 0).any()
+
+
+def test_dominion_demand_response_excludes_efficiency():
+    """Dominion's IRP DSM MW (EE + DR) less EE at ee_kw_per_mwh: 341 MW (2025) and 1,076 MW (2030)."""
+    uj, _ = _utility('DomVA', 'GridDividend_Virginia.ipynb')
+    pr = uj['forward_assumptions']['layers']['programs']['params']
+    k = pr['ee_kw_per_mwh']['central']
+    assert pr['mw_start_dr']['value'] == pytest.approx(341 - 1462 * k, abs=0.05)
+    assert pr['mw_2035_dr']['central'] == pytest.approx(1076 - 3011 * k, abs=0.05)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_flexible_connections_counted_once(key, nb):
+    """Connection cost avoided credits only MW connected sooner, never flexible-connection MW (already headroom)."""
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    s, a = r['ss'], r['assumptions']
+    t = s['year'].values - 2026
+    new = np.diff(np.maximum.accumulate(s['enabled_mw'].values), prepend=0.0)
+    exp = (new * a['system_needs']['dist_upgrade_cost_per_mw'] * a['load_enabled']['customer_funded_share']
+           * (1 + a['projection']['inflation_rate']) ** t)
+    np.testing.assert_allclose(s['connection_cost_avoided_m'], exp, rtol=1e-9, atol=1e-9)
+    off = LY.project_layers(uj, p, enabled={'deferral': False, 'load_enabled': False})['ss']
+    assert (off['flex_conn_mw'] > 0).any()
+    assert off['connection_cost_avoided_m'].abs().sum() == 0
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_earnings_attributed_in_proportion_to_pool(key, nb):
+    uj, p = _utility(key, nb)
+    lc = LY.layer_contributions(uj, p)
+    full = LY.project_layers(uj, p)['ss']['shared_savings_earnings_m'].sum() / 1e3
+    for basis in ('undiscounted nominal', 'NPV 3%, 2026 $'):
+        attr = lc[f'Shared savings earnings attributable ($B, {basis})']
+        pool = lc[f'Savings pool contribution ($B, {basis})']
+        np.testing.assert_allclose(attr.values, (pool / pool.sum() * attr.sum()).values, rtol=1e-9, atol=1e-12)
+    assert lc['Shared savings earnings attributable ($B, undiscounted nominal)'].sum() == pytest.approx(full, rel=1e-9)
+    # deferral lowers what customers pay, so it now earns a positive share
+    assert lc.loc['deferral', 'Shared savings earnings attributable ($B, undiscounted nominal)'] > 0
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_efficiency_not_counted_as_connected_sooner(key, nb):
+    """With deferral and load enabled off, efficiency connects nobody and is charged no connection cost."""
+    uj, p = _utility(key, nb)
+    s = LY.project_layers(uj, p, enabled={'deferral': False, 'load_enabled': False})['ss']
+    assert (s['ee_mw'] > 0).any()
+    for col in ('enabled_mw', 'conn_capex_m', 'connection_cost_avoided_m', 'electrification_gwh_brought_forward'):
+        assert s[col].abs().sum() == 0, col
+
+
+def test_capex_pool_basis_removed():
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    with pytest.raises(TypeError):
+        LY.project_layers(uj, p, pool_basis='capex')
+    fa = json.loads(json.dumps(uj['forward_assumptions']))
+    fa['layers']['mechanism']['params']['pool_basis']['value'] = 'capex'
+    with pytest.raises(ValueError):
+        LY.project_layers({**uj, 'forward_assumptions': fa}, p)
+    assert 'customer_credit_m' not in LY.project_layers(uj, p)['ss'].columns
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_settings_are_labelled_setting(key, nb):
+    """Every forward_assumptions input whose source says it is a setting carries status 'setting'."""
+    uj, _ = _utility(key, nb)
+    fa = uj['forward_assumptions']
+    groups = [fa['projection'], fa['network']['params']] + [l.get('params', {}) for l in fa['layers'].values()]
+    wrong = [n for g in groups for n, sp in g.items()
+             if isinstance(sp, dict) and str(sp.get('source', '')).startswith('Setting') and sp.get('status') != 'setting']
+    assert not wrong, wrong
+    for n in ('transition_year', 'existing_capitalised'):
+        assert fa['layers']['programs']['params'][n]['status'] == 'setting'
+
+
+def test_pepco_capacity_prices_aligned():
+    """Pepco's carve-out and capacity layer start from the same year-zero price ($/MW-day x 365 / 1e6)."""
+    uj, _ = _utility('PepcoMD', 'GridDividend_Maryland.ipynb')
+    fa = uj['forward_assumptions']
+    layer = fa['layers']['capacity']['params']['price_m_per_mw_yr']['value']
+    assert layer == pytest.approx(fa['capacity_carve_out']['price_usd_per_mw_day'] * 365 / 1e6, rel=1e-6)

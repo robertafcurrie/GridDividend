@@ -665,7 +665,7 @@
             "unit": "year",
             "source": "Setting (default 2028)",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "setting"
           },
           "amortisation_years": {
             "value": 10,
@@ -679,7 +679,7 @@
             "unit": "share of today's surcharge-funded spend capitalised",
             "source": "Setting: today's programs are expensed through surcharges",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "setting"
           },
           "split_dr": {
             "value": 0.45,
@@ -1056,7 +1056,7 @@
             "unit": "share of flexible headroom offered to waiting load first (rest to deferral)",
             "source": "Setting: priority to connecting waiting load where the network is constrained",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "setting"
           },
           "connection_cost_kw": {
             "low": 300,
@@ -1081,7 +1081,7 @@
             "unit": "'derived' | 'direct'",
             "source": "Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network capacity (what-if)",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "setting"
           },
           "direct_uplift_pct": {
             "low": 0.02,
@@ -1095,9 +1095,9 @@
           "customer_funded_share": {
             "value": 1.0,
             "unit": "share of network upgrade cost per MW counted as connection cost avoided by new customers",
-            "source": "Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is tariff-specific; access metric only, not on the bill",
+            "source": "Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is tariff-specific; access metric only, not on the bill Flexible connections are counted once, as network headroom, not here.",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "setting"
           }
         }
       },
@@ -1287,10 +1287,10 @@
           },
           "pool_basis": {
             "value": "revenue_requirement",
-            "unit": "'revenue_requirement' | 'capex'",
-            "source": "Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wholly to customers); 'capex' = v1.0-style avoided-capex pool (upper bound)",
+            "unit": "'revenue_requirement' (the only basis in the layered model)",
+            "source": "Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (EE energy-purchase savings go wholly to customers). The v1.0-style 'capex' basis was removed from the layered model (it gave customers the capacity and value streams about 1.7 times over).",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "setting"
           }
         }
       },

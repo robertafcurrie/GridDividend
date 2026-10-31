@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share |
 |---|---:|---:|---:|---:|---:|---:|
-| ConEd | 32 | 27 | 61 | 10 | 130 | 47% |
-| RGE | 19 | 19 | 70 | 10 | 118 | 59% |
-| DomVA | 41 | 23 | 57 | 10 | 131 | 44% |
-| PepcoMD | 29 | 22 | 61 | 10 | 122 | 50% |
+| ConEd | 27 | 27 | 60 | 16 | 130 | 46% |
+| RGE | 14 | 19 | 69 | 16 | 118 | 58% |
+| DomVA | 36 | 23 | 56 | 16 | 131 | 43% |
+| PepcoMD | 23 | 23 | 60 | 16 | 122 | 49% |
 
 ## Status counts by layer
 
@@ -24,14 +24,14 @@ All four utilities together.
 | starting_bill | 55 | 9 | 13 | 0 | 77 |
 | projection | 4 | 0 | 12 | 0 | 16 |
 | system_needs | 4 | 16 | 8 | 0 | 28 |
-| programs | 27 | 20 | 129 | 0 | 176 |
+| programs | 19 | 20 | 129 | 8 | 176 |
 | deferral | 0 | 0 | 4 | 0 | 4 |
-| load_enabled | 8 | 0 | 16 | 0 | 24 |
-| capacity | 3 | 4 | 1 | 0 | 8 |
+| load_enabled | 0 | 0 | 12 | 12 | 24 |
+| capacity | 2 | 5 | 1 | 0 | 8 |
 | wholesale_energy | 4 | 6 | 18 | 4 | 32 |
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
-| mechanism | 4 | 4 | 0 | 0 | 8 |
+| mechanism | 0 | 4 | 0 | 4 | 8 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
 | capacity_carve_out | 0 | 0 | 3 | 0 | 3 |
@@ -48,7 +48,7 @@ _VERIFY / total status-tagged inputs.
 | system_needs | 2 / 7 | 2 / 7 | 2 / 7 | 2 / 7 |
 | programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 |
 | deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
-| load_enabled | 4 / 6 | 4 / 6 | 4 / 6 | 4 / 6 |
+| load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
 | capacity | 0 / 2 | 1 / 2 | 0 / 2 | 0 / 2 |
 | wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
@@ -101,9 +101,9 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-10-31 | Assumption for data-centre energy from MW |
 | system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-10-31 | Assumption: v1.0 grows peak with load one-for-one (central) |
 | system_needs | dist_upgrade_cost_per_mw |  | 3.0 | 4.0 | 7.1 | $M per MW of new peak | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 DIST_UPGRADE_COST_PER_MW notes: routine feeder work $3-5M/MW; Idlewild $7.1M/MW (Case 23-E-0… |
-| programs | transition_year | 2028 |  |  |  | year | sourced | 2026-10-31 | Setting (default 2028) |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-10-31 | Setting (default 2028) |
 | programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AMORTISATION_YEARS |
-| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | sourced | 2026-10-31 | Setting: today's programs are expensed through surcharges |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-10-31 | Setting: today's programs are expensed through surcharges |
 | programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
 | programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (managed EV charging) |
 | programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (behind-the-meter and distribution-connected batteries) |
@@ -146,12 +146,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-10-31 | Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011… |
 | programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | _VERIFY | 2026-10-31 | EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savi… |
 | deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-10-31 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
-| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | _VERIFY | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
 | load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-10-31 | Assumption: connection works not paid by the customer |
 | load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-10-31 | Assumption |
-| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | sourced | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
 | load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-10-31 | What-if lever, no source |
-| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | sourced | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new cust… |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.12 |  |  |  | $M per MW-yr (2026 anchor) | sourced | 2026-10-31 | shared/capacity_markets/NYISO.json zone NYC (NYISO 2024 ICAP auction) |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.03 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (3%); low = flat nominal |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
@@ -171,7 +171,7 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
-| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' \| 'capex' | sourced | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wh… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -248,9 +248,9 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-10-31 | Assumption for data-centre energy from MW |
 | system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-10-31 | Assumption: v1.0 grows peak with load one-for-one (central) |
 | system_needs | dist_upgrade_cost_per_mw |  | 0.8 | 1.5 | 3.0 | $M per MW of new peak | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 notes: overhead reinforcement $0.5-1.5M/MW, substations $1.5-3.0M/MW |
-| programs | transition_year | 2028 |  |  |  | year | sourced | 2026-10-31 | Setting (default 2028) |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-10-31 | Setting (default 2028) |
 | programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 NWS_AMORTISATION_YEARS |
-| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | sourced | 2026-10-31 | Setting: today's programs are expensed through surcharges |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-10-31 | Setting: today's programs are expensed through surcharges |
 | programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
 | programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (managed EV charging) |
 | programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (behind-the-meter and distribution-connected batteries) |
@@ -293,12 +293,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-10-31 | Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011… |
 | programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | _VERIFY | 2026-10-31 | EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savi… |
 | deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-10-31 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
-| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | _VERIFY | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
 | load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-10-31 | Assumption: connection works not paid by the customer |
 | load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-10-31 | Assumption |
-| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | sourced | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
 | load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-10-31 | What-if lever, no source |
-| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | sourced | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new cust… |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.07244 |  |  |  | $M per MW-yr (2026 anchor) | _VERIFY | 2026-10-31 | NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYIS… |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.03 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (3%); low = flat nominal |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
@@ -318,7 +318,7 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
-| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' \| 'capex' | sourced | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wh… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -409,9 +409,9 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-10-31 | Assumption for data-centre energy from MW |
 | system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-10-31 | Assumption: v1.0 grows peak with load one-for-one (central) |
 | system_needs | dist_upgrade_cost_per_mw |  | 1.0 | 1.8 | 3.5 | $M per MW of new peak | derived | 2026-10-31 | utilities/Dominion_VA.json _dist_upgrade_VERIFY: suburban/rural $0.8-1.5M/MW, Northern VA $3-4M/MW |
-| programs | transition_year | 2028 |  |  |  | year | sourced | 2026-10-31 | Setting (default 2028) |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-10-31 | Setting (default 2028) |
 | programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-10-31 | notebooks/GridDividend_Virginia.ipynb Section 1 NWS_AMORTISATION_YEARS |
-| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | sourced | 2026-10-31 | Setting: today's programs are expensed through surcharges |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-10-31 | Setting: today's programs are expensed through surcharges |
 | programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
 | programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (managed EV charging) |
 | programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (behind-the-meter and distribution-connected batteries) |
@@ -432,9 +432,9 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | programs | ee_levelised_cost_kwh |  | 0.056 | 0.028 | 0.02 | $ per kWh saved (levelised, 2026 $) | derived | 2026-10-31 | LBNL (Hoffman, Leventis, Goldman, 2017): program administrator cost of saved energy averaged $0.028/kWh; residential ~$0.018-0.020/kWh; tot… |
 | programs | ee_measure_life | 11 |  |  |  | years | _VERIFY | 2026-10-31 | Assumption for savings-weighted measure life (persistence) |
 | programs | ee_capitalised |  | 1.0 | 0.5 | 0.0 | share capitalised | _VERIFY | 2026-10-31 | Assumption (EE regulatory asset, e.g. EmPOWER amortisation) |
-| programs | mw_start_dr | 341.0 |  |  |  | MW enrolled today (BAU holds this) | _VERIFY | 2026-10-31 | Dominion 2025 IRP Update: DSM programs reduce summer capacity need by 341 MW in 2025 (EE and DR combined; DR share not separated) |
-| programs | mw_2035_dr |  | 511.5 | 1076.0 | 2240.5 | MW nameplate | _VERIFY | 2026-10-31 | Central: Dominion 2025 IRP Update: DSM 1,076 MW by 2030 (EE and DR), held to 2035; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to C… |
-| programs | mw_2050_dr |  | 682.0 | 1554.9 | 3237.7 | MW nameplate | _VERIFY | 2026-10-31 | Central: Dominion 2025 IRP Update: DSM 1,076 MW by 2030 (EE and DR), held to 2035; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to C… |
+| programs | mw_start_dr | 181.2 |  |  |  | MW enrolled today (BAU holds this) | _VERIFY | 2026-10-31 | Dominion 2025 IRP Update, Section 3.2.3: DSM programs (EE and DR) reduce summer capacity needs by 341 MW in 2025 and 1,076 MW by 2030 and s… |
+| programs | mw_2035_dr |  | 271.8 | 746.9 | 2240.5 | MW nameplate | _VERIFY | 2026-10-31 | Central: DR part of the Dominion 2025 IRP Update DSM (see mw_start_dr: 1,076 MW by 2030 less 329.1 MW of EE = 746.9 MW), held to 2035; 2050… |
+| programs | mw_2050_dr |  | 362.4 | 1079.3 | 3237.7 | MW nameplate | _VERIFY | 2026-10-31 | Central: DR part of the Dominion 2025 IRP Update DSM (see mw_start_dr: 1,076 MW by 2030 less 329.1 MW of EE = 746.9 MW), held to 2035; 2050… |
 | programs | mw_start_ev | 0.0 |  |  |  | MW enrolled today (BAU holds this) | _VERIFY | 2026-10-31 | Not found |
 | programs | mw_2035_ev |  | 0.0 | 622.4 | 1244.7 | MW nameplate | _VERIFY | 2026-10-31 | Central: No Virginia target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plant… |
 | programs | mw_2050_ev |  | 0.0 | 899.4 | 1798.7 | MW nameplate | _VERIFY | 2026-10-31 | Central: No Virginia target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plant… |
@@ -454,12 +454,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-10-31 | Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011… |
 | programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | _VERIFY | 2026-10-31 | EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savi… |
 | deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-10-31 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
-| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | _VERIFY | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
 | load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-10-31 | Assumption: connection works not paid by the customer |
 | load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-10-31 | Assumption |
-| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | sourced | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
 | load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-10-31 | What-if lever, no source |
-| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | sourced | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new cust… |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.12 |  |  |  | $M per MW-yr (2026 anchor) | sourced | 2026-10-31 | shared/capacity_markets/PJM.json zone DOM (2026/27 BRA $329.17/MW-day) |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (5%); low = flat nominal |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
@@ -479,7 +479,7 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Virginia.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
-| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' \| 'capex' | sourced | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wh… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -568,9 +568,9 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-10-31 | Assumption for data-centre energy from MW |
 | system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-10-31 | Assumption: v1.0 grows peak with load one-for-one (central) |
 | system_needs | dist_upgrade_cost_per_mw |  | 1.74 | 2.2 | 3.08 | $M per MW of new peak | derived | 2026-10-31 | utilities/Pepco_MD.json _dist_upgrade_VERIFY: White Flint $1.74-3.08M/MW (Order No. 92607) |
-| programs | transition_year | 2028 |  |  |  | year | sourced | 2026-10-31 | Setting (default 2028) |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-10-31 | Setting (default 2028) |
 | programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-10-31 | notebooks/GridDividend_Maryland.ipynb Section 1 NWS_AMORTISATION_YEARS |
-| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | sourced | 2026-10-31 | Setting: today's programs are expensed through surcharges |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-10-31 | Setting: today's programs are expensed through surcharges |
 | programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
 | programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (managed EV charging) |
 | programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-10-31 | Illustrative split (behind-the-meter and distribution-connected batteries) |
@@ -613,13 +613,13 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-10-31 | Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011… |
 | programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | sourced | 2026-10-31 | EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savi… |
 | deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-10-31 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
-| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | _VERIFY | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-10-31 | Setting: priority to connecting waiting load where the network is constrained |
 | load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-10-31 | Assumption: connection works not paid by the customer |
 | load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-10-31 | Assumption |
-| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | sourced | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-10-31 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
 | load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-10-31 | What-if lever, no source |
-| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | sourced | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new cust… |
-| capacity | price_m_per_mw_yr | 0.1217 |  |  |  | $M per MW-yr (2026 anchor) | sourced | 2026-10-31 | shared/capacity_markets/PJM.json zone PEPCO (2027/28 BRA $333.44/MW-day) |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
+| capacity | price_m_per_mw_yr | 0.12014705 |  |  |  | $M per MW-yr (2026 anchor) | derived | 2026-10-31 | PEPCO zone 2026/27 BRA $329.17/MW-day (MD PSC Ten-Year Plan Table 14) x 365 / 1e6, the same price as capacity_carve_out, so the capacity li… |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (5%); low = flat nominal |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
@@ -638,7 +638,7 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Maryland.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
-| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' \| 'capex' | sourced | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU (EE energy-purchase savings go wh… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |

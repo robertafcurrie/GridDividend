@@ -1,6 +1,6 @@
 # GridDividend methodology
 
-*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 31 October 2026.*
+*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 31 October 2026, after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
 
 This document explains how GridDividend works. It is written for a policy reader who is comfortable with numbers but is not a modeller. Sections marked **Technical detail** give the equations and code-level behaviour; they can be skipped without losing the thread.
 
@@ -432,6 +432,7 @@ Efficiency also lowers usage. The **average residential bill** scales every volu
 - Efficiency: savings rate, levelised cost, measure life, capitalised share, `ee_kw_per_mwh`.
 - Flexible connections: share, peak depth, energy curtailed, EV hub share.
 - `transition_year`, `amortisation_years`, `existing_capitalised`.
+- Demand-response paths are demand response only. Dominion's IRP reports DSM MW for efficiency and demand response together (341 MW in 2025, 1,076 MW by 2030), so its demand-response inputs remove the efficiency part at `ee_kw_per_mwh` x the IRP's DSM energy savings: 181.2 MW today and 746.9 MW in 2030–2035. Efficiency is modelled only in the efficiency inputs.
 - The `split_*` inputs in the JSON are authoring aids, used to divide statewide or DOE totals across types when the MW paths were set. The engine does not read them.
 
 **Interactions.**
@@ -468,16 +469,14 @@ headroom created H_t = firm flexible MW_t x locational_match + flexible connecti
 *Load enabled, costs.*
 
 ```
-MW connected sooner_t  = sum_b max(0, BAU waiting_b - SS waiting_b)
+MW connected sooner_t  = sum_b max(0, SS served_b - BAU served_b)
 connection capex_t     = newly connected MW x 1000 x connection_cost_kw x (1 + inflation)^t / 1e6   (enters rate base)
 incremental O&M_t      = MW connected sooner x 8.76 x load factor x incremental_om_mwh x (1 + inflation)^t / 1000
 ```
 
-**What counts as newly connected.** Connection capex (and connection cost avoided, 4.5) is charged only when MW connected sooner rise above their previous maximum. Incremental O&M is charged on the whole stock.
+**What counts as newly connected.** MW connected sooner are load actually served above what BAU serves. Efficiency lowers demand but connects nobody, so it is not counted and is charged no connection cost. Connection capex (and connection cost avoided, 4.5) is charged only when MW connected sooner rise above their previous maximum. Incremental O&M is charged on the whole stock.
 
-**Efficiency also counts.** SS demand is net of efficiency, so efficiency that lowers demand in a waiting band also counts as MW connected sooner and attracts these costs. The effect is small: with deferral and load enabled both off, Con Edison still shows 3.1 MW connected sooner at peak, Dominion 5.0 MW.
-
-**Bill effect versus system-wide effect.** The extra kWh enter sales, which lowers distribution cost per kWh. The load-enabled bar on the residential bill is **only the residential bill effect**. System-wide, the layer shows only its costs: connection capex, incremental O&M, and capacity for the extra load served. Its customer savings and its contribution to the pool are therefore slightly negative (Central: Con Edison −$65M, Dominion −$156M, Pepco −$8M, RG&E −$5M, undiscounted nominal). The benefit goes to the customers being connected and is reported in the access block (4.5).
+**Bill effect versus system-wide effect.** The extra kWh enter sales, which lowers distribution cost per kWh. The load-enabled bar on the residential bill is **only the residential bill effect**. System-wide, the layer shows only its costs: connection capex, incremental O&M, and capacity for the extra load served. Its customer savings and its contribution to the pool are therefore slightly negative (Central: Con Edison −$60M, Dominion −$139M, Pepco −$7M, RG&E −$4M, undiscounted nominal). The benefit goes to the customers being connected and is reported in the access block (4.5).
 
 **Inputs.**
 - `locational_match`.
@@ -486,7 +485,8 @@ incremental O&M_t      = MW connected sooner x 8.76 x load factor x incremental_
 - Flexibility targeting (network block).
 
 **Double counting.**
-- Each MW of headroom has one use. Headroom used never exceeds headroom created (tested).
+- Each MW of headroom has one use. Headroom used never exceeds headroom created, and MW connected sooner never exceed load-enabled headroom (tested).
+- Flexible-connection MW count once, as headroom (deferral or load enabled). They are not credited again as connection cost avoided (4.5).
 - Deferral headroom can only carry load BAU would serve anyway.
 - The former utilisation layer, a price discount not tied to any cost that overlapped with deferral, has been replaced.
 
@@ -498,27 +498,29 @@ incremental O&M_t      = MW connected sooner x 8.76 x load factor x incremental_
 
 **What it represents.** Lower peak demand lowers the utility's capacity obligation in the wholesale capacity market. The zones are NYISO NYC, NYISO Rest of State, PJM DOM and PJM PEPCO.
 
-**Calculation** (as implemented):
+**Calculation.**
 
 ```
 price_t        = price_m_per_mw_yr x (1 + price_growth)^t          ($M per MW-year)
-system peak_t  = peak_t - (network demand before efficiency - served load) - EE MW_t (SS, programs active)
-peak reduction = min(firm flexible MW + EE MW, system peak)          (capacity layer on)
+system peak_t  = peak_t - MW waiting for upgrade_t
+peak reduction = min(firm flexible MW + EE MW, system peak)          (SS, capacity layer on; otherwise 0)
 capacity cost  = (system peak - peak reduction) x price             ($M)
 capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - peak reduction - loss peak MW) / peak_2026) / (sales_t / sales_2026)
 ```
 
-Load waiting for an upgrade does not buy capacity.
+- Load waiting for an upgrade does not buy capacity.
+- Each efficiency MW and each firm flexible MW lowers the obligation once, in this layer. With the capacity layer off, neither earns a capacity credit, so the waterfall books all of efficiency's capacity value here.
+- (Before the code fixes, efficiency MW were subtracted three times with the layer on and once with it off.)
 
-> **Code issue under review (not changed in this pass).** In the shared savings case, `(network demand before efficiency - served load)` already includes efficiency MW, the formula then subtracts efficiency MW again, and the peak reduction subtracts it a third time. Capacity MW billed are therefore `peak - waiting - firm flexible MW - 3 x EE MW` when the capacity layer is on. With the capacity layer off and programs active, the code adds one EE MW back, which leaves efficiency subtracted once. A first-order estimate of the extra capacity value is 2 x EE MW x price, summed 2026–2050 (Central, undiscounted nominal): Con Edison $3.2B, Dominion $4.3B, Pepco $1.0B, RG&E $0.2B. That is 14–25% of the customer savings reported (RG&E 14%, Con Edison 19%, Pepco 21%, Dominion 25%). The extra capacity cost also enters the pool, so about 30% of it appears as shared savings earnings, and the capacity bill line is lowered too. A fix would change results, so it needs the author's decision. See section 10.2.
-
-**Inputs.** `price_m_per_mw_yr` (from `shared/capacity_markets/`), `price_growth`; derates by type (3.4).
+**Inputs.** `price_m_per_mw_yr`, `price_growth`; derates by type (3.4).
+- The 2026 price matches the capacity carve-out where there is one (Pepco: the 2026/27 BRA price, $329.17/MW-day = $0.12015M per MW-year).
+- The New York zones read `shared/capacity_markets/NYISO.json`, and Dominion reads `PJM.json` (DOM, $0.12M per MW-year).
 
 **Interactions.** Avoided-loss peak MW (3.9) lower the capacity bill line; their value is booked in the losses layer, not here. Capacity cost is in the savings pool.
 
 **Limitations.**
 - One zonal price, with no price suppression.
-- Pepco's capacity carve-out uses the 2026/27 price ($329.17/MW-day), but the capacity layer uses 2027/28 ($333.44/MW-day, $0.1217M per MW-year). The bill line scales with price_t / price_0, so bills are consistent; the pool's capacity cost and the bill line start from slightly different year-zero prices.
+- Dominion's layer price ($0.12M per MW-year) is the same 2026/27 BRA price as its carve-out, rounded in `PJM.json` (0.1% lower than $329.17/MW-day x 365).
 - RG&E uses NYISO Rest of State in the layered model.
 
 ### 3.7 Wholesale energy (layer 6)
@@ -604,7 +606,7 @@ loss peak value_t   = loss peak MW x capacity price_t                           
 
 **What it represents.** The savings pool is the year's net saving to customers from the reform. The utility earns `utility_share` of it (30% at Central) as **shared savings earnings**. Customers keep the rest.
 
-**Calculation** (`pool_basis: 'revenue_requirement'`, the setting for all four utilities):
+**Calculation.** `pool_basis: 'revenue_requirement'` is the only basis. The v1.0-style `'capex'` basis was removed from the layered model because it gave customers the capacity and value streams about 1.7 times over. Any other value raises an error.
 
 ```
 what customers pay_t = core RR (wires RR + program RR) + program surcharge cost + capacity cost
@@ -619,20 +621,16 @@ earnings_t = utility_share x max(0, net_t)
 - Earnings are added to the SS revenue requirement and recovered through the rider (3.4).
 - Customers receive their share implicitly: they pay the lower costs and only the utility's share is added back.
 
-*Alternative basis* `'capex'` (available, not used):
-- pool = avoided capex − new program spend + capacity cost avoided + value streams in the pool.
-- Customers receive `(1 - utility_share)` of the pool as an explicit credit, through the rider.
-- Earnings are not recovered from anyone, as in v1.0.
-- Because the supply, transmission and capacity lines already fall by the full value, customers then receive the capacity and value streams about 1.7 times over.
-
-Treat this basis as an upper bound.
-
 **Inputs.** `utility_share` (low 0.40 / central 0.30 / high 0.10), `pool_basis`, each value layer's `in_pool`.
 
 **Interactions.**
 - The mechanism comes after the cost layers in the waterfall, so in the sequential pass all earnings fall on its step.
-- `layer_contributions()` therefore also reports earnings attributable to each layer, adding layers in waterfall order with the mechanism on throughout.
-- **That split depends on the order.** Programs alone make the pool negative, and carry-forward absorbs the next layers' savings. In Central, programs, deferral and load enabled are attributed zero earnings, and all earnings fall on capacity and the value layers. Con Edison, for example, attributes $1.95B to capacity, even though deferral adds $3.0B of customer savings. Read the column as "earnings in this order", not as each layer's earning power.
+- `layer_contributions()` therefore reports **earnings attributable**: the full case's shared savings earnings split across the layers in proportion to each layer's contribution to the pool.
+  - Each contribution is the change in the cumulative pool when the layer is added, which does not depend on the mechanism.
+  - The undiscounted column uses undiscounted pool contributions; the NPV column uses NPV contributions.
+  - The split sums to total earnings (tested).
+- **Programs takes a negative share.** Its costs come before the savings they enable, so it lowers the pool. Con Edison Central: programs −$2.00B, deferral +$0.90B, capacity +$2.13B, transmission +$0.72B, losses +$0.33B, wholesale +$0.20B, load enabled −$0.02B; total $2.26B.
+- This replaces an order-dependent split in which carry-forward gave programs, deferral and load enabled zero.
 
 **Double counting.** Efficiency energy savings are not in the pool; they go wholly to customers. Each value stream enters the pool once.
 
@@ -701,7 +699,7 @@ other O&M_t         = recalibrated O&M x (1 + inflation)^t + incremental O&M
 - **Wires capex avoided or deferred:** BAU capex − SS capex − connection capex.
 - **Other lines:** reinforcement deferred (MW), capacity cost avoided, shared savings earnings, and the access measures (4.5).
 
-`layer_contributions()` adds layers one at a time and reports each layer's change in customer savings, the 2035 and 2050 bill, shared savings earnings (sequential and attributable) and the utility's equity return. Rows sum to the full case (tested).
+`layer_contributions()` adds layers one at a time and reports each layer's change in customer savings, the 2035 and 2050 bill, shared savings earnings (sequential, and attributable in proportion to the pool), its contribution to the savings pool, and the utility's equity return. Rows sum to the full case (tested).
 
 ### 4.3 Value stack and the cost at which flexibility pays for itself
 
@@ -735,19 +733,15 @@ Shared savings earnings are the utility's earnings opportunity under the reform.
 ### 4.5 Access block (not on the bill)
 
 Faster connections benefit the customers being connected, so they are reported separately (`access_summary()`):
-- **MW connected sooner:** the sum over bands of max(0, BAU waiting − SS waiting) (2035, 2050, peak year). It includes efficiency that removes demand in waiting bands (3.5).
+- **MW connected sooner:** the sum over bands of max(0, SS served − BAU served) (2035, 2050, peak year). Efficiency is not counted (3.5).
 - **Upgrade Delay for Interconnection:**
   - BAU average, years per MW affected;
   - SS average per MW affected;
   - SS per MW affected in BAU (like-for-like);
   - MW affected;
   - **MW-years avoided** (BAU − SS MW waiting, summed over years).
-- **Connection cost avoided by new customers:** increments of MW connected sooner and of flexible-connection MW x upgrade cost per MW x `customer_funded_share` (1.0 = upper bound), undiscounted and NPV 3%.
-  - Flexible-connection MW also count as deferral headroom, which lowers utility reinforcement for all customers. Crediting them here as well counts the same avoided upgrade twice.
-  - The access block is not added to customer savings, so the double count affects only this measure.
-  - It is large: flexible connections are about 90% of the measure (Con Edison Central $705M, or $67M without flexible connections).
-  - See 10.2.
-- **Electrification brought forward:** GWh served sooner x electrification share of network growth.
+- **Connection cost avoided by new customers:** increments of MW connected sooner x upgrade cost per MW x `customer_funded_share` (1.0 = upper bound), undiscounted and NPV 3%. Flexible-connection MW are not credited here: they already count once, as network headroom.
+- **Electrification brought forward:** MW connected sooner x 8.76 x system load factor x electrification share of network growth (GWh).
 
 ### 4.6 Tornado and headroom sweep
 
@@ -789,7 +783,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-Roughly half of the status-tagged inputs are `_VERIFY`: Con Edison 47%, Dominion 44%, Pepco 50%, RG&E 59%. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+Roughly half of the status-tagged inputs are `_VERIFY`: Con Edison 46%, Dominion 43%, Pepco 49%, RG&E 58%. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.
@@ -846,14 +840,14 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_flex_spend_is_mw_times_cost` | Flexible spend = incremental MW x cost per kW-year |
 | `test_energy_efficiency_lowers_sales_and_average_bill` | Efficiency savings are positive, the usage index is below 1, and the SS average bill is below the SS benchmark bill (2035) |
 | `test_scenarios_are_ordered` | Cautious < Central < Ambitious cumulative saving per customer |
-| `test_headroom_used_never_exceeds_headroom_created` and `test_headroom_used_never_exceeds_created_with_subband` | One use per MW of headroom; MW connected sooner ≤ load-enabled headroom + efficiency MW |
+| `test_headroom_used_never_exceeds_headroom_created` and `test_headroom_used_never_exceeds_created_with_subband` | One use per MW of headroom; MW connected sooner ≤ load-enabled headroom |
 | `test_network_served_never_exceeds_demand_or_capacity` | Served load ≤ demand and ≤ operating limit x capacity + headroom |
 | `test_served_never_exceeds_operating_limit` | Served load ≤ operating limit + headroom |
-| `test_one_band_equals_single_pool_model` | One band reproduces the single-pool model exactly (fixture at ebb0c04) |
+| `test_one_band_equals_single_pool_model` | One band reproduces the single-pool model exactly (fixture at ebb0c04), except the shared-savings columns the code fixes change on purpose |
 | `test_bands_sum_to_network_totals` | Bands sum to network load and capacity |
 | `test_ramp_limit_respected` | MW growth never exceeds the ramp limit |
 | `test_access_zero_with_layers_off` | No access benefits without layers |
-| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off |
+| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off: BAU exactly; shared savings exactly except the columns the code fixes change, and except where this commit's data changes apply (Dominion's demand-response path, Pepco's capacity price) |
 | `test_full_utilisation_long_lead_gives_bau_queue` | A tight network produces waiting load in BAU |
 | `test_subband_gives_bau_queue_and_keeps_totals` | The sub-band creates waiting load and keeps totals |
 | `test_mean_utilisation_shift` | The mean shift hits its target |
@@ -868,6 +862,14 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_losses_energy_value_only_above_average` | Loss energy value is zero at a multiplier of 1 |
 | `test_roe_lever` | ROE moves the bill and equity return, not shared savings earnings; neutral at 0 |
 | `test_transmission_bill_basis` | Avoided transmission lowers delivery in New York and the transmission lines in PJM |
+| `test_efficiency_counted_once_in_capacity` | Capacity MW = peak − waiting − firm flexible MW − EE MW with the layer on, peak − waiting with it off |
+| `test_dominion_demand_response_excludes_efficiency` | Dominion's DR inputs equal the IRP DSM MW less EE at `ee_kw_per_mwh` |
+| `test_flexible_connections_counted_once` | Connection cost avoided credits only MW connected sooner; zero with deferral and load enabled off, even with flexible connections |
+| `test_earnings_attributed_in_proportion_to_pool` | Attributable earnings are proportional to pool contributions and sum to total earnings |
+| `test_efficiency_not_counted_as_connected_sooner` | With deferral and load enabled off, no MW connected sooner, connection capex, connection cost avoided or electrification brought forward |
+| `test_capex_pool_basis_removed` | The `pool_basis` argument and the `'capex'` basis are gone |
+| `test_settings_are_labelled_setting` | Every input whose source says it is a setting has status `setting` |
+| `test_pepco_capacity_prices_aligned` | Pepco's carve-out and capacity layer use the same year-zero price |
 
 `tests/test_assumptions_register.py` checks two things:
 - The assumptions register matches the JSON.
@@ -915,18 +917,21 @@ New analysis uses the layered model. The two models do not share results.
 - **Not modelled yet:** resilience, capacity price suppression, the economic value of faster connections, emissions. These would be reported separately, not on the bill.
 - **No feedback** from bills to demand, and no utility behavioural response beyond the stated paths.
 
-### 10.2 Code issues found in the documentation pass (not changed)
+### 10.2 Code issues found and fixed
 
-1. **Efficiency peak MW counted more than once in capacity** (3.6). Billed capacity MW subtract efficiency MW three times with the capacity layer on, and once with it off. The first-order effect is 2 x EE MW x capacity price a year, 14–25% of reported customer savings. Shared savings earnings and the capacity bill line are affected too. A fix would change results.
-2. **Program-transfer neutrality with waiting load.** In SS, core programs are recovered per kWh served. Where load waits for an upgrade, the rider is slightly higher than the BAU surcharge (about $0.003/month at most). This is why the neutrality test runs with the sub-band off.
+The independent documentation check found these issues; they are fixed in the commit "Code fixes from the independent check" (see [CHANGELOG.md](../CHANGELOG.md) for before/after figures):
+1. **Efficiency peak MW was counted three times in capacity.** Each MW now counts once (3.6). Dominion's demand-response inputs no longer embed efficiency (3.4).
+2. **Flexible connections were counted twice.** They were counted as headroom and again as connection cost avoided. Now they count once, as headroom (4.5).
+3. **Earnings attributable depended on layer order.** It is now proportional to each layer's contribution to the pool (3.10).
+4. **Efficiency counted as MW connected sooner.** It no longer does, and it is charged no connection cost (3.5).
+5. **The `'capex'` pool basis** has been removed from the layered model (3.10).
+6. **Six inputs mislabelled.** They are now labelled `setting`, as their sources say (6).
+7. **Pepco's capacity line and capacity layer** now start from one price (3.6).
 
-3. **Flexible connections counted twice** (4.5). The same MW are deferral headroom and are credited in full as connection cost avoided by new customers. This affects only the access measure, which they make up about 90% of.
-4. **Earnings attributable depends on layer order** (3.10). Carry-forward assigns zero to programs, deferral and load enabled.
-5. **Efficiency counts as MW connected sooner** (3.5), and attracts connection capex and O&M. The effect is small.
-6. **The `'capex'` pool basis** (not used by any utility) gives customers the capacity and value streams about 1.7 times over (3.10).
-7. **Status labels.** In all four JSONs, `transition_year`, `existing_capitalised`, `uplift_mode`, `customer_funded_share` and `pool_basis` are tagged `sourced`, and `enable_share` `_VERIFY`, although each source says "Setting". Relabelling them `setting` would change the status counts, not results.
-
-Load enabled shows as a small net cost system-wide (3.5). This is the intended design, because its benefit is in the access block. The independent documentation check that found items 3–7 is recorded in [CHANGELOG.md](../CHANGELOG.md).
+**Remaining, by design or not fixed:**
+- **Program-transfer neutrality with waiting load.** In SS, core programs are recovered per kWh served. Where load waits for an upgrade, the rider is slightly higher than the BAU surcharge (about $0.003/month at most). This is why the neutrality test runs with the sub-band off.
+- **Load enabled shows as a small net cost system-wide** (3.5). Its benefit is in the access block.
+- **Upgrade Delay MW-years avoided still include efficiency.** BAU waiting − SS waiting counts demand that efficiency removes from waiting bands as delay avoided: that load no longer needs to wait.
 
 ### 10.3 Open housekeeping items that would change results
 
@@ -961,7 +966,7 @@ These need a decision before they are changed:
 | **Customer savings** | System-wide BAU minus SS cost to all customers, including efficiency energy and the value streams |
 | **Deferral** | Flexible headroom counted by the planner, so reinforcement is ordered later |
 | **Derate** | Share of nameplate flexible MW counted as firm at peak |
-| **Earnings attributable** | Each layer's change in shared savings earnings with the mechanism on throughout |
+| **Earnings attributable** | Total shared savings earnings split across layers in proportion to each layer's contribution to the pool |
 | **Effective capacity uplift** | Flexible headroom / network capacity |
 | **Firm MW** | Derated flexible MW plus efficiency peak MW |
 | **Flexible connection** | A large load connected on terms that let the utility curtail it at peak |
@@ -972,13 +977,14 @@ These need a decision before they are changed:
 | **Loading band** | A group of substations at similar loading, with a share of capacity |
 | **Locational match** | Share of firm flexible MW located where the network needs it |
 | **MW affected** | New load that waited at least a year for an upgrade |
-| **MW connected sooner** | Sum over bands of max(0, BAU waiting − SS waiting) |
+| **MW connected sooner** | Sum over bands of max(0, SS served − BAU served): load connected sooner, excluding efficiency |
 | **MW waiting for upgrade** | Demand not served because capacity is not yet in service |
 | **MW-years avoided** | BAU minus SS MW waiting, summed over years |
 | **Operating limit** | Equipment rating, 1 / planning limit factor x planning capacity; existing load is served up to it |
 | **Planning capacity / planning limit** | 80% of rating; loading 1.0 |
 | **Planning headroom** | Margin the planner keeps above demand (10%) |
 | **Pool (savings pool)** | Net saving to customers in a year, before the utility's share; negative pools are carried forward |
+| **Savings pool contribution** | The change in the cumulative pool when a layer is added in waterfall order |
 | **ROE lever** | Change in allowed ROE in SS, outside the pool |
 | **Seed pipeline** | Reinforcement already under way at 2026 |
 | **Shared savings earnings** | The utility's share of the pool: its earnings opportunity |

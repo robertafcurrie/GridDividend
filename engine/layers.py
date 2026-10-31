@@ -573,7 +573,7 @@ def network_bands(nw, DN0, h):
 # ── Projection ───────────────────────────────────────────────────────────────
 
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
-                   pool_basis=None, scenario=None, flex_cost_scale=1.0, uplift_mode=None, network=None):
+                   scenario=None, flex_cost_scale=1.0, uplift_mode=None, network=None):
     """
     BAU and shared-savings projection, 2026-2050, with an explicit distribution-
     network capacity constraint.
@@ -581,7 +581,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     Inputs: utility_json (starting_bill, forward_assumptions); params
       (earlier-model utility dict: rate base, capex, WACC, ROE, equity ratio,
       property tax, energy, peak, customers); level, scenario, overrides, enabled,
-      network: see resolve(); pool_basis overrides mechanism.pool_basis;
+      network: see resolve();
       flex_cost_scale multiplies every flexible cost per kW-year (used by
       flex_pays_cost()); uplift_mode 'derived' / 'direct' overrides
       load_enabled.uplift_mode.
@@ -625,8 +625,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     fa = utility_json['forward_assumptions']
     a = resolve(fa, level, overrides, enabled, scenario, network)
     on = a['_enabled']
-    if pool_basis:
-        a['mechanism']['pool_basis'] = pool_basis
+    if a['mechanism'].get('pool_basis', 'revenue_requirement') != 'revenue_requirement':
+        raise ValueError("the layer engine has one savings-pool basis, 'revenue_requirement' "
+                         f"(got {a['mechanism']['pool_basis']!r})")
     pj = a['projection']
     infl = pj['inflation_rate']
     sn, pr, dfr, le, cap, mech = (a['system_needs'], a['programs'], a['deferral'], a['load_enabled'],
@@ -715,7 +716,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         pipes = [list(sd) for sd in seeds]
         pipes_new = [[] for _ in NB]                 # new-load upgrades in constrained areas
         Nin, Nord = [0.0 for _ in NB], [0.0 for _ in NB]
-        prev_enabled = prev_fc = 0.0
+        prev_enabled = 0.0
         prev_mw = None
         band_rows = []
         rr_ref = res['bau']['rr_dist_m'].iloc[0] if ss else None
@@ -849,19 +850,21 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             if cond0 is None:
                 cond0 = max(0.0, params['annual_capex_m'] - growth)
             capex = growth + cond0 * _infl(infl, t) if on['system_needs'] else params['annual_capex_m']
-            enabled_mw = (sum(max(0.0, res['bau_bands'][i]['upgrade_wait_mw'][t] - wait_b[i]) for i in NB)
-                          if ss else 0.0)                                   # connected sooner
+            # Connected sooner = load served above what BAU serves in each band (efficiency
+            # lowers demand but connects nobody, so it is not counted)
+            enabled_mw = (sum(max(0.0, srv_b[i] - res['bau_bands'][i]['served_mw'][t]) for i in NB)
+                          if ss else 0.0)
             new_enabled = max(0.0, enabled_mw - prev_enabled)
             prev_enabled = max(prev_enabled, enabled_mw)
             # Load enabled: incremental cost of serving the newly connected load
             conn_capex = new_enabled * 1000 * le['connection_cost_kw'] * _infl(infl, t) / 1e6 if Le else 0.0
             served_gwh_loss = waiting * 8.76 * lf_new
-            # Access (not on the bill): connection costs avoided by new customers
-            new_fc = max(0.0, fc_mw - prev_fc)
-            prev_fc = max(prev_fc, fc_mw)
-            ciac_avoided = ((new_enabled + new_fc) * cost_mw * cf_share * _infl(infl, t)) if ss else 0.0
+            # Access (not on the bill): connection costs avoided by new customers. Flexible
+            # connections already count once, as headroom (deferral or load enabled), so
+            # only MW actually connected sooner are credited here
+            ciac_avoided = (new_enabled * cost_mw * cf_share * _infl(infl, t)) if ss else 0.0
             delay_avoided = (res['bau']['upgrade_wait_mw'].iloc[t] - waiting) if ss else 0.0
-            elec_fwd = ((res['bau']['mwh_not_served_gwh'].iloc[t] - served_gwh_loss) * elec_share[t]) if ss else 0.0
+            elec_fwd = (enabled_mw * 8.76 * lf_new * elec_share[t]) if ss else 0.0
             S_case = S[t] - (ee_gwh if active else 0.0) - served_gwh_loss - fc_gwh
             inc_om = (max(0.0, enabled_mw) * 8.76 * lf_new * le['incremental_om_mwh'] * _infl(infl, t) / 1000
                       if Le else 0.0)
@@ -881,10 +884,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             rr_core = rr_dist + prog_rr
             # ── Capacity (bulk system): all firm MW at peak, derated by type ─
             price = price0 * _infl(cap['price_growth'], t)
-            sys_peak = P[t] - (DN[t] - served) - (ee_mw if active else 0.0)
+            # Load waiting for an upgrade buys no capacity. Efficiency and firm flexible
+            # MW lower the obligation once each, in the capacity layer (off: no credit)
+            sys_peak = P[t] - (D - served)
             mw_red = min(firm_flex + (ee_mw if active else 0.0), sys_peak) if Lc else 0.0
-            if not Lc and active:
-                sys_peak += ee_mw      # EE peak value is booked in the capacity layer
             cap_cost = (sys_peak - mw_red) * price
             prog_bill_cost = 0.0 if active else bau_spend
             # ── Value streams (shared savings, once programs are active) ─────
@@ -907,27 +910,23 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             vpool = (whl * bool(we.get('in_pool', True)) + tx_av * bool(tx.get('in_pool', True))
                      + (loss_e + loss_p) * bool(lo.get('in_pool', True)))
             # ── Mechanism ────────────────────────────────────────────────────
-            earnings = credit = 0.0
+            # Pool = reduction in what customers pay vs BAU (+ value streams in the pool);
+            # the utility's share is recovered in the revenue requirement
+            earnings = 0.0
             pool = np.nan
             if ss:
                 b = res['bau']
-                if mech['pool_basis'] == 'revenue_requirement':
-                    pool = ((b['rr_core_m'].iloc[t] + b['program_bill_cost_m'].iloc[t] + b['capacity_cost_m'].iloc[t])
-                            - (rr_core + prog_bill_cost + cap_cost))
-                    if roe_cost and not ro.get('roe_in_pool', False):
-                        pool += roe_cost                 # the ROE lever sits outside the pool
-                else:
-                    pool = (b['capex_m'].iloc[t] - capex) - new_spend + (b['capacity_cost_m'].iloc[t] - cap_cost)
+                pool = ((b['rr_core_m'].iloc[t] + b['program_bill_cost_m'].iloc[t] + b['capacity_cost_m'].iloc[t])
+                        - (rr_core + prog_bill_cost + cap_cost))
+                if roe_cost and not ro.get('roe_in_pool', False):
+                    pool += roe_cost                     # the ROE lever sits outside the pool
                 if vpool:
                     pool += vpool
                 if Lm:
                     net = pool + carry
                     carry = min(0.0, net)
-                    base = max(0.0, net)
-                    earnings = mech['utility_share'] * base
-                    if mech['pool_basis'] == 'capex':
-                        credit = (1 - mech['utility_share']) * base
-            adj = earnings if mech['pool_basis'] == 'revenue_requirement' else -credit
+                    earnings = mech['utility_share'] * max(0.0, net)
+            adj = earnings
             rr = rr_core + adj
             if not ss and t == 0:
                 rr_ref = rr_dist
@@ -996,7 +995,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 program_bill_cost_m=prog_bill_cost, firm_flex_mw=firm_flex, ee_mw=ee_mw if active else 0.0,
                 firm_mw=firm_flex + (ee_mw if active else 0.0), flex_mw_incremental=sum(inc.values()),
                 peak_reduction_mw=mw_red, capacity_price_m_per_mw_yr=price, capacity_cost_m=cap_cost,
-                savings_pool_m=pool, shared_savings_earnings_m=earnings, customer_credit_m=credit,
+                savings_pool_m=pool, shared_savings_earnings_m=earnings,
                 wholesale_value_m=whl, transmission_avoided_m=tx_av, losses_energy_value_m=loss_e,
                 losses_peak_value_m=loss_p, roe_delta=roe_d, roe_cost_m=roe_cost,
                 equity_return_m=rb_earning * eq_roe + roe_cost,
@@ -1607,11 +1606,18 @@ def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050),
       at a time in LAYERS order (the waterfall order).
     Output: DataFrame indexed by layer: customer savings ($B, undiscounted nominal
       and NPV 3%, 2026 $), the change in the monthly bill in each year ($/month
-      nominal, negative = lower bill), shared savings earnings ($B), and the
-      utility's equity return on rate base ($B, undiscounted nominal). Rows sum
-      to the full case. In that order all earnings fall on the mechanism step,
-      so 'earnings attributable' repeats the pass with the mechanism on from the
-      start: each layer's change in shared savings earnings (same total).
+      nominal, negative = lower bill), shared savings earnings ($B), the
+      utility's equity return on rate base ($B, undiscounted nominal), and the
+      layer's contribution to the savings pool ($B, undiscounted nominal and
+      NPV 3%). Rows sum to the full case.
+    In that order all earnings fall on the mechanism step, so 'earnings
+    attributable' splits the full case's shared savings earnings across the
+    layers in proportion to each layer's contribution to the pool (undiscounted
+    for the undiscounted column, NPV 3% for the NPV column). A layer that lowers
+    the pool (e.g. programs, whose costs come before the savings they enable)
+    takes a negative share. The pool does not depend on the mechanism, so the
+    contributions come from the same sequential pass; the split sums to the
+    full case's earnings.
     """
     col = MEASURE_COL[measure]
     fa = utility_json['forward_assumptions']
@@ -1622,11 +1628,13 @@ def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050),
     def stats(r):
         sm = system_summary(r)
         yrs = r['ss']['year'].values
+        pool = np.nan_to_num(r['ss']['savings_pool_m'].values)
         return {'cs': sm['Customer savings ($B, undiscounted nominal)'], 'cs3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
                 **{y: _at(r['ss'], y, col) for y in years},
                 'earn': r['ss']['shared_savings_earnings_m'].sum() / 1e3,
                 'earn3': _npv(r['ss']['shared_savings_earnings_m'].values, yrs, 0.03) / 1e3,
-                'eq': r['ss']['equity_return_m'].sum() / 1e3}
+                'eq': r['ss']['equity_return_m'].sum() / 1e3,
+                'pool': pool.sum() / 1e3, 'pool3': _npv(pool, yrs, 0.03) / 1e3}
 
     prev = stats(project_layers(utility_json, params, enabled=state, scenario=scenario))
     rows = []
@@ -1642,20 +1650,13 @@ def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050),
                      **{f'Monthly bill {y} ($, nominal)': cur[y] - prev[y] for y in years},
                      'Shared savings earnings ($B, undiscounted nominal)': cur['earn'] - prev['earn'],
                      'Shared savings earnings ($B, NPV 3%, 2026 $)': cur['earn3'] - prev['earn3'],
-                     'Utility equity return ($B, undiscounted nominal)': cur['eq'] - prev['eq']})
+                     'Utility equity return ($B, undiscounted nominal)': cur['eq'] - prev['eq'],
+                     'Savings pool contribution ($B, undiscounted nominal)': cur['pool'] - prev['pool'],
+                     'Savings pool contribution ($B, NPV 3%, 2026 $)': cur['pool3'] - prev['pool3']})
         prev = cur
     out = pd.DataFrame(rows).set_index('layer')
-    state = {**base_on, **{l: False for l in SAVINGS_LAYERS}, 'mechanism': base_on['mechanism']}
-    prev = stats(project_layers(utility_json, params, enabled=state, scenario=scenario))
-    attr = {}
-    for l in SAVINGS_LAYERS:
-        if l != 'mechanism' and base_on[l]:
-            state[l] = True
-            cur = stats(project_layers(utility_json, params, enabled=dict(state), scenario=scenario))
-            attr[l] = (cur['earn'] - prev['earn'], cur['earn3'] - prev['earn3'])
-            prev = cur
-        else:
-            attr[l] = (0.0, 0.0)
-    out['Shared savings earnings attributable ($B, undiscounted nominal)'] = [attr[l][0] for l in out.index]
-    out['Shared savings earnings attributable ($B, NPV 3%, 2026 $)'] = [attr[l][1] for l in out.index]
+    for basis, key in (('undiscounted nominal', 'earn'), ('NPV 3%, 2026 $', 'earn3')):
+        c = out[f'Savings pool contribution ($B, {basis})']
+        tot = c.sum()
+        out[f'Shared savings earnings attributable ($B, {basis})'] = (c / tot * prev[key]) if abs(tot) > 1e-12 else 0.0
     return out
