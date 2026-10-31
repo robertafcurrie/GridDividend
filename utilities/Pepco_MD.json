@@ -366,7 +366,7 @@
   },
 
   "forward_assumptions": {
-    "_note": "Forward assumptions for the layer engine (engine/layers.py). v1.0 / CORRECTED do not read this section. Levels: for layer assumptions 'low' gives customers a SMALLER shared-savings effect and 'high' a LARGER one. For growth assumptions (projection, system_needs, capacity price growth) low/high = lower/higher growth. Scenarios (Cautious / Central / Ambitious) set the programs, deferral and utilisation layers together and hold growth assumptions and the utility share at central.",
+    "_note": "Forward assumptions for the layer engine (engine/layers.py). v1.0 / CORRECTED do not read this section. Levels: for layer assumptions 'low' gives customers a SMALLER shared-savings effect and 'high' a LARGER one. For growth assumptions (projection, system_needs, capacity price growth) low/high = lower/higher growth. Scenarios (Cautious / Central / Ambitious) set the programs, deferral and load_enabled layers together and hold growth assumptions and the utility share at central.",
     "as_of": "2026-10-31",
     "scenarios": {
       "Cautious": {
@@ -522,6 +522,46 @@
             "source": "Assumption (supply chain, outages, crews)",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
+          },
+          "network_bands": {
+            "value": [
+              {
+                "name": "Most loaded",
+                "capacity_share": 0.2,
+                "loading": 1.0
+              },
+              {
+                "name": "High",
+                "capacity_share": 0.2,
+                "loading": 0.88
+              },
+              {
+                "name": "Middle",
+                "capacity_share": 0.2,
+                "loading": 0.78
+              },
+              {
+                "name": "Low",
+                "capacity_share": 0.2,
+                "loading": 0.7
+              },
+              {
+                "name": "Least loaded",
+                "capacity_share": 0.2,
+                "loading": 0.63
+              }
+            ],
+            "unit": "bands of substation loading, most to least loaded: share of firm capacity, starting loading (network peak / firm capacity); growth_share and flex_share optional (default pro rata to load)",
+            "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder. No published utility-wide loading distribution found: Pepco publishes hosting-capacity maps; no aggregate loading distribution found in Maryland PSC filings (COMAR 20.50.15 text not located); Dominion's measured distribution (the only US utility-wide figure found) is used as a proxy. Replace with utility data.",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "constrained_loading": {
+            "value": 1.0,
+            "unit": "loading above which a band counts as constrained",
+            "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder (constrained = above 100% planning utilisation)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
           }
         }
       },
@@ -687,13 +727,13 @@
             "status": "sourced"
           },
           "ee_incremental_savings_pct": {
-            "low": 0.0025,
-            "central": 0.005,
+            "low": 0.005696,
+            "central": 0.008434,
             "high": 0.01,
             "unit": "first-year savings above BAU, share of sales per year",
-            "source": "Assumption; leading state portfolios save ~1.5-2.5%/yr in total",
+            "source": "2026 EmPOWER Standard Report, Tables 2 and 5: Pepco saved 252,130 MWh in 2025 = 1.73% of its 2016 sales baseline (14,546,641 MWh), against a statutory goal of 2.25% (2025-26) and 2.5% (2027+, Climate Solutions Now Act). BAU = today's pace; shared savings closes the gap. Central = 2.5% - 1.73% = 0.77% of the 2016 baseline = 0.843% of modelled sales (13,280 GWh); low = 2.25% goal gap; high unchanged (assumption)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "derived"
           },
           "ee_levelised_cost_kwh": {
             "low": 0.056,
@@ -711,15 +751,6 @@
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
-          "ee_peak_coincidence": {
-            "low": 0.75,
-            "central": 1.0,
-            "high": 1.25,
-            "unit": "x system average kW per MWh",
-            "source": "Derived: kW saved per MWh/yr = coincidence / (8.76 x system load factor); central 1.0 = savings shaped like system load",
-            "as_of": "2026-10-31",
-            "status": "_VERIFY"
-          },
           "ee_capitalised": {
             "low": 1.0,
             "central": 0.5,
@@ -730,27 +761,27 @@
             "status": "_VERIFY"
           },
           "mw_start_dr": {
-            "value": 300.0,
+            "value": 247.0,
             "unit": "MW enrolled today (BAU holds this)",
-            "source": "Energy Wise Rewards direct load control ~300 MW (Comverge/PHI, roughly a decade old; current MW not published)",
+            "source": "2026 EmPOWER Standard Report, Table 13: Pepco DLC (Energy Wise Rewards) coincident summer peak reduction 247 MW program-to-date at 31 Dec 2025, 217,368 devices (Table 12). Peak Time Rebate reported 0 MW in 2023-2025 (Table 14)",
             "as_of": "2026-10-31",
-            "status": "_VERIFY"
+            "status": "sourced"
           },
           "mw_2035_dr": {
-            "low": 450.0,
-            "central": 418.9,
-            "high": 418.9,
+            "low": 365.9,
+            "central": 365.9,
+            "high": 365.9,
             "unit": "MW nameplate",
-            "source": "Central: Existing Energy Wise Rewards (~300 MW) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "source": "Central: Energy Wise Rewards 247 MW (2026 EmPOWER report, Table 13) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE 20% of BAU peak x DR split 0.45, or Central if higher. Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
           "mw_2050_dr": {
-            "low": 600.0,
-            "central": 475.8,
-            "high": 475.8,
+            "low": 415.6,
+            "central": 415.6,
+            "high": 415.6,
             "unit": "MW nameplate",
-            "source": "Central: Existing Energy Wise Rewards (~300 MW) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement.",
+            "source": "Central: Energy Wise Rewards 247 MW (2026 EmPOWER report, Table 13) + DRIVE Act proposal (Case 9761, up to 185 MW flexible load) split DR/EV 0.45/0.25; 2050 scaled with BAU peak. Ambitious: DOE 20% of BAU peak x DR split 0.45, or Central if higher. Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
@@ -860,6 +891,51 @@
             "source": "Duke University Nicholas Institute, \"Rethinking Load Growth\" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk system with 0.25% / 0.5% / 1% of annual energy curtailed. Bulk-system study; evidence for distribution-level flexible connections is thinner",
             "as_of": "2026-10-31",
             "status": "sourced"
+          },
+          "ramp_pct_peak_dr": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak",
+            "as_of": "2026-10-31",
+            "status": "derived"
+          },
+          "ramp_pct_peak_ev": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ramp_pct_peak_storage": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ramp_pct_peak_der": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-10-31",
+            "status": "_VERIFY"
+          },
+          "ee_kw_per_mwh": {
+            "low": 0.0969,
+            "central": 0.1093,
+            "high": 0.1172,
+            "unit": "kW summer peak saved per MWh/yr of first-year savings",
+            "source": "EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savings 861,804 MWh and 94.183 MW summer = 0.1093 kW per MWh (central); net 706,841 MWh and 68.514 MW = 0.0969 (low); reported (verified / realisation rates 0.89 energy, 0.83 demand) = 0.1172 (high). Replaces ee_peak_coincidence (central 1.0 = savings shaped like system load, ~2x higher)",
+            "as_of": "2026-10-31",
+            "status": "sourced"
           }
         }
       },
@@ -924,6 +1000,13 @@
             "source": "What-if lever, no source",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
+          },
+          "customer_funded_share": {
+            "value": 1.0,
+            "unit": "share of network upgrade cost per MW counted as connection cost avoided by new customers",
+            "source": "Setting: upper bound (all upgrade cost for MW connected sooner or on flexible connections, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is tariff-specific; access metric only, not on the bill",
+            "as_of": "2026-10-31",
+            "status": "sourced"
           }
         }
       },

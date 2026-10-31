@@ -776,7 +776,10 @@ def render_layered_section(utility_key, utility_json, utility_params):
     # Waterfall 2050
     wf = LY.waterfall(uj, p, years=(2050,)).iloc[0]
     labels = {'BAU': 'BAU bill', 'system_needs': 'System needs (both cases)', 'programs': 'Programs as core business',
-              'deferral': 'Deferral', 'load_enabled': 'Load enabled', 'capacity': 'Capacity',
+              'deferral': 'Deferral',
+              'load_enabled': 'Load enabled: residential bill effect only (the benefit of faster connections goes to '
+                              'the customers being connected; see Access)',
+              'capacity': 'Capacity',
               'mechanism': 'Shared savings earnings', 'Shared savings': 'Shared-savings bill'}
     wf_rows = [(labels[k], (_fmt(v, 2) if k in ('BAU', 'Shared savings') else f"{v:+.2f}")) for k, v in wf.items()]
     # Value stack
@@ -801,6 +804,30 @@ def render_layered_section(utility_key, utility_json, utility_params):
             net_rows.append([lbl, sc, f"{s_.loc[2035, 'capacity_uplift_pct']:.1%}", f"{s_.loc[2050, 'capacity_uplift_pct']:.1%}",
                              f"{s_.loc[2050, 'enabled_mw']:,.0f}",
                              f"{b_.loc[2050, 'avg_connection_delay_yr']:.2f} &rarr; {s_.loc[2050, 'avg_connection_delay_yr']:.2f}"])
+    # Loading bands: MW of load in constrained bands
+    con_rows = []
+    for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
+        ct = LY.constrained_table(LY.project_layers(uj, p, overrides=ov), (2030, 2035, 2040, 2050))
+        for y, r in ct.iterrows():
+            con_rows.append([lbl, str(y), f"{r['BAU MW in constrained bands']:,.0f}", f"{r['SS MW in constrained bands']:,.0f}",
+                             f"{r['BAU waiting MW']:,.0f}", f"{r['SS waiting MW']:,.0f}"])
+    nb = c['bands']
+    band_desc = '; '.join(f"{b['name']} {b['loading0']:.0%}" for b in nb)
+    band_status = uj['forward_assumptions']['layers']['system_needs']['params'].get('network_bands', {}).get('status', '')
+    # Access benefits (not on the bill)
+    acc_rows = []
+    for lbl, ov in (('Central network', {}), ('Tight network', TIGHT_NETWORK)):
+        at_ = LY.access_table(uj, p, overrides=ov)
+        for sc, r in at_.iterrows():
+            acc_rows.append([lbl, sc, f"{r['MW connected sooner, 2050']:,.0f}", f"{r['Total delay avoided (MW-years)']:,.0f}",
+                             f"{r['Avg delay avoided per MW of new load (yr)']:.2f}",
+                             _fmt(r['Connection cost avoided by new customers ($M, undiscounted nominal)'], 0, suffix='M'),
+                             _fmt(r['Connection cost avoided by new customers ($M, NPV 3%, 2026 $)'], 0, suffix='M'),
+                             f"{r['Electrification GWh brought forward (cumulative)']:,.0f}"])
+    # MW paths, target vs ramp limit
+    mp = LY.mw_path_table(uj, p, years=(2030, 2035, 2050))['Total flexible MW']
+    ramp_rows = [[str(y), f"{mp.loc[('target path', y)]:,.0f}", f"{mp.loc[('with ramp limit', y)]:,.0f}"]
+                 for y in (2030, 2035, 2050)]
     # MW by type
     mt = LY.mw_table(c, (2035, 2050))
     ma = LY.mw_table(runs['Ambitious'], (2050,))
@@ -841,6 +868,25 @@ def render_layered_section(utility_key, utility_json, utility_params):
       connection delay (years, BAU &rarr; shared savings) for 2050. Tight network = low planning headroom, long lead time,
       low build rate (sensitivity).</p>
     {_tbl(['Network', 'Scenario', 'Uplift 2035', 'Uplift 2050', 'MW connected sooner 2050', 'Avg delay 2050 (yr)'], net_rows)}
+    <h2>Loading Bands: Load in Constrained Bands</h2>
+    <p class="section-intro">The network is split into {len(nb)} bands of substation loading (starting loading: {band_desc};
+      status {band_status}). A band is constrained when its load exceeds firm capacity plus counted flexible headroom.
+      MW of network load in constrained bands and MW waiting for capacity, Central scenario.</p>
+    {_tbl(['Network', 'Year', 'BAU MW in constrained bands', 'Shared savings MW in constrained bands', 'BAU MW waiting',
+           'Shared savings MW waiting'], con_rows)}
+    <h2>Access: Faster Connections (Not on the Bill)</h2>
+    <p class="section-intro">Benefits to the customers being connected, reported separately from the residential bill.
+      Delay avoided = MW-years of load connected sooner than under BAU. Connection cost avoided = network upgrade cost
+      ($/MW at the utility's distribution upgrade cost) for MW connected sooner or on flexible connections: an upper bound,
+      since the share paid by new customers through CIAC is tariff-specific. Electrification GWh brought forward = energy
+      served sooner, electrification share of load growth.</p>
+    {_tbl(['Network', 'Scenario', 'MW connected sooner 2050', 'Delay avoided (MW-yr, 2026-2050)',
+           'Avg delay avoided (yr per MW of new load)', 'Connection cost avoided ($M undiscounted nominal)',
+           'Connection cost avoided ($M NPV 3%, 2026 $)', 'Electrification GWh brought forward'], acc_rows)}
+    <h2>Flexible MW: Target Path vs Ramp Limit</h2>
+    <p class="section-intro">Total flexible nameplate MW, Central: the target path, and with the maximum annual growth per
+      resource type (observed program ramps).</p>
+    {_tbl(['Year', 'Target path', 'With ramp limit'], ramp_rows)}
     <h2>Flexible MW by Resource Type</h2>
     <p class="section-intro">Nameplate MW: today's programs, Central 2035 and 2050, Ambitious 2050.</p>
     {_tbl(['Resource', 'Today', 'Central 2035', 'Central 2050', 'Ambitious 2050'], mw_rows)}

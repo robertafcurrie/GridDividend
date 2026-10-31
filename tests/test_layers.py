@@ -165,3 +165,59 @@ def test_network_served_never_exceeds_demand_or_capacity(key, nb):
         d = r[case]
         assert (d['served_mw'] <= d['network_demand_mw'] + 1e-9).all()
         assert (d['served_mw'] <= d['network_capacity_mw'] + d['headroom_created_mw'] + 1e-9).all()
+
+
+_FIXTURE = os.path.join(ROOT, 'tests', 'fixtures', 'layers_single_pool_ebb0c04.json')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_one_band_equals_single_pool_model(key, nb):
+    """forward_assumptions as at ebb0c04 (no bands, no ramp limit) reproduce that commit's outputs exactly."""
+    from engine.report import TIGHT_NETWORK
+    fx = json.load(open(_FIXTURE))[key]
+    uj, p = _utility(key, nb)
+    uj = {**uj, 'forward_assumptions': fx['forward_assumptions']}
+    for name, ref in fx['runs'].items():
+        r = LY.project_layers(uj, p, scenario=name.replace('_tight', ''),
+                              overrides=TIGHT_NETWORK if name.endswith('_tight') else None)
+        for col, d in ref.items():
+            for case in ('bau', 'ss'):
+                np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{name} {col} {case}')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_bands_sum_to_network_totals(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    assert len(r['bands']) > 1
+    assert sum(b['load_share'] for b in r['bands']) == pytest.approx(1.0)
+    for case in ('bau', 'ss'):
+        g = r['band_detail'][case].groupby('year')[['demand_mw', 'capacity_mw', 'waiting_mw', 'headroom_mw']].sum()
+        d = r[case].set_index('year')
+        np.testing.assert_allclose(g['demand_mw'], d['network_demand_mw'], rtol=1e-12)
+        np.testing.assert_allclose(g['capacity_mw'], d['network_capacity_mw'], rtol=1e-12)
+        np.testing.assert_allclose(g['waiting_mw'], d['waiting_mw'], rtol=1e-9, atol=1e-9)
+        np.testing.assert_allclose(g['headroom_mw'], d['headroom_created_mw'], rtol=1e-12, atol=1e-12)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_ramp_limit_respected(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    pr, P0 = r['assumptions']['programs'], p['peak_demand_mw']
+    m = r['mw']
+    for k in LY.FLEX_TYPES:
+        cap = pr[f'ramp_pct_peak_{k}'] * r['system']['peak_mw'].iloc[0]
+        assert (np.diff(m[f'{k}_ss_mw'].values) <= cap + 1e-9).all()
+    free = LY.project_layers(uj, p, overrides=LY.no_ramp_overrides())['mw']
+    for k in LY.FLEX_TYPES:
+        assert (m[f'{k}_ss_mw'] <= free[f'{k}_ss_mw'] + 1e-9).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_access_zero_with_layers_off(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p, enabled={l: False for l in LY.SAVINGS_LAYERS})
+    a = LY.access_summary(r)
+    assert a['Total delay avoided (MW-years)'] == 0
+    assert a['Connection cost avoided by new customers ($M, undiscounted nominal)'] == 0
