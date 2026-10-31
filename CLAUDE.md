@@ -161,6 +161,28 @@ The "$12,907 per customer" Con Edison figure in `README.md` and in a Section 9d 
 
 Expected effect: identical bills. The v1.0 utility-side columns (and anything plotted from them) pick up the pass-through fix, and FRONTLOADED bills shift as in the table. Update `README.md` ($12,907 → $12,423; aggregate $52B needs recomputing) at the same time.
 
+## Starting-point bill (`starting_bill`)
+
+Each utility JSON has a `starting_bill` section describing today's residential bill at `residential_kwh_month`, line by line. It is data only: the engine does not read it yet. It is the first layer of the move to range-based results built up from each utility's starting point.
+
+Top level: `as_of`, `benchmark_kwh_month`, `location`, `notes`, optional `published_check` (a published typical bill to compare against), and `lines`. Each line has:
+
+| Field | Meaning |
+|---|---|
+| `id`, `name` | Short key; name as on the tariff or bill |
+| `rate`, `unit` | `$/month`, `$/kWh`, or `pct` (with `applies_to`: `delivery`, `supply` or `distribution_and_transmission`). `null` when embedded or unknown |
+| `category` | `distribution_base`, `distribution_rider`, `program_surcharge`, `supply_energy`, `capacity`, `transmission`, `taxes_and_fees` |
+| `bill_section` | `delivery`, `supply` or `tax` |
+| `program_type` | Program surcharges only: `demand_response`, `energy_efficiency`, `electrification`, `der_nwa` (core when utility-run); `clean_energy_standard`, `nuclear_or_zec`, `low_income`, `public_purpose_other` (not core) |
+| `run_by` | `utility`, `state agency (...)`, or other |
+| `core_business_under_shared_savings` | `true` if the program would become core utility business, earning shared savings earnings rather than pass-through recovery |
+| `included_in_benchmark` | `false` for embedded, unknown or alternative-location lines |
+| `annual_recovery_m`, `spend_capex_m`, `spend_opex_m` | System-wide $M where published or derivable; else `null` |
+| `tariff_detail`, `notes` | Derivation and caveats |
+| `source`, `as_of`, `status` | Every line: `sourced`, `derived` or `_VERIFY` |
+
+Validate with `python scripts/check_starting_bill.py` (add `--json` for machine output). It prices each line at the benchmark usage, totals by category and section, compares the delivery and supply subtotals with `delivery_rate_kwh`, `supply_rate_kwh` and `basic_charge_month` (from the JSON, or the notebook's `UTILITY_BILL_PARAMS` for Con Edison and RG&E), and reports the core-business program share. It never changes those fields.
+
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.
