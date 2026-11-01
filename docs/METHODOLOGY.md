@@ -770,6 +770,10 @@ earnings_t = utility_share x max(0, net_t)
 - **Programs takes a negative share.** Its costs come before the savings they enable, so it lowers the pool. Con Edison Central: programs −$2.00B, deferral +$0.90B, capacity +$2.13B, transmission +$0.72B, losses +$0.33B, wholesale +$0.20B, load enabled −$0.02B; total $2.26B.
 - This replaces an order-dependent split in which carry-forward gave programs, deferral and load enabled zero.
 
+**Value creation is held constant across utility shares.** Changing `utility_share` changes only how the pool is divided. It sets shared savings earnings and the matching per-kWh rider. The flexible MW deployed, the reinforcement deferred, the capacity and energy avoided, the rate base and sales all stay the same. So customer savings plus shared savings earnings is identical at every share (exactly so in every year, since the pool itself does not depend on the share), and the utility-share sweep in the results export (0.20 / 0.30 / 0.40) shows the same value divided differently.
+
+This is a simplification. The point of the mechanism is that the share is an incentive: a larger share should make the utility pursue flexibility, efficiency and right-sizing harder, procure more and site it better, and a smaller share should weaken that effort. Value created would then rise with the share, at least up to a point, so a larger share would not simply transfer value away from customers. The model has no behavioural link from the share to the program and deferral inputs. Those are set by the scenarios instead, so the sweep understates what a stronger incentive could unlock and overstates the customer cost of a larger share. Carry-forward also means earnings start later at every share, because early negative pools must be recovered first.
+
 **Double counting.** Efficiency energy savings are not in the pool; they go wholly to customers. Each value stream enters the pool once.
 
 **Limitations.**

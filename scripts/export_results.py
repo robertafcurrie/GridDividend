@@ -12,6 +12,9 @@ from the layered model as it stands (no model changes here):
   - Sankey value flows, cumulative 2026-2050 ($M undiscounted nominal and NPV 3%,
     2026 $): gross value by source, program costs as a deduction, and the split to
     residential customers, business customers and shared savings earnings;
+  - share_sweep per scenario and pace: utility_share 0.20 / 0.30 / 0.40, every
+    other input fixed (customer savings, earnings, 2035 / 2050 monthly saving,
+    and yearly customer savings, earnings and pool);
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
   - metadata: source commit, date, dollar basis, pool setting.
 
@@ -46,6 +49,7 @@ SETUP = ('# ============================================================\n# SECT
          'def load_utility(key):')
 YEARS = LY.YEARS
 WATERFALL_YEARS = (2035, 2050)
+SHARE_SWEEP = (0.20, 0.30, 0.40)                 # utility share of the savings pool (default 0.30)
 # Tornado driver type: a choice regulators or utilities make (policy) or a condition they do not control (external)
 POLICY_LAYERS = {'programs', 'deferral', 'load_enabled', 'mechanism', 'roe'}
 POLICY_PARAMS = {('bau_plan', 'addressable_growth'), ('bau_plan', 'addressable_replacement'),
@@ -142,6 +146,33 @@ def _r(v, n=4):
     return [round(float(x), n) for x in v]
 
 
+def share_sweep(uj, params, scenario, shares=SHARE_SWEEP):
+    """
+    The scenario re-run at each utility share of the savings pool, every other input
+    fixed. The pool (value created) does not depend on the share, so customer savings
+    + shared savings earnings is the same at every share; the share only moves value
+    between them (see METHODOLOGY 3.10).
+    """
+    out = {}
+    for sh in shares:
+        run = LY.project_layers(uj, params, scenario=scenario, overrides={('mechanism', 'utility_share'): sh})
+        sm = LY.system_summary(run)
+        b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
+        flows = value_flows(run, params)
+        out[f'{sh:.2f}'] = {
+            'utility_share': sh,
+            'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
+            'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+            'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
+            'shared_savings_earnings_b_npv3': sm['Shared savings earnings ($B, NPV 3%, 2026 $)'],
+            'monthly_saving_2035': float(b.loc[2035, 'avg_bill_total'] - s.loc[2035, 'avg_bill_total']),
+            'monthly_saving_2050': float(b.loc[2050, 'avg_bill_total'] - s.loc[2050, 'avg_bill_total']),
+            'yearly': {'customer_savings_m': _r(flows['customers']),
+                       'shared_savings_earnings_m': _r(run['ss']['shared_savings_earnings_m']),
+                       'savings_pool_m': _r(np.nan_to_num(run['ss']['savings_pool_m'].values))}}
+    return out
+
+
 def run_export(uj, params, scenario):
     run = LY.project_layers(uj, params, scenario=scenario)
     b, s = run['bau'], run['ss']
@@ -166,6 +197,7 @@ def run_export(uj, params, scenario):
                      'monthly_saving_2050': float(by.loc[2050, 'avg_bill_total'] - sy.loc[2050, 'avg_bill_total']),
                      'bau_bill_2050': float(by.loc[2050, 'avg_bill_total'])},
         'load_calibration': {k: (float(v) if isinstance(v, (int, float)) else v) for k, v in run['load_calibration'].items()},
+        'share_sweep': share_sweep(uj, params, scenario),
     }
 
 
@@ -204,6 +236,7 @@ def build_export(key):
                         'bau_basis': 'published_plan',
                         'residential_sales_share': params['residential_sales_share'],
                         'flows_note': 'Customer savings split residential / business by the residential share of sales (EIA-861, 2024).',
+                        'share_sweep_note': 'Each scenario and pace re-run at utility_share 0.20 / 0.30 / 0.40 with every other input fixed (default 0.30). Value creation is held constant across shares: the share moves value between customers and the utility; it does not change what flexibility delivers.',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}
