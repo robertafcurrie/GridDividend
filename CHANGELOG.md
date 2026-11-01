@@ -6,7 +6,24 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Additional savings objective layer (`7014403` engine, inputs, script, docs; exports in this commit)
+## 2026-11-01: Full run block for each savings-objective level (`6a5dbd7` script; exports in this commit)
+
+**What changed** (no model changes; default objective 0%; every existing export field unchanged, checked field by field):
+- **New `run` key** in each `objective_sweep` entry (0 / 2.5 / 5 / 10%), with `yearly`, `waterfall_usd_month` and `value_flows_m` for that level.
+  - It is built by the same `run_block()` as the top-level run, so the explorer can redraw every chart at each level.
+  - The waterfall uses a copy of the utility inputs with the objective set, so its objective step reflects the level.
+  - The existing `yearly` summary in each sweep entry is kept as it was.
+- **Metadata:** new `objective_sweep_run_note`. Exports are about 690 KB per utility.
+- **`tests/test_export.py`** (+4 tests, 248 in total):
+  - the 0% block equals the top-level block exactly;
+  - flows balance at every level, and the `additional_objective` source is positive exactly when the level is;
+  - customer savings, earnings and the 2035 / 2050 waterfalls match each level's figures.
+
+**Effect on results:** none.
+
+---
+
+## 2026-11-01: Additional savings objective layer (`7014403` engine, inputs, script, docs; exports in `29bafaf`)
 
 **What changed** (default 0%, so all results are unchanged; v1.0, CORRECTED and the three pins unchanged):
 - **New layer `objective`:** savings the utility commits to find by means the model does not specify, measured against this run's BAU (published plan by default).

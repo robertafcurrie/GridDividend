@@ -51,7 +51,7 @@ notebooks/
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
 scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
-scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; savings-objective sweep 0/2.5/5/10%; earnings per rate base; tornado; metadata)
+scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; savings-objective sweep 0/2.5/5/10% with a full run block per level; earnings per rate base; tornado; metadata)
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
@@ -70,7 +70,7 @@ exports/                   generated JSON for the web explorer (do not edit by h
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (244 tests)
+python -m pytest tests/                       # full suite (248 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \

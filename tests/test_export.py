@@ -133,3 +133,35 @@ def test_export_flows_balance_with_objective():
             cs = v['to']['residential_customers'] + v['to']['business_customers']
         sm = LY.system_summary(run)
         assert cs / 1e3 == pytest.approx(sm['Customer savings ($B, NPV 3%, 2026 $)'], rel=1e-9)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_objective_run_blocks(key):
+    """Each objective level carries a full run block: 0% equals the top-level block; flows balance; totals match the level."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            r = ex['runs'][pace][sc]
+            for lvl, e in r['objective_sweep'].items():
+                blk = e['run']
+                assert set(blk) == {'yearly', 'waterfall_usd_month', 'value_flows_m'}
+                if lvl == '0.000':
+                    for k in blk:
+                        assert blk[k] == r[k], (pace, sc, k)
+                for basis, f in blk['value_flows_m'].items():
+                    net = sum(f['sources'].values()) + f['program_costs']
+                    assert f['net_value'] == pytest.approx(net, rel=1e-9, abs=1e-6)
+                    assert sum(f['to'].values()) == pytest.approx(net, rel=1e-9, abs=1e-6)
+                    assert (f['sources']['additional_objective'] > 0) == (e['objective_pct'] > 0), (pace, sc, lvl, basis)
+                u = blk['value_flows_m']['undiscounted_nominal']
+                cs = u['to']['residential_customers'] + u['to']['business_customers']
+                assert cs / 1e3 == pytest.approx(e['customer_savings_b_undiscounted'], rel=1e-9)
+                assert u['to']['shared_savings_earnings'] / 1e3 == pytest.approx(e['shared_savings_earnings_b'], rel=1e-9)
+                assert blk['yearly']['customer_savings_m'] == e['yearly']['customer_savings_m']
+                for y in (2035, 2050):
+                    w = blk['waterfall_usd_month'][str(y)]
+                    assert w['BAU'] - w['Shared savings'] == pytest.approx(e[f'monthly_saving_{y}'], abs=1e-3)
+                    steps = sum(v for k, v in w.items() if k not in ('BAU', 'Shared savings'))
+                    assert w['Shared savings'] - w['BAU'] == pytest.approx(steps, abs=1e-3)
+                    if e['objective_pct'] > 0:
+                        assert w['objective'] < 0                 # the objective lowers the bill
