@@ -54,6 +54,19 @@ The local consumer utility tax varies by locality and is excluded. The published
   - Managed EV and other DER: DOE low end.
   - Ambitious: DOE's VPP Liftoff range.
 
+## Published-plan BAU
+
+- **Distribution capex plan:** Electric distribution plus grid transformation, $2.3B / $2.4B / $2.3B / $2.3B / $2.4B (2026–2030).
+  - Source: Dominion Energy Q4 2025 earnings slides (23 Feb 2026), Dominion Energy Virginia 5-year capital summary.
+  - DEV includes North Carolina, consistent with the modelled customer count.
+- **Category split:**
+  - grid modernisation 23.7% (grid transformation's share), sourced;
+  - the rest split in Con Edison's proportions (`_VERIFY`; Dominion publishes no driver split).
+- **Transmission:** the bill line follows the electric transmission rider rate base, $13.5B (2025), $15.4B, $17.3B, $19.4B, $21.6B, $23.7B (2030) (same slides), per MW of system peak. After 2030 its growth tapers to the transmission growth rate by 2035.
+- **Capacity:** the PJM 2027/28 auction cleared at the $333.44/MW-day cap, applied from 2027.
+- **Long-run capacity value** (sensitivity): Brattle's 2025 CONE study for PJM, $528/MW-day UCAP Net CONE (about $193/kW-year). PJM's 2027/28 Net CONE for DOM is $178/MW-day, below today's cap.
+- **Gap to close:** Dominion's distribution capex by driver (growth, replacement), which would replace the proxy split.
+
 ## Utility-specific vs borrowed
 
 Dominion has the most utility-specific network data of the four, and its filing is the proxy for the others.

@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share |
 |---|---:|---:|---:|---:|---:|---:|
-| ConEd | 27 | 27 | 60 | 16 | 130 | 46% |
-| RGE | 14 | 19 | 69 | 16 | 118 | 58% |
-| DomVA | 36 | 23 | 56 | 16 | 131 | 43% |
-| PepcoMD | 23 | 23 | 60 | 16 | 122 | 49% |
+| ConEd | 30 | 28 | 60 | 27 | 145 | 41% |
+| RGE | 14 | 22 | 71 | 27 | 134 | 53% |
+| DomVA | 40 | 25 | 57 | 27 | 149 | 38% |
+| PepcoMD | 23 | 29 | 61 | 27 | 140 | 44% |
 
 ## Status counts by layer
 
@@ -27,13 +27,14 @@ All four utilities together.
 | programs | 19 | 20 | 129 | 8 | 176 |
 | deferral | 0 | 0 | 4 | 0 | 4 |
 | load_enabled | 0 | 0 | 12 | 12 | 24 |
-| capacity | 2 | 5 | 1 | 0 | 8 |
+| capacity | 3 | 9 | 2 | 12 | 26 |
 | wholesale_energy | 4 | 6 | 18 | 4 | 32 |
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
 | mechanism | 0 | 4 | 0 | 4 | 8 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
+| bau_plan | 6 | 8 | 3 | 32 | 49 |
 | capacity_carve_out | 0 | 0 | 3 | 0 | 3 |
 | starting_adjustments | 1 | 0 | 0 | 0 | 1 |
 
@@ -49,13 +50,14 @@ _VERIFY / total status-tagged inputs.
 | programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 |
 | deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
 | load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
-| capacity | 0 / 2 | 1 / 2 | 0 / 2 | 0 / 2 |
+| capacity | 0 / 6 | 2 / 6 | 0 / 7 | 0 / 7 |
 | wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
 | mechanism | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
+| bau_plan | 0 / 11 | 1 / 12 | 1 / 13 | 1 / 13 |
 | capacity_carve_out | – | 1 / 1 | 1 / 1 | 1 / 1 |
 | starting_adjustments | – | – | – | 0 / 1 |
 
@@ -154,6 +156,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.12 |  |  |  | $M per MW-yr (2026 anchor) | sourced | 2026-10-31 | shared/capacity_markets/NYISO.json zone NYC (NYISO 2024 ICAP auction) |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.03 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (3%); low = flat nominal |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-10-31 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.2 |  |  |  | $M per MW-year (2025 $) | sourced | 2026-10-31 | Potomac Economics (NYISO market monitor), memorandum on the 2025-2029 demand curve reset unit technology (23 Aug 2024): levelized Net CONE… |
+| capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -195,6 +201,17 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-10-31 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
 | network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-10-31 | Model setting (policy lever: locational targeting of flexibility) |
 | network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-10-31 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-10-31 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026,2027,2028,2029,2030] |  |  |  | years | sourced | 2026-10-31 | Years covered by the published plan (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [4766,4852,5019,6228,6293] |  |  |  | $M nominal per year (distribution) | sourced | 2026-10-31 | Consolidated Edison, Inc. 2025 Form 10-K (SEC, Feb 2026), Capital Requirements, current estimate 2026-2030, CECONY Electric: $4,766M (2026)… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-10-31 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-10-31 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.5015,0.2142,0.2354,0.0489] |  |  |  | shares of distribution capex: growth, replacement… | derived | 2026-10-31 | Con Edison, Report on Capital Expenditures, 1st Quarter 2026 (March YTD), filed with the NYPSC (Case 25-E-0072 reporting), Electric T&D 202… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-10-31 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-10-31 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
 
 **ConEd: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
 
@@ -301,6 +318,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.07244 |  |  |  | $M per MW-yr (2026 anchor) | _VERIFY | 2026-10-31 | NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYIS… |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.03 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (3%); low = flat nominal |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-10-31 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.2 |  |  |  | $M per MW-year (2025 $) | _VERIFY | 2026-10-31 | Proxy: Potomac Economics levelized Net CONE $200/kW-year (UCAP) for the 2-hour battery reference unit (2025-2029 DCR memo, 23 Aug 2024); th… |
+| capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -342,6 +363,18 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-10-31 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
 | network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-10-31 | Model setting (policy lever: locational targeting of flexibility) |
 | network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-10-31 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-10-31 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026] |  |  |  | years | derived | 2026-10-31 | Years covered by the published plan (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [385.2] |  |  |  | $M nominal per year (distribution) | derived | 2026-10-31 | NYSEG and RG&E, Capital Investment Plan Quarterly Variance Report Q1 2026 (NYPSC, May 2026): RG&E electric investment, Five-Year Plan 2026,… |
+| bau_plan | plan_cagr_override | 0.0719 |  |  |  | per year | _VERIFY | 2026-10-31 | Proxy: Con Edison's 2026-2030 electric capex CAGR (($6,293M / $4,766M)^(1/4) - 1, 2025 Form 10-K), the nearest published New York plan; RG&… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-10-31 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-10-31 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.2584,0.5304,0.083,0.1282] |  |  |  | shares of distribution capex: growth, replacement… | derived | 2026-10-31 | NYSEG and RG&E, Capital Investment Plan Quarterly Variance Report Q1 2026 (NYPSC, May 2026), Figure 3, RG&E Electric and Generation Five-Ye… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-10-31 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-10-31 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"supply_charge","share":1.0}],"price_us… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYIS… |
 
 **RGE: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
@@ -462,6 +495,11 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.12 |  |  |  | $M per MW-yr (2026 anchor) | sourced | 2026-10-31 | shared/capacity_markets/PJM.json zone DOM (2026/27 BRA $329.17/MW-day) |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (5%); low = flat nominal |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-10-31 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.19272 |  |  |  | $M per MW-year (2025 $) | derived | 2026-10-31 | Brattle, 2025 CONE Report for PJM (Apr 2025): indicative Net CONE of the dual-fuel CT reference resource $528/MW-day UCAP x 365 = $192,720/… |
+| capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | published_prices | {"2027":0.1217056} |  |  |  | {year: $M per MW-year} | derived | 2026-10-31 | PJM 2027/2028 Base Residual Auction: RTO-wide clearing price at the FERC-approved cap $333.44/MW-day (2027/2028 BRA planning parameters and… |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -503,6 +541,19 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-10-31 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
 | network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-10-31 | Model setting (policy lever: locational targeting of flexibility) |
 | network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-10-31 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-10-31 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026,2027,2028,2029,2030] |  |  |  | years | sourced | 2026-10-31 | Years covered by the published plan (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [2300,2400,2300,2300,2400] |  |  |  | $M nominal per year (distribution) | sourced | 2026-10-31 | Dominion Energy Q4 2025 earnings call slides (23 Feb 2026), Dominion Energy Virginia 5-year capital summary ($B): Electric distribution 1.7… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-10-31 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-10-31 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.5003,0.2137,0.2373,0.0487] |  |  |  | shares of distribution capex: growth, replacement… | _VERIFY | 2026-10-31 | Grid modernisation = Grid transformation / (Electric distribution + Grid transformation), 2026-2030: 2.8 / 11.8 = 23.7% (Dominion Q4 2025 s… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-10-31 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-10-31 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029,2030] |  |  |  | years | sourced | 2026-10-31 | Years of the published transmission rate base path. |
+| bau_plan | transmission_plan_rate_base_m | [13500,15400,17300,19400,21600,23700] |  |  |  | $M (end of year) | sourced | 2026-10-31 | Dominion Energy Q4 2025 earnings call slides (23 Feb 2026), Dominion Energy Virginia illustrative rate base ($B): Electric transmission rid… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"generation_kwh","share":0.915},{"line"… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | Price: DOM zone 2026/27 BRA $329.17/MW-day. Peak: Dominion_VA.json. Residential share and customers: EIA-861 2024 (VA + NC). Scaling: PJM F… |
 
 **DomVA: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
@@ -621,6 +672,11 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-10-31 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
 | capacity | price_m_per_mw_yr | 0.12014705 |  |  |  | $M per MW-yr (2026 anchor) | derived | 2026-10-31 | PEPCO zone 2026/27 BRA $329.17/MW-day (MD PSC Ten-Year Plan Table 14) x 365 / 1e6, the same price as capacity_carve_out, so the capacity li… |
 | capacity | price_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal | derived | 2026-10-31 | central = INFLATION_RATE (flat real); high = market file growth (5%); low = flat nominal |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-10-31 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.19272 |  |  |  | $M per MW-year (2025 $) | derived | 2026-10-31 | Brattle, 2025 CONE Report for PJM (Apr 2025): indicative Net CONE of the dual-fuel CT reference resource $528/MW-day UCAP x 365 = $192,720/… |
+| capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | published_prices | {"2027":0.1217056} |  |  |  | {year: $M per MW-year} | derived | 2026-10-31 | PJM 2027/2028 Base Residual Auction: RTO-wide clearing price at the FERC-approved cap $333.44/MW-day (2027/2028 BRA planning parameters and… |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -662,6 +718,19 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-10-31 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
 | network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-10-31 | Model setting (policy lever: locational targeting of flexibility) |
 | network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-10-31 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-10-31 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026,2027,2028,2029] |  |  |  | years | derived | 2026-10-31 | Years covered by the published plan (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [300.95,266.23,266.23,266.23] |  |  |  | $M nominal per year (distribution) | derived | 2026-10-31 | Exelon Q4 2025 earnings 8-K (Ex. 99.2, 12 Feb 2026), Pepco capital expenditure forecast, electric distribution $650M (2026), $575M (2027),… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-10-31 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-10-31 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.2584,0.5304,0.083,0.1282] |  |  |  | shares of distribution capex: growth, replacement… | _VERIFY | 2026-10-31 | Proxy: RG&E's 2026 split (growth 25.8%, replacement 53.0%, grid modernisation 8.3%, other 12.8%; NYSEG/RG&E Q1 2026 variance report). No Pe… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-10-31 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-10-31 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029] |  |  |  | years | derived | 2026-10-31 | Years of the published transmission rate base path. |
+| bau_plan | transmission_plan_rate_base_m | [1932.0,2189.4,2512.8,2824.8,3125.9] |  |  |  | $M (end of year) | derived | 2026-10-31 | Derived from Exelon Q4 2025 8-K (Ex. 99.2, 12 Feb 2026), Pepco slide: 2025 rate base $8.4B, 23% transmission = $1,932M; transmission capex… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"sos_generation","share":1.0}],"price_u… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | Price: PEPCO zone 2026/27 BRA $329.17/MW-day (MD PSC Ten-Year Plan Table 14). Peak: Pepco_MD.json peak_demand_mw. Residential share and cus… |
 | starting_adjustments | order_92607_increase | 3.94 |  |  |  | $/month | sourced | 2026-08-28 | MD PSC Order No. 92607 (Case 9820), Table 1: Commission-authorised residential bill impact +$3.94/month |
 

@@ -4,7 +4,7 @@ Assumptions register, generated from utilities/*.json.
 Writes docs/assumptions_register.csv (one row per input per utility) and
 docs/ASSUMPTIONS.md (status counts by utility and layer, then the inputs).
 Covers every status-tagged input of the layered model (starting_bill lines,
-forward_assumptions: projection, layers, network, capacity_carve_out,
+forward_assumptions: projection, layers, network, bau_plan, capacity_carve_out,
 starting_adjustments) and the top-level utility fields of the earlier model,
 whose status is given by the `_..._VERIFY` key placed before them.
 
@@ -84,6 +84,8 @@ def utility_rows(ukey, uj):
             rows.append(_spec_row(ukey, 'forward_assumptions', lname, pname, spec))
     for pname, spec in fa.get('network', {}).get('params', {}).items():
         rows.append(_spec_row(ukey, 'forward_assumptions', 'network', pname, spec))
+    for pname, spec in fa.get('bau_plan', {}).get('params', {}).items():
+        rows.append(_spec_row(ukey, 'forward_assumptions', 'bau_plan', pname, spec))
     co = fa.get('capacity_carve_out')
     if co:
         rows.append(dict(utility=ukey, section='forward_assumptions', layer='capacity_carve_out',

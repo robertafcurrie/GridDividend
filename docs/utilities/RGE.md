@@ -44,6 +44,18 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 - **Network cost and losses:** marginal transmission cost $3.25/kW-year and average losses 6.93%, both from the RG&E BCA handbook.
 - **Upgrade cost:** $0.8 / 1.5 / 3.0M per MW (notebook Section 1 notes).
 
+## Published-plan BAU
+
+- **Distribution capex plan:** $385.2M in 2026.
+  - Source: the RG&E Five-Year Plan figure of $402.9M with common costs (NYSEG/RG&E Q1 2026 capital variance report), less the hydro generation share.
+  - Only 2026 is published: RG&E's parent is privately held and files no 10-K. From 2027 the beyond-plan path applies, using Con Edison's 7.2% CAGR as a proxy (`_VERIFY`).
+- **Category split** (2026 plan by category):
+  - growth 25.8% (Customer Focus);
+  - replacement 53.0% (Asset Condition + Reliability);
+  - grid modernisation / resilience 8.3% (Modernization, Resiliency, Innovation, AMI);
+  - other 12.8% (Compliance).
+- **Gaps to close:** RG&E's multi-year capital forecast (the Case 25-E-0379 filing or joint proposal), which would replace the proxy growth rate; and a Rest of State long-run capacity value (the NYISO monitor's $200/kW-year is used as a proxy).
+
 ## Utility-specific vs borrowed
 
 **Utility-specific:**
@@ -65,7 +77,7 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 
 ## Main `_VERIFY` gaps to close
 
-RG&E has the highest `_VERIFY` share of the four (58%).
+RG&E has the highest `_VERIFY` share of the four (53%).
 
 1. **Final order in Case 25-E-0379:** rate base, revenue, ROE and the delivery rates.
 2. **Current tariff statements:** delivery, transition, SBC and supply rates, and the taxes. Six of the twelve bill lines are `_VERIFY`.

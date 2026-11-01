@@ -208,6 +208,8 @@ def _param_items(fa):
             items = {k: v for k, v in items.items() if k not in _LEGACY_NETWORK}
         yield lname, items
     yield 'network', network_block(fa)
+    if 'bau_plan' in fa:
+        yield 'bau_plan', fa['bau_plan'].get('params', {})
 
 
 def scenario_overrides(fa, scenario):
@@ -570,6 +572,113 @@ def network_bands(nw, DN0, h):
     return out
 
 
+# ── Published-plan BAU ───────────────────────────────────────────────────────
+
+PLAN_CATEGORIES = ('growth', 'replacement', 'gridmod', 'other')
+BEYOND_PATHS = ('continue', 'taper', 'policy')
+
+
+def _taper(g_from, g_to, y, y_end, taper_year):
+    """Growth rate tapering linearly from g_from (plan horizon) to g_to (reached in taper_year)."""
+    if taper_year <= y_end:
+        return g_to
+    w = min(1.0, max(0.0, (y - y_end) / (taper_year - y_end)))
+    return g_from + (g_to - g_from) * w
+
+
+def plan_paths(params, a, fa, sysdf, infl):
+    """
+    Published-plan BAU paths, 2026-2050 (forward_assumptions['bau_plan']).
+
+    Inputs: params (earlier-model utility dict); a = resolve() output (bau_plan,
+      system_needs, projection); fa = forward_assumptions (for the high
+      electrification level of the policy path); sysdf = system_path() (BAU
+      network and system peak); infl = inflation rate.
+    Distribution capex follows the published plan for the plan years. Beyond the
+    plan, `beyond_path`:
+      'continue'  the plan CAGR (or `plan_cagr_override` for a one-year plan);
+      'taper'     the growth rate tapers linearly from the plan CAGR to load growth
+                  (network peak growth, nominal) by `taper_year`;
+      'policy'    nominal network peak growth with electrification at its high
+                  level (state electrification and clean energy plans).
+    Transmission (PJM utilities with `transmission_plan_rate_base_m`): the
+    transmission bill line follows the plan's transmission rate base per MW of
+    system peak (network service rates are revenue over zonal peak) for the plan
+    years, then its growth tapers to projection.transmission_growth by
+    `taper_year`.
+    Output: dict: capex ($M nominal per year, 25 values), shares {category:
+      share}, addressable {category: share}, ramp_years, tx_index (transmission
+      line index, 2026 = 1, or None), plan_end (last plan year), plan_cagr.
+    """
+    bp = a['bau_plan']
+    yrs, capex_plan = list(bp['plan_years']), list(bp['plan_dist_capex_m'])
+    y_end = yrs[-1]
+    g_plan = (bp['plan_cagr_override'] if bp.get('plan_cagr_override') is not None
+              else (capex_plan[-1] / capex_plan[0]) ** (1 / (len(capex_plan) - 1)) - 1)
+    path, ty = bp.get('beyond_path', 'taper'), int(round(bp.get('taper_year', 2035)))
+    if path not in BEYOND_PATHS:
+        raise ValueError(f'beyond_path {path!r} must be one of {BEYOND_PATHS}')
+    DN = sysdf['net_peak_mw'].values
+    if path == 'policy':
+        hi = fa['layers']['system_needs']['params']['electrification_growth']['high']
+        a_hi = {**a, 'system_needs': {**a['system_needs'], 'electrification_growth': hi}}
+        DN = system_path(params, a_hi, True)['net_peak_mw'].values
+    capex = np.zeros(len(YEARS))
+    for t, y in enumerate(YEARS):
+        if y in yrs:
+            capex[t] = capex_plan[yrs.index(y)]
+            continue
+        g_load = (DN[t] / DN[t - 1]) * (1 + infl) - 1
+        g = {'continue': g_plan, 'policy': g_load}.get(path) if path != 'taper' else _taper(g_plan, g_load, y, y_end, ty)
+        capex[t] = capex[t - 1] * (1 + g)
+    shares = dict(zip(PLAN_CATEGORIES, bp['category_shares']))
+    if abs(sum(shares.values()) - 1) > 1e-6:
+        raise ValueError('bau_plan category_shares must sum to 1')
+    addr = {c: bp.get(f'addressable_{c}', 0.0) or 0.0 for c in PLAN_CATEGORIES}
+    tx_index = None
+    if bp.get('transmission_plan_rate_base_m'):
+        P = sysdf['peak_mw'].values
+        tyrs, trb = list(bp['transmission_plan_years']), list(bp['transmission_plan_rate_base_m'])
+        gt_end = None
+        tx_index = np.ones(len(YEARS))
+        base = trb[tyrs.index(2026)] / P[0]
+        for t, y in enumerate(YEARS):
+            if y in tyrs:
+                tx_index[t] = (trb[tyrs.index(y)] / P[t]) / base
+            elif t > 0:
+                if gt_end is None:
+                    gt_end = tx_index[t - 1] / tx_index[t - 2] - 1
+                g = _taper(gt_end, a['projection']['transmission_growth'], y, tyrs[-1], ty)
+                tx_index[t] = tx_index[t - 1] * (1 + g)
+    return dict(capex=capex, shares=shares, addressable=addr, ramp_years=bp.get('addressable_ramp_years', 5) or 5,
+                tx_index=tx_index, plan_end=y_end, plan_cagr=g_plan, path=path, taper_year=ty)
+
+
+def _capacity_price(cap, t, y, infl, plan_on):
+    """
+    Capacity price, $M per MW-year nominal: the 2026 price grown at price_growth,
+    with published auction prices for later years where given (published-plan
+    BAU only, `published_prices` {year: price}); 'long_run' price_path ramps
+    linearly to the long-run cost of new entry (long_run_price_m_per_mw_yr, in
+    long_run_price_year $) by long_run_year, then grows with inflation.
+    """
+    p0 = cap['price_m_per_mw_yr']
+    pub = {int(k): v for k, v in (cap.get('published_prices') or {}).items()} if plan_on else {}
+    last = max([yy for yy in pub if yy <= y], default=None)
+    if last is not None:
+        base = pub[last] * (1 + cap['price_growth']) ** (y - last)
+    else:
+        base = p0 * (1 + cap['price_growth']) ** t
+    if cap.get('price_path', 'today') != 'long_run':
+        return base
+    ly = int(cap['long_run_year'])
+    lr = cap['long_run_price_m_per_mw_yr'] * (1 + infl) ** (y - int(cap.get('long_run_price_year', 2025)))
+    if y >= ly:
+        return lr
+    w = (y - YEARS[0]) / (ly - YEARS[0])
+    return max(base, p0 + (cap['long_run_price_m_per_mw_yr'] * (1 + infl) ** (ly - int(cap.get('long_run_price_year', 2025))) - p0) * w)
+
+
 # ── Projection ───────────────────────────────────────────────────────────────
 
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
@@ -646,7 +755,16 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
 
     lines0 = starting_lines(utility_json)
     dist0 = sum(d['month'] for d in lines0 if d['category'] in DIST_CATS)
-    rec = delivery_rr_reconciliation(params, {})
+    # BAU basis: 'published_plan' (distribution capex from the utility's plan; the
+    # network model only estimates how much of the growth-driven part is
+    # deferrable) or 'model' (capex generated by the network model)
+    bp = a.get('bau_plan', {})
+    plan_on = bp.get('basis', 'model') == 'published_plan' and on['system_needs']
+    if bp.get('basis', 'model') not in ('model', 'published_plan'):
+        raise ValueError(f"bau_plan basis {bp['basis']!r} must be 'model' or 'published_plan'")
+    plan = plan_paths(params, a, fa, sysdf, infl) if plan_on else None
+    # 2026 BAU wires RR = rate-case target in both bases (the plan's 2026 capex enters the rate base)
+    rec = delivery_rr_reconciliation({**params, 'annual_capex_m': plan['capex'][0]} if plan_on else params, {})
     om0 = max(0.0, rec['other_om_recalibrated_m'])
     wacc, ptr = params['wacc'], params['property_tax_rate']
     eq_roe = params['equity_ratio'] * params['roe']
@@ -662,6 +780,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     we, tx, lo, ro = (a.get(k, {}) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
     sup0_kwh = sum(d['month'] for d in lines0 if d['category'] == 'supply_energy') / kwh_b
     tx_on_lines = tx.get('bill_basis', 'transmission_lines') == 'transmission_lines'
+    tx_plan = plan['tx_index'] if plan_on else None
+    tx_idx = (lambda t: tx_plan[t]) if tx_plan is not None else (lambda t: _infl(pj['transmission_growth'], t))
     bands = network_bands(nw, DN[0], h)
     NB = range(len(bands))
     op_x = operating_limit(nw)
@@ -717,6 +837,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         pipes_new = [[] for _ in NB]                 # new-load upgrades in constrained areas
         Nin, Nord = [0.0 for _ in NB], [0.0 for _ in NB]
         prev_enabled = 0.0
+        model_growth_cum = 0.0
         prev_mw = None
         band_rows = []
         rr_ref = res['bau']['rr_dist_m'].iloc[0] if ss else None
@@ -850,6 +971,28 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             if cond0 is None:
                 cond0 = max(0.0, params['annual_capex_m'] - growth)
             capex = growth + cond0 * _infl(infl, t) if on['system_needs'] else params['annual_capex_m']
+            model_growth = growth
+            av_g = av_r = av_m = av_o = 0.0
+            deferrable = 0.0
+            if plan_on:
+                # BAU capex = the published plan. In shared savings the network model gives
+                # the deferrable share of growth-driven spending (cumulative reinforcement
+                # avoided vs BAU, capped at the addressable share); replacement, grid
+                # modernisation and other spending are right-sized at their addressable
+                # shares, ramping in over addressable_ramp_years from the transition year
+                capex_bau = plan['capex'][t]
+                sh, ad = plan['shares'], plan['addressable']
+                if ss and Ld and active:
+                    cb = float(np.sum(res['bau']['model_growth_capex_m'].values[:t + 1]))
+                    deferrable = (min(1.0, max(0.0, 1 - (model_growth_cum + growth) / cb)) if cb > 1e-9 else 0.0)
+                    ramp_p = min(1.0, (y - trans_year + 1) / plan['ramp_years'])
+                    av_g = capex_bau * sh['growth'] * min(ad['growth'], deferrable)
+                    av_r = capex_bau * sh['replacement'] * ad['replacement'] * ramp_p
+                    av_m = capex_bau * sh['gridmod'] * ad['gridmod'] * ramp_p
+                    av_o = capex_bau * sh['other'] * ad['other'] * ramp_p
+                capex = capex_bau - (av_g + av_r + av_m + av_o)
+                growth = capex_bau * sh['growth'] - av_g
+            model_growth_cum += model_growth
             # Connected sooner = load served above what BAU serves in each band (efficiency
             # lowers demand but connects nobody, so it is not counted)
             enabled_mw = (sum(max(0.0, srv_b[i] - res['bau_bands'][i]['served_mw'][t]) for i in NB)
@@ -883,7 +1026,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             roe_cost = rb_earning * params['equity_ratio'] * roe_d
             rr_core = rr_dist + prog_rr
             # ── Capacity (bulk system): all firm MW at peak, derated by type ─
-            price = price0 * _infl(cap['price_growth'], t)
+            price = _capacity_price(cap, t, y, infl, plan_on)
             # Load waiting for an upgrade buys no capacity. Efficiency and firm flexible
             # MW lower the obligation once each, in the capacity layer (off: no credit)
             sys_peak = P[t] - (D - served)
@@ -902,7 +1045,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 whl = sum(inc[k] * we[f'mwh_per_mw_{k}'] * per[k] for k in FLEX_TYPES) / 1e6
             if Lt and active:      # transmission cost avoided by peak reduction
                 tx_av = (mw_firm * tx['cost_kw_yr'] * 1000 * tx['avoidable_share']
-                         * _infl(pj['transmission_growth'], t) / 1e6)
+                         * tx_idx(t) / 1e6)
             if Ll and active:      # marginal distribution losses avoided (above the average in retail rates)
                 loss_e = (ee_gwh * lo['avg_loss_pct'] * (lo['marginal_mult_energy'] - 1)) * sup_kwh
                 mw_loss = min(mw_firm * lo['avg_loss_pct'] * lo['marginal_mult_peak'], max(0.0, sys_peak - mw_red))
@@ -936,7 +1079,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             if tx_av and not tx_on_lines:          # transmission recovered in delivery rates (New York)
                 dist_bill *= 1 - tx_av / rr_dist
             f_sup = (whl + loss_e) / (sup_kwh * S_case) if (whl or loss_e) and sup_kwh > 0 else 0.0
-            f_tx = (tx_av / (P[t] * tx['cost_kw_yr'] * 1000 * _infl(pj['transmission_growth'], t) / 1e6)
+            f_tx = (tx_av / (P[t] * tx['cost_kw_yr'] * 1000 * tx_idx(t) / 1e6)
                     if tx_av and tx_on_lines else 0.0)
             rider = dict(id='core_program_and_earnings_recovery',
                          name='Core programs and shared savings earnings (per kWh)',
@@ -959,7 +1102,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     if f_sup:
                         e['month'] *= 1 - f_sup
                 elif c == 'transmission':
-                    e['month'] = d['month'] * _infl(pj['transmission_growth'], t)
+                    e['month'] = d['month'] * tx_idx(t)
                     if f_tx:
                         e['month'] *= 1 - f_tx
                 elif c == 'capacity':
@@ -988,6 +1131,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 enabled_mw=enabled_mw, reinforcement_ordered_mw=order, reinforcement_in_service_mw=arriving,
                 capacity_uplift_pct=(H / C if C else 0.0), flex_conn_mw=fc_mw,
                 capex_m=capex, growth_capex_m=growth, conn_capex_m=conn_capex, incremental_om_m=inc_om,
+                model_growth_capex_m=model_growth, plan_capex_m=(plan['capex'][t] if plan_on else np.nan),
+                capex_avoided_growth_m=av_g, capex_avoided_replacement_m=av_r, capex_avoided_gridmod_m=av_m,
+                capex_avoided_other_m=av_o, deferrable_growth_share=deferrable,
                 rate_base_m=rb_earning, wires_rate_base_m=rb, regulatory_asset_m=reg_asset, rr_dist_m=rr_dist,
                 program_rr_m=prog_rr, rr_core_m=rr_core, rr_m=rr,
                 program_spend_m=(ss_spend if active else bau_spend), new_program_spend_m=new_spend,

@@ -45,6 +45,24 @@ The published check is Con Edison's 2025 average 600 kWh NYC bill, $218.55/month
 - **Network cost and losses:** marginal transmission cost $40.67/kW-year and average losses 4.24%, both from the Con Edison BCA handbook.
 - **Upgrade cost:** $3.0 / 4.0 / 7.1M per MW (notebook Section 1; Idlewild $7.1M/MW).
 
+## Published-plan BAU
+
+- **Distribution capex plan:** CECONY Electric $4,766M (2026), $4,852M, $5,019M, $6,228M, $6,293M (2030).
+  - Source: Consolidated Edison 2025 Form 10-K, Capital Requirements estimate.
+  - It includes transmission, which Con Edison recovers in delivery rates, and surcharge-recovered programs.
+  - It excludes energy-efficiency regulatory-asset spend.
+  - The plan's 2026–2030 CAGR is 7.2%.
+- **Cross-check:** the Case 25-E-0072 electric average rate base is $32,935M / $35,149M / $39,174M (2026–2028).
+- **Category split** (2026 targets, Q1 2026 capital expenditure report to the NYPSC):
+  - growth 50.2% (New Business + System Expansion);
+  - replacement 21.4% (Replacement + Equipment Purchases);
+  - grid modernisation / resilience 23.5% (Risk Reduction + Storm Hardening + Customer Energy Solutions);
+  - other 4.9% (Public Improvement, Environmental, Safety).
+
+  The mapping to these four categories is the model's.
+- **No separate transmission plan:** transmission has no bill line in New York.
+- **Long-run capacity value** (sensitivity): $200/kW-year UCAP, the NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit.
+
 ## Utility-specific vs borrowed
 
 **Utility-specific:**

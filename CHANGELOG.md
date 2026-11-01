@@ -6,7 +6,108 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-10-31: Code fixes from the independent check (this commit)
+## 2026-10-31: Published-plan BAU (this commit)
+
+**What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
+- **New selectable BAU basis, `bau_plan.basis`.** The default, `'published_plan'`, takes BAU distribution capex from each utility's published plan:
+  - **Con Edison:** 2025 Form 10-K, CECONY electric 2026–2030.
+  - **RG&E:** Five-Year Plan 2026, NYSEG/RG&E Q1 2026 capital variance report.
+  - **Dominion:** Q4 2025 slides, electric distribution plus grid transformation 2026–2030.
+  - **Pepco:** Exelon Q4 2025 8-K, distribution 2026–2029 x the Maryland share.
+
+  `'model'` keeps the network-model BAU, and reproduces 23fec60 exactly (new fixture `tests/fixtures/layers_23fec60_model_bau.json`).
+- **Beyond the plan:** `beyond_path` is 'continue' (plan CAGR), 'taper' (central: to load growth by `taper_year`, 2032 / 2035 / 2040) or 'policy' (high electrification).
+- **Plan capex is split into categories:** growth, replacement, grid modernisation / resilience, other.
+  - Con Edison and RG&E are sourced from their capital reports.
+  - Dominion and Pepco are proxies (`_VERIFY`).
+- **Addressable shares by category:** growth 50 / 80 / 100%, capped by the network model's deferrable share; replacement 10 / 20 / 30%; grid modernisation 0 / 5 / 10%; other 0. They ramp in over 5 years from the transition year and follow the scenario (Cautious low, Ambitious high).
+- **The network model no longer generates BAU capex in this basis.** It estimates how much of the plan's growth-driven spending is deferrable.
+- **Transmission:** Dominion and Pepco's transmission bill lines follow their published (Dominion) or derived (Pepco) transmission rate base per MW of peak. New York transmission is in delivery and in the plan.
+- **Capacity:** the PJM 2027/28 auction price at the $333.44/MW-day cap, from 2027. A long-run capacity price path (sensitivity) uses Brattle's 2025 PJM CONE ($528/MW-day UCAP Net CONE) and the NYISO monitor's $200/kW-year, reached by 2040.
+- **Tests:** five new tests (197 in total). The current-JSON 1b09e20 comparison runs on the model basis.
+- **Also updated:** notebooks, reports (the settings note states the BAU basis), the assumptions register (it now includes `bau_plan`), README, METHODOLOGY.md (2.5, 3.3a, 3.6, 4.6, 7, 8, 10, glossary), utility notes and CLAUDE.md.
+
+**Effect on results.** The opportunity is larger on published-plan BAU, because the utilities' plans spend more on the distribution network than the network model generated. Central customer savings:
+- Con Edison: $36.2B (was $14.4B on model BAU);
+- Dominion: $18.8B ($13.4B);
+- Pepco: $4.6B ($4.0B);
+- RG&E: $3.3B ($1.1B).
+
+All undiscounted nominal. Two other effects:
+- BAU bills are higher, and the 2050 saving is 12–18% of the BAU delivery bill at Central.
+- Shared savings earnings rise with the pool: Con Edison $11.6B, Dominion $3.7B.
+
+| Utility | Scenario | BAU bill 2026 → 2035 → 2050, $/month (model / plan) | Customer savings $B undiscounted (model → plan) | NPV 3% (model → plan) | 2035 bill lower, $/month | 2050 bill lower, $/month | 2050 saving, % of BAU delivery bill | Shared savings earnings $B |
+|---|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 215 → 289 → 385 / 215 → 326 → 500 | 4.33 → **11.13** | 2.73 → 6.69 | 1.73 → 4.03 | 3.65 → 16.87 | 1.5% → 4.8% | 0.05 → 2.82 |
+| Con Edison | Central | 215 → 289 → 385 / 215 → 326 → 500 | 14.38 → **36.24** | 8.85 → 21.52 | 6.37 → 13.36 | 16.63 → 62.72 | 7.0% → 18.0% | 2.26 → 11.63 |
+| Con Edison | Ambitious | 215 → 289 → 385 / 215 → 326 → 500 | 29.75 → **65.94** | 18.27 → 39.21 | 11.41 → 22.99 | 28.26 → 106.23 | 11.8% → 30.5% | 4.95 → 20.46 |
+| Dominion | Cautious | 183 → 218 → 295 / 183 → 238 → 330 | 3.58 → **5.94** | 2.30 → 3.68 | 2.21 → 2.69 | 3.16 → 5.18 | 3.1% → 4.2% | 0.01 → 0.23 |
+| Dominion | Central | 183 → 218 → 295 / 183 → 238 → 330 | 13.40 → **18.85** | 8.30 → 11.50 | 5.22 → 6.38 | 9.89 → 14.45 | 9.7% → 11.8% | 1.39 → 3.73 |
+| Dominion | Ambitious | 183 → 218 → 295 / 183 → 238 → 330 | 37.79 → **49.13** | 23.31 → 29.94 | 12.78 → 15.18 | 25.61 → 35.46 | 25.1% → 29.0% | 6.95 → 11.81 |
+| Pepco | Cautious | 232 → 287 → 403 / 232 → 298 → 419 | 1.93 → **2.35** | 1.25 → 1.49 | 5.22 → 6.40 | 5.40 → 10.43 | 3.6% → 7.0% | 0.01 → 0.03 |
+| Pepco | Central | 232 → 287 → 403 / 232 → 298 → 419 | 3.98 → **4.58** | 2.51 → 2.86 | 8.67 → 10.76 | 15.88 → 23.05 | 10.6% → 15.6% | 0.18 → 0.44 |
+| Pepco | Ambitious | 232 → 287 → 403 / 232 → 298 → 419 | 5.59 → **6.47** | 3.50 → 4.03 | 11.30 → 14.23 | 23.31 → 32.87 | 15.5% → 22.2% | 0.59 → 0.97 |
+| RG&E | Cautious | 159 → 191 → 236 / 159 → 220 → 308 | 0.39 → **1.20** | 0.25 → 0.73 | 0.78 → 2.53 | 1.06 → 7.13 | 1.0% → 4.0% | 0.00 → 0.27 |
+| RG&E | Central | 159 → 191 → 236 / 159 → 220 → 308 | 1.15 → **3.28** | 0.71 → 1.96 | 1.96 → 6.04 | 4.44 → 22.17 | 4.0% → 12.3% | 0.01 → 0.92 |
+| RG&E | Ambitious | 159 → 191 → 236 / 159 → 220 → 308 | 2.63 → **5.69** | 1.61 → 3.41 | 4.29 → 10.22 | 10.84 → 36.52 | 9.8% → 20.3% | 0.16 → 1.47 |
+
+Delivery bill = distribution base, distribution riders and program surcharges (average residential bill).
+
+**Sensitivities** (customer savings $B undiscounted / 2050 saving $/month / shared savings earnings $B):
+
+| Sensitivity (Central, published-plan BAU) | Con Edison | Dominion | Pepco | RG&E |
+|---|---|---|---|---|
+| Central (published plan) | 36.24 / 62.72 / 11.63 | 18.85 / 14.45 / 3.73 | 4.58 / 23.05 / 0.44 | 3.28 / 22.17 / 0.92 |
+| Capacity at long-run cost of new entry | 39.91 / 67.58 / 13.20 | 21.87 / 15.66 / 5.02 | 5.13 / 24.59 / 0.67 | 4.16 / 26.04 / 1.30 |
+| Asset-replacement addressable 10% | 33.19 / 57.32 / 10.32 | 17.75 / 13.76 / 3.26 | 4.32 / 21.01 / 0.33 | 2.66 / 17.36 / 0.66 |
+| Asset-replacement addressable 20% (central) | 36.24 / 62.72 / 11.63 | 18.85 / 14.45 / 3.73 | 4.58 / 23.05 / 0.44 | 3.28 / 22.17 / 0.92 |
+| Asset-replacement addressable 30% | 39.29 / 68.12 / 12.94 | 19.95 / 15.15 / 4.20 | 4.85 / 25.09 / 0.55 | 3.89 / 26.99 / 1.19 |
+| Data-centre flexibility at Ambitious | 37.24 / 65.36 / 12.06 | 19.35 / 14.93 / 3.94 | 4.59 / 23.19 / 0.45 | 3.35 / 22.95 / 0.95 |
+| Combined (long-run capacity + replacement 30% + data-centre flexibility) | 43.96 / 75.61 / 14.94 | 23.48 / 16.83 / 5.71 | 5.40 / 26.77 / 0.79 | 4.85 / 31.63 / 1.59 |
+| Beyond-plan path: continue | 43.51 / 85.39 / 14.75 | 17.31 / 12.94 / 3.07 | 4.26 / 19.64 / 0.30 | 3.98 / 30.67 / 1.22 |
+| Beyond-plan path: taper | 36.24 / 62.72 / 11.63 | 18.85 / 14.45 / 3.73 | 4.58 / 23.05 / 0.44 | 3.28 / 22.17 / 0.92 |
+| Beyond-plan path: policy | 35.78 / 62.36 / 11.44 | 19.79 / 15.24 / 4.13 | 4.78 / 24.72 / 0.52 | 3.15 / 21.30 / 0.86 |
+
+**In context:** the saving compared with each utility's latest residential rate-case increase. The saving is nominal in its year; each increase is nominal in its rate year.
+
+| Utility | Latest residential rate-case increase | 2035 saving, $/month (multiple) | 2050 saving, $/month (multiple) |
+|---|---|---|---|
+| Con Edison | $6.81/month, rate year 1 (2026), 600 kWh, Case 25-E-0072 (NYPSC rate case summary, Jan 2026) | 13.36 (2.0x) | 62.72 (9.2x) |
+| Dominion | $11.24/month in 2026 (+$2.36 in 2027), 1,000 kWh, SCC PUR-2025-00058 final order (25 Nov 2025; as reported) | 6.38 (0.6x) | 14.45 (1.3x) |
+| Pepco | $3.94/month, Order No. 92607 (Case 9820) | 10.76 (2.7x) | 23.05 (5.9x) |
+| RG&E | temporary rates +4.0% of electric revenue (Jun 2026, Case 25-E-0379); no residential $ figure published, so 4.0% x the modelled $159.45 starting bill = $6.38/month (approximation). The request was $33.01/month at 600 kWh | 6.04 (0.9x) | 22.17 (3.5x) |
+
+**From v1.0's $12,907 to today (Con Edison):**
+
+| Step | Con Edison cumulative saving per residential customer, 2026–2050, $ undiscounted nominal | Change | Label |
+|---|---:|---:|---|
+| v1.0 as published (before commit 78f1a4f) | 12,907 | | |
+| Segmented load model: data centres grown from their own MW base instead of a blended rate (78f1a4f) | 12,423 | −484 | assumption choice |
+| + depreciation in the delivery revenue requirement (avoided depreciation was not counted) | 13,617 | +1,194 | error corrected |
+| + revenue-requirement savings pool (v1.0 credited avoided capex and also kept it out of rate base: double count) | 9,339 | −4,278 | error corrected |
+| + negative pools carried forward instead of negative utility earnings | 9,398 | +60 | assumption choice |
+| + bills indexed to BAU 2026 (each case indexed to its own 2026 RR hid first-year differences) | 9,199 | −199 | error corrected |
+| + capacity savings allocated by class sales share (per-customer allocation overstated the residential share) | 8,026 | −1,173 | error corrected |
+| + capacity price growth at inflation instead of 3% real | 7,983 | −43 | assumption choice |
+| = CORRECTED preset (earlier model) | 7,983 | | |
+| Layered model, model-derived BAU, before the code fixes (50a3f96): starts from the actual line-by-line bill; explicit network capacity instead of 80% avoidance of an eligible capex share; programs paid in rates at MW x cost; efficiency; value streams; earnings recovered in rates | 3,002 | −4,981 | assumption choice (model structure) |
+| + code fixes from the independent check (efficiency peak counted once in capacity; flexible connections and efficiency not double counted) | 2,544 | −458 | error corrected |
+| + published-plan BAU (Con Edison's 2026–2030 capital plan, taper to load growth by 2035; 20% of replacements right-sized) | 7,824 | +5,280 | assumption choice |
+
+The earlier-model steps are BASE vs BAU on the earlier model's 600 kWh bill; the layered steps are the Central average residential bill. NWS cost treatment and the ROE rebase flag in CORRECTED leave the result unchanged.
+
+**Caveats and `_VERIFY` items introduced**
+- RG&E publishes one plan year, so it uses Con Edison's CAGR (7.2%) as a proxy (`plan_cagr_override`).
+- Dominion's and Pepco's category splits are proxies.
+- Pepco's transmission rate base path is derived at the model's 3.5% decay.
+- Long-run capacity: RG&E uses the New York battery Net CONE as a proxy.
+- Addressable shares, beyond-plan paths and the taper year are settings.
+- Con Edison's plan assumes approval of its programs; its 10-K notes that New York's Chapter 58 of 2026 adds uncertainty.
+
+---
+
+## 2026-10-31: `23fec60` Code fixes from the independent check
 
 **What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
 1. **Capacity counts each efficiency MW once.** Capacity MW are now peak − MW waiting − (firm flexible MW + EE MW) with the capacity layer on, and peak − MW waiting with it off. Before, EE MW were subtracted three times with the layer on and once with it off.

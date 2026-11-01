@@ -1,6 +1,6 @@
 # GridDividend methodology
 
-*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 31 October 2026, after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
+*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 31 October 2026: published-plan BAU (2.5, 3.3a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
 
 This document explains how GridDividend works. It is written for a policy reader who is comfortable with numbers but is not a modeller. Sections marked **Technical detail** give the equations and code-level behaviour; they can be skipped without losing the thread.
 
@@ -75,7 +75,7 @@ The range shows how much the outcome depends on choices regulators and utilities
 
 Each run projects two cases, year by year, from 2026 to 2050.
 
-- **Business as usual (BAU):** the utility builds network capacity as load grows. Program surcharges stay on the bill, and today's flexibility programs continue at their current size.
+- **Business as usual (BAU):** the utility invests as its published capital plan says (2.5). Program surcharges stay on the bill, and today's flexibility programs continue at their current size.
 - **Shared savings (SS):** from the **transition year** (2028 for all four utilities), core programs leave the surcharges and become utility spending recovered in rates.
   - The utility grows flexible resources and efficiency along a target path.
   - Flexible headroom defers reinforcement or connects waiting load.
@@ -142,6 +142,32 @@ Each input with uncertainty has a **low / central / high** value. A scenario pic
 
 Each scenario can also set its own network values. They are empty by default, so every scenario uses the JSON network block, with the constrained sub-band on.
 
+- **Addressable shares.** The published-plan addressable shares (3.3a) follow the scenario too: Cautious at low, Ambitious at high, with growth 50 / 80 / 100%, replacement 10 / 20 / 30% and grid modernisation 0 / 5 / 10%.
+
+### 2.5 BAU basis: the utility's published plan
+
+BAU is what the utility says it will do. By default (`bau_plan.basis: 'published_plan'`) it is built from published sources:
+- **Distribution capex** follows each utility's published capital plan for the plan years:
+  - Con Edison: 2025 Form 10-K, 2026–2030;
+  - RG&E: Five-Year Plan, 2026 only;
+  - Dominion: Q4 2025 investor slides, 2026–2030;
+  - Pepco: Exelon Q4 2025 slides, 2026–2029, Maryland share.
+- **Beyond the plan,** three selectable paths run to 2050:
+  - continue the plan growth rate;
+  - **taper** to load growth by a set year (central, 2035);
+  - follow policy-driven load growth (high electrification).
+- **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced from each utility's filings where they publish one, and is a proxy otherwise.
+- **Each category has an addressable share:** the part that flexibility, efficiency and better planning could defer, avoid or right-size under shared savings (3.3a).
+- **Transmission** follows its own published plan and stays on its bill line, where it is one (Dominion and Pepco). In New York, transmission is recovered in delivery rates and is part of the plan's electric capex.
+- **The network model no longer generates BAU capex.** It still models capacity, waiting load and the Upgrade Delay, and it estimates how much of the plan's growth-driven spending is deferrable, and where.
+- **Other bill components:**
+  - Capacity uses published auction prices where they exist (PJM 2027/28 at $333.44/MW-day).
+  - Transmission follows the plans above.
+  - Supply energy and program surcharges keep their growth rates (no utility-specific published forecast was found).
+  - Shared savings influences these lines (capacity, wholesale energy, transmission and losses) but does not eliminate them.
+
+The earlier, model-derived BAU remains selectable (`basis: 'model'`) and reproduces the earlier results exactly (tested).
+
 > **Technical detail.** `scenario_overrides()` builds `{(layer, param): level}` from `scenarios[name]['levels']`. A key can name a layer (`'programs'`) or one input (`'programs.cost_kw_yr_dr'`), and anything unlisted takes `default_level`. Central returns only its network values. The tornado and `project_layers()` without a scenario use every input at `level` (default central), which equals Central.
 
 ---
@@ -155,6 +181,7 @@ Each layer has its own switch (`enabled`). The waterfall adds them in this order
 | — | Starting bill | Today's bill, line by line |
 | 1 | System needs | Load growth, peak, growth vs asset-condition capex (both cases) |
 | — | Network capacity | Loading bands, constrained sub-band, reinforcement, Upgrade Delay for Interconnection (both cases) |
+| — | Published-plan BAU | BAU distribution capex from the utility's plan; addressable shares by category (3.3a) |
 | 2 | Programs as core business | Surcharges leave the bill; flexible MW and efficiency paid for in rates |
 | 3 | Deferral | Flexible headroom counted by the planner, so reinforcement is ordered later |
 | 4 | Load enabled | Flexible headroom connects waiting load sooner |
@@ -365,6 +392,76 @@ These are all listed in [ASSUMPTIONS.md](ASSUMPTIONS.md); upgrade cost per MW is
 >
 > *Delay cohorts* (`_delay_cohorts`, per band, then summed). Requests in year t = `max(0, D_t - D_t-1)`, plus the load already waiting in 2026. Each year the queue is reduced by `sum(queue) - waiting_t`, oldest first. When waiting rises by more than that year's requests, the excess joins the queue as a cohort of that year. A cohort still waiting at the end counts `2051 - request year` years. The total MW-years equals the sum of MW waiting over the years (tested).
 
+### 3.3a Published-plan BAU: distribution capex and what shared savings can address
+
+**What it represents.** The utility's published plan says how much it will spend on the distribution network. This section sets out:
+- how that plan is extended to 2050;
+- what part of it shared savings could defer (growth-driven work) or right-size (replacements and grid modernisation).
+
+**Calculation.**
+
+```
+BAU capex_t        = published plan capex_t                                     (plan years)
+                   = BAU capex_t-1 x (1 + g_t)                                  (after the plan)
+  g_t, continue    = plan CAGR (RG&E: a proxy CAGR, one plan year only)
+  g_t, taper       = plan CAGR -> nominal network peak growth, linearly, reached by taper_year
+  g_t, policy      = nominal network peak growth with electrification at its high level
+nominal peak growth = (network peak_t / network peak_t-1) x (1 + inflation) - 1
+
+deferrable share_t = 1 - cumulative SS reinforcement / cumulative BAU reinforcement     (network model, to year t)
+avoided growth_t   = BAU capex_t x growth share x min(addressable_growth, deferrable share_t)
+avoided repl._t    = BAU capex_t x replacement share x addressable_replacement x ramp_t
+avoided grid mod_t = BAU capex_t x grid-mod share x addressable_gridmod x ramp_t
+ramp_t             = min(1, (year - transition year + 1) / addressable_ramp_years)
+SS capex_t         = BAU capex_t - avoided growth - avoided replacement - avoided grid mod - avoided other
+```
+
+- Avoidance applies in shared savings once programs are active and only with the deferral layer on; deferral's waterfall bar therefore carries the capex effect.
+- Rate base rolls forward as before: rate base × (1 − 3.5%) + capex + connection capex.
+- The 2026 recalibration of other O&M uses the plan's 2026 capex, so 2026 BAU wires RR still equals the rate-case target.
+
+**Category splits:**
+
+| Utility | Growth | Replacement | Grid mod / resilience | Other | Source |
+|---|---:|---:|---:|---:|---|
+| Con Edison | 50.2% | 21.4% | 23.5% | 4.9% | 2026 targets, Q1 2026 capital expenditure report to the NYPSC (derived; mapping is the model's) |
+| RG&E | 25.8% | 53.0% | 8.3% | 12.8% | 2026 Five-Year Plan by category, Q1 2026 capital variance report (derived) |
+| Dominion | 50.0% | 21.4% | 23.7% | 4.9% | Grid transformation share from the Q4 2025 slides; the rest split in Con Edison's proportions (`_VERIFY`) |
+| Pepco MD | 25.8% | 53.0% | 8.3% | 12.8% | RG&E's split as a proxy; Order No. 92607 describes mainly reliability work (`_VERIFY`) |
+
+**Addressable shares** (settings, low / central / high):
+- growth-driven: 50 / 80 / 100% (central = the earlier model's mature NWS avoidance, Brattle Ontario);
+- asset replacement: 10 / 20 / 30%;
+- grid modernisation / resilience: 0 / 5 / 10%;
+- other: 0%.
+
+**Transmission** (Dominion and Pepco; PJM network service rates are revenue divided by zonal peak):
+
+```
+transmission line_t = transmission line_2026 x (transmission rate base_t / system peak_t) / (rate base_2026 / peak_2026)   (plan years)
+```
+
+After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inputs:
+- **Dominion:** the transmission rider rate base path from the Q4 2025 slides ($13.5B in 2025 to $23.7B in 2030).
+- **Pepco:** derived from Exelon's transmission capex at the model's 3.5% decay.
+
+**Interactions.**
+- BAU bills rise with the plan, so the same percentage of avoided spending is worth more than under the model-derived BAU.
+- The network model's deferrable share depends on flexible headroom, locational match and the bands (3.3, 3.5).
+
+**Double counting.**
+- Growth-driven avoidance is capped by both the addressable share and what the network model finds deferrable.
+- Replacement and grid-modernisation right-sizing are separate categories of the same plan, so no dollar is avoided twice.
+- Avoided transmission (3.8) values transmission cost; the distribution plan excludes transmission except in New York. There, the transmission layer's value lowers the delivery bill (3.8), and New York's transmission spend sits in the plan categories (mostly substations and system expansion), so the two can overlap slightly.
+
+**Limitations.**
+- Plans run only 1–5 years; beyond that the path is a choice.
+- RG&E publishes a single year, so it uses Con Edison's CAGR as a proxy.
+- Category splits are mapped by the model, and are proxies for Dominion and Pepco.
+- Addressable shares are settings, not measurements.
+- Pepco's transmission rate base path is derived.
+- Plan capex for Con Edison includes transmission and surcharge-recovered programs, and Dominion's includes North Carolina, consistent with the modelled customer count.
+
 ### 3.4 Programs as core business (layer 2)
 
 **What it represents.** Under shared savings, utility-run programs (demand response, efficiency, electrification, DER and non-wires programs) stop being bill surcharges. They become utility spending recovered in rates: operating cost, plus a capitalised share in a regulatory asset. The utility then grows flexible resources by type, and efficiency, along a target path.
@@ -515,6 +612,10 @@ capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - 
 **Inputs.** `price_m_per_mw_yr`, `price_growth`; derates by type (3.4).
 - The 2026 price matches the capacity carve-out where there is one (Pepco: the 2026/27 BRA price, $329.17/MW-day = $0.12015M per MW-year).
 - The New York zones read `shared/capacity_markets/NYISO.json`, and Dominion reads `PJM.json` (DOM, $0.12M per MW-year).
+- Under published-plan BAU, `published_prices` set later years where an auction has cleared: PJM 2027/28 at the $333.44/MW-day cap, from 2027, then `price_growth`.
+- `price_path: 'long_run'` (sensitivity) ramps the price linearly from 2026 to the long-run cost of new entry by `long_run_year` (2040), then grows it with inflation:
+  - PJM: Brattle's 2025 CONE study, indicative Net CONE $528/MW-day UCAP = $192.7/kW-year, 2025 $. PJM's own 2027/28 Net CONE for DOM ($178/MW-day) and PEPCO ($292/MW-day) is below today's capped price.
+  - New York: the NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit, $200/kW-year UCAP (2025–2029 reset). RG&E uses it as a proxy.
 
 **Interactions.** Avoided-loss peak MW (3.9) lower the capacity bill line; their value is booked in the losses layer, not here. Capacity cost is in the savings pool.
 
@@ -753,6 +854,12 @@ Faster connections benefit the customers being connected, so they are reported s
 
   Each point reports the 2050 saving and every `system_summary()` measure.
 
+- **Published-plan sensitivities** (Central, on published-plan BAU), run separately and combined:
+  - capacity at the long-run cost of new entry;
+  - asset-replacement addressable share at 10 / 20 / 30%;
+  - data-centre flexibility at Ambitious (flexible-connection share and curtailment at their high levels);
+  - the three beyond-plan paths.
+
 The notebooks also show the waterfall, MW tables, the MW path vs ramp limit, the band and constrained tables, and the Upgrade Delay table by request year.
 
 ---
@@ -783,7 +890,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-Roughly half of the status-tagged inputs are `_VERIFY`: Con Edison 46%, Dominion 43%, Pepco 49%, RG&E 58%. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 41%, Dominion 38%, Pepco 44%, RG&E 53%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.
@@ -805,6 +912,7 @@ The per-utility notes in [utilities/](utilities/) list what is utility-specific,
   - `projection`: growth rates;
   - `layers`: each with `enabled` and `params`;
   - `network`: every headroom input;
+  - `bau_plan`: BAU basis, published plan capex, beyond-plan path and taper year, category shares, addressable shares, transmission plan;
   - `scenarios`: levels and network values;
   - `capacity_carve_out`, `starting_adjustments`.
 
@@ -870,6 +978,11 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_capex_pool_basis_removed` | The `pool_basis` argument and the `'capex'` basis are gone |
 | `test_settings_are_labelled_setting` | Every input whose source says it is a setting has status `setting` |
 | `test_pepco_capacity_prices_aligned` | Pepco's carve-out and capacity layer use the same year-zero price |
+| `test_model_bau_basis_reproduces_23fec60` | With `basis: 'model'`, the current JSON reproduces the layered outputs at 23fec60 exactly |
+| `test_published_plan_capex_and_beyond_paths` | BAU capex equals the published plan in plan years; continue, taper and policy paths follow their formulas |
+| `test_plan_capex_avoidance_by_category` | SS capex = plan − avoided by category; growth avoidance capped; replacement at its share after the ramp; no avoidance with deferral off |
+| `test_transmission_follows_its_own_plan` | The PJM transmission line follows the plan's rate base per MW of peak; New York has no line |
+| `test_long_run_capacity_price` | The long-run price path reaches the inflated cost of new entry by `long_run_year` |
 
 `tests/test_assumptions_register.py` checks two things:
 - The assumptions register matches the JSON.
@@ -910,6 +1023,7 @@ New analysis uses the layered model. The two models do not share results.
 
 - **Not a forecast.** Direction and order of magnitude only.
 - **Spatially aggregate.** Bands approximate the network. Real outcomes depend on feeder-level constraints and where flexibility is sited.
+- **Published plans are short and change.** BAU after the plan horizon is a path choice (central: taper to load growth by 2035). Plans are revised every year, and New York's Chapter 58 of the Laws of 2026 adds uncertainty to Con Edison's forecast (its 10-K says so).
 - **Proxies.** About half the inputs are `_VERIFY`, including network loading for three utilities.
 - **One benchmark customer.** The average residential bill applies system efficiency to residential usage. No customer classes or low-income detail.
 - **Fixed customer charges scale with the wires revenue requirement per kWh**, like the volumetric lines.
@@ -984,6 +1098,10 @@ These need a decision before they are changed:
 | **Planning capacity / planning limit** | 80% of rating; loading 1.0 |
 | **Planning headroom** | Margin the planner keeps above demand (10%) |
 | **Pool (savings pool)** | Net saving to customers in a year, before the utility's share; negative pools are carried forward |
+| **Published-plan BAU** | BAU distribution capex from the utility's published capital plan, extended to 2050 by a beyond-plan path |
+| **Addressable share** | The part of a plan capex category that shared savings could defer, avoid or right-size |
+| **Deferrable share** | The network model's cumulative reinforcement avoided as a share of BAU reinforcement; caps growth-driven avoidance with the addressable share |
+| **Taper year** | Year by which BAU capex growth reaches load growth on the taper path |
 | **Savings pool contribution** | The change in the cumulative pool when a layer is added in waterfall order |
 | **ROE lever** | Change in allowed ROE in SS, outside the pool |
 | **Seed pipeline** | Reinforcement already under way at 2026 |

@@ -54,7 +54,7 @@ scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
-tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json (pinned layer outputs)
+tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json, layers_23fec60_model_bau.json (pinned layer outputs)
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
 docs/METHODOLOGY.md        full methodology of the layered model (policy reader; technical subsections; glossary)
@@ -67,7 +67,7 @@ CHANGELOG.md               dated entry per commit and its effect on results
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (177 tests)
+python -m pytest tests/                       # full suite (197 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \
   --ExecutePreprocessor.kernel_name=python3 --ExecutePreprocessor.timeout=1800 GridDividend_Virginia.ipynb
@@ -119,6 +119,8 @@ Sections 0-11 are the earlier model; Section 13 is the layered model. Do not rem
 ## Layered model (`engine/layers.py`)
 
 A separate, additive model; v1.0 and CORRECTED do not use it. Year zero is `starting_bill` plus `capacity_carve_out` (where capacity is embedded, a derived capacity line is split out of the parent line(s), total unchanged; Dominion splits 91.5% base generation / 8.5% fuel) and `starting_adjustments` (Pepco MD Order No. 92607 +$3.94/month). The distribution network has explicit firm capacity (network peak x (1 + planning headroom)) that grows only through reinforcement, ordered reactively with a lead time and a maximum build rate; load above capacity waits for the upgrade (MW waiting for upgrade, Upgrade Delay for Interconnection, GWh not served on time). The network is split into loading bands (share of firm capacity and starting loading per band; optional `growth_share` / `flex_share`, default pro rata to load). Constraints, delay, deferral and load enabled are computed per band and summed; projects under way at 2026 are the single-pool seed allocated by growth share, so the 2026 growth / asset-condition capex split does not depend on the bands. No bands = one band at the planning target = the single-pool model. A band is constrained when load exceeds `constrained_loading` x (firm capacity + counted flexible headroom); the default 1.0 follows Dominion's grid utilization filing (SCC PUR-2026-00164). That filing's measured distribution (79.8% mean planning utilisation, 4.3% of feeders above 100%) sets the bands for Dominion and, as a `_VERIFY` proxy, for the other utilities.
+
+**Published-plan BAU (`forward_assumptions['bau_plan']['params']`, default).** BAU distribution capex follows the utility's published capital plan (`plan_years`, `plan_dist_capex_m`: Con Edison 10-K 2026-2030; RG&E Five-Year Plan 2026; Dominion Q4 2025 slides; Pepco Exelon Q4 2025 slides x 46.3% MD share). Beyond the plan, `beyond_path` 'continue' (plan CAGR; RG&E `plan_cagr_override` = Con Edison CAGR proxy), 'taper' (central: to nominal network peak growth by `taper_year`, 2032 / 2035 / 2040) or 'policy' (high electrification). `category_shares` growth / replacement / gridmod / other; `addressable_*` shares (growth 0.5/0.8/1.0 capped by the network model's deferrable share; replacement 0.10/0.20/0.30; gridmod 0/0.05/0.10; other 0; ramp over `addressable_ramp_years` from the transition year; scenario levels Cautious low, Ambitious high); applied only with deferral on. PJM transmission line follows `transmission_plan_rate_base_m` per MW of peak, then tapers to `transmission_growth`. The network model no longer generates BAU capex in this basis; `basis: 'model'` restores it and reproduces 23fec60 exactly (`tests/fixtures/layers_23fec60_model_bau.json`). 2026 RR is recalibrated with the plan's 2026 capex. Capacity: `published_prices` (PJM 2027/28 cap) in plan basis; `price_path` 'long_run' sensitivity to the long-run Net CONE by `long_run_year` 2040. `engine.layers.plan_paths()`.
 
 **Network block (`forward_assumptions['network']['params']`).** Every existing-headroom input, each with `source`, `as_of`, `status` (`sourced` / `derived` / `_VERIFY`; on/off switches and mode choices are `setting`):
 
@@ -186,6 +188,7 @@ forward_assumptions
            losses, mechanism, roe:
       enabled, label, _note, params: {name: spec}}
   network: {label, _note, params: {name: spec}}      # every existing-headroom input
+  bau_plan: {label, _note, params: {name: spec}}     # published-plan BAU (basis, plan capex, paths, categories, addressable shares, transmission plan)
   capacity_carve_out                                  # where capacity is embedded in another bill line
   starting_adjustments                                # Pepco: Order No. 92607 +$3.94/month
 ```
@@ -307,7 +310,7 @@ The self-contained v1.0 notebook (36 cells). Cell indices are 0-based (matching 
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.
-- **About half the layered inputs are `_VERIFY`** (Con Edison 46%, Dominion 43%, Pepco 49%, RG&E 58% of status-tagged inputs; `docs/ASSUMPTIONS.md` has the counts). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
+- **About half the layered inputs are `_VERIFY`** (Con Edison 41%, Dominion 38%, Pepco 44%, RG&E 53% of status-tagged inputs; `docs/ASSUMPTIONS.md` has the counts). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
 - **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited. Prefer published grid-utilization data wherever it exists (`_grid_utilization_VERIFY`).
 - **Avoided transmission is a range** (PJM NITS is an average embedded cost), and **ROE is a separate lever** outside the pool.
 - **RG&E data is provisional** until the final order in Case 25-E-0379. **Property tax rates are estimates.**

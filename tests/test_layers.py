@@ -259,6 +259,7 @@ def test_access_zero_with_layers_off(key, nb):
 
 _FIXTURE_1B09 = os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')
 NEW_LAYERS_OFF = {'wholesale_energy': False, 'transmission': False, 'losses': False, 'roe': False}
+MODEL_BAU = {('bau_plan', 'basis'): 'model'}          # the BAU basis before published-plan BAU
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
 
@@ -278,7 +279,10 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
     for name, ref in fx['runs'].items():
         scn = name.replace('_tight', '')
         cur = source == 'current_json'
-        r = LY.project_layers(uj, p, scenario=scn, overrides=TIGHT_NETWORK if name.endswith('_tight') else None,
+        ov = dict(TIGHT_NETWORK) if name.endswith('_tight') else {}
+        if cur:
+            ov.update(MODEL_BAU)
+        r = LY.project_layers(uj, p, scenario=scn, overrides=ov or None,
                               network={'subband_enabled': False} if cur else None,
                               enabled=NEW_LAYERS_OFF if cur else None)
         _compare_fixture(r, ref, name, DATA_CHANGED.get(key) if cur else None)
@@ -594,3 +598,106 @@ def test_pepco_capacity_prices_aligned():
     fa = uj['forward_assumptions']
     layer = fa['layers']['capacity']['params']['price_m_per_mw_yr']['value']
     assert layer == pytest.approx(fa['capacity_carve_out']['price_usd_per_mw_day'] * 365 / 1e6, rel=1e-6)
+
+
+# ── Published-plan BAU ────────────────────────────────────────────────────────
+
+_FIXTURE_23FE = os.path.join(ROOT, 'tests', 'fixtures', 'layers_23fec60_model_bau.json')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_model_bau_basis_reproduces_23fec60(key, nb):
+    """With bau_plan.basis = 'model' the current JSON reproduces the layered outputs at 23fec60 exactly."""
+    ref = json.load(open(_FIXTURE_23FE))['runs'][key]
+    uj, p = _utility(key, nb)
+    for sc, cols in ref.items():
+        r = LY.project_layers(uj, p, scenario=sc, overrides=MODEL_BAU)
+        for col, d in cols.items():
+            for case in ('bau', 'ss'):
+                exp = np.array([np.nan if v is None else v for v in d[case]], float)
+                np.testing.assert_array_equal(r[case][col].values, exp, err_msg=f'{sc} {col} {case}')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_published_plan_capex_and_beyond_paths(key, nb):
+    """BAU capex = the published plan in plan years; beyond it, the three paths behave as specified."""
+    uj, p = _utility(key, nb)
+    bp = uj['forward_assumptions']['bau_plan']['params']
+    yrs, plan = bp['plan_years']['value'], bp['plan_dist_capex_m']['value']
+    b = LY.project_layers(uj, p)['bau'].set_index('year')
+    np.testing.assert_allclose(b.loc[yrs, 'capex_m'].values, plan, rtol=1e-12)
+    np.testing.assert_allclose(b.loc[yrs, 'plan_capex_m'].values, plan, rtol=1e-12)
+    runs = {path: LY.project_layers(uj, p, overrides={('bau_plan', 'beyond_path'): path})['bau'].set_index('year')
+            for path in LY.BEYOND_PATHS}
+    g_plan = (bp['plan_cagr_override']['value'] if 'plan_cagr_override' in bp
+              else (plan[-1] / plan[0]) ** (1 / (len(plan) - 1)) - 1)
+    c = runs['continue']['capex_m']
+    np.testing.assert_allclose(c.loc[2050] / c.loc[yrs[-1]], (1 + g_plan) ** (2050 - yrs[-1]), rtol=1e-9)
+    # taper: after taper_year capex grows with nominal network peak growth, like the policy path's formula
+    infl = uj['forward_assumptions']['projection']['inflation_rate']['value']
+    tp, dn = runs['taper'], b['network_demand_mw']
+    ty = bp['taper_year']['central']
+    sysdf = LY.project_layers(uj, p)['system'].set_index('year')['net_peak_mw']
+    for y in (ty + 1, 2050):
+        assert tp.loc[y, 'capex_m'] / tp.loc[y - 1, 'capex_m'] == pytest.approx(sysdf.loc[y] / sysdf.loc[y - 1] * (1 + infl), rel=1e-9)
+    # policy: from the first year after the plan, nominal network peak growth with electrification at high
+    run = LY.project_layers(uj, p)
+    a_hi = {**run['assumptions'], 'system_needs': {**run['assumptions']['system_needs'],
+            'electrification_growth': uj['forward_assumptions']['layers']['system_needs']['params']['electrification_growth']['high']}}
+    hi = LY.system_path(p, a_hi, True).set_index('year')['net_peak_mw']
+    pol = runs['policy']['capex_m']
+    for y in (yrs[-1] + 1, 2040, 2050):
+        assert pol.loc[y] / pol.loc[y - 1] == pytest.approx(hi.loc[y] / hi.loc[y - 1] * (1 + infl), rel=1e-9)
+    # model basis is still selectable and differs
+    m = LY.project_layers(uj, p, overrides=MODEL_BAU)['bau'].set_index('year')
+    assert m.loc[2026, 'capex_m'] == p['annual_capex_m']
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_plan_capex_avoidance_by_category(key, nb):
+    """SS capex = plan - avoided; growth avoided <= share x cap; replacement and grid mod at their addressable shares."""
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    b, s, a = r['bau'].set_index('year'), r['ss'].set_index('year'), r['assumptions']['bau_plan']
+    sh = dict(zip(LY.PLAN_CATEGORIES, a['category_shares']))
+    av = b['capex_m'] - s['capex_m']
+    parts = s[['capex_avoided_growth_m', 'capex_avoided_replacement_m', 'capex_avoided_gridmod_m', 'capex_avoided_other_m']].sum(axis=1)
+    np.testing.assert_allclose(av.values, parts.values, rtol=1e-9, atol=1e-9)
+    assert (s['capex_avoided_growth_m'] <= b['capex_m'] * sh['growth'] * a['addressable_growth'] + 1e-9).all()
+    full = 2028 + int(a['addressable_ramp_years'])
+    np.testing.assert_allclose(s.loc[full:, 'capex_avoided_replacement_m'],
+                               b.loc[full:, 'capex_m'] * sh['replacement'] * a['addressable_replacement'], rtol=1e-9)
+    assert (s.loc[:2027, ['capex_avoided_growth_m', 'capex_avoided_replacement_m']].values == 0).all()
+    off = LY.project_layers(uj, p, enabled={'deferral': False})
+    np.testing.assert_allclose(off['ss']['capex_m'].values, off['bau']['capex_m'].values, rtol=1e-12)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_follows_its_own_plan(key, nb):
+    """PJM utilities: the transmission line follows the plan's transmission rate base per MW of peak; New York: no line."""
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p)
+    bp = uj['forward_assumptions']['bau_plan']['params']
+    b = r['bau'].set_index('year')
+    if 'transmission_plan_rate_base_m' not in bp:
+        assert (b['avg_bill_transmission'] == 0).all()
+        return
+    yrs, rb = bp['transmission_plan_years']['value'], bp['transmission_plan_rate_base_m']['value']
+    pk = r['system'].set_index('year')['peak_mw']
+    y = yrs[-1]
+    exp = (rb[yrs.index(y)] / pk.loc[y]) / (rb[yrs.index(2026)] / pk.loc[2026])
+    assert b.loc[y, 'bill_transmission'] / b.loc[2026, 'bill_transmission'] == pytest.approx(exp, rel=1e-9)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_long_run_capacity_price(key, nb):
+    """The long-run price path reaches the long-run cost of new entry (inflated) by long_run_year."""
+    uj, p = _utility(key, nb)
+    cap = uj['forward_assumptions']['layers']['capacity']['params']
+    infl = uj['forward_assumptions']['projection']['inflation_rate']['value']
+    r = LY.project_layers(uj, p, overrides={('capacity', 'price_path'): 'long_run'})['bau'].set_index('year')
+    ly, lr = cap['long_run_year']['value'], cap['long_run_price_m_per_mw_yr']['value']
+    exp = lr * (1 + infl) ** (ly - cap['long_run_price_year']['value'])
+    assert r.loc[ly, 'capacity_price_m_per_mw_yr'] == pytest.approx(exp, rel=1e-9)
+    today = LY.project_layers(uj, p)['bau'].set_index('year')
+    assert r.loc[2050, 'capacity_cost_m'] > today.loc[2050, 'capacity_cost_m']

@@ -57,6 +57,20 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
 - **Losses:** 4.92% (EIA-861).
 - **Upgrade cost:** $1.74 / 2.2 / 3.08M per MW (White Flint, Order No. 92607).
 
+## Published-plan BAU
+
+- **Distribution capex plan:** Pepco electric distribution $650M / $575M / $575M / $575M (2026–2029, Exelon Q4 2025 8-K Ex. 99.2) x the Maryland share of 46.3% = $301M, then $266M a year. The plan steps down, so its CAGR is −4%; the taper path brings growth to load growth by 2035.
+- **Category split:** RG&E's split as a proxy (`_VERIFY`). Order No. 92607 describes the programme as mainly reliability work.
+- **Transmission:** the SOS transmission line follows Pepco's transmission rate base, derived from Exelon's plan:
+  - 2025 rate base 23% of $8.4B = $1,932M;
+  - transmission capex $325M (2026) and $400M a year (2027–2029);
+  - rolled forward at the model's 3.5% decay;
+
+  per MW of system peak. Afterwards it tapers to the transmission growth rate by 2035.
+- **Capacity:** the PJM 2027/28 cap price, from 2027.
+- **Long-run capacity value** (sensitivity): Brattle's 2025 CONE study for PJM, as for Dominion. PJM's 2027/28 Net CONE for PEPCO is $292/MW-day.
+- **Gaps to close:** a Maryland-only distribution capital plan by driver, and Pepco's published transmission rate base path.
+
 ## Utility-specific vs borrowed
 
 **Utility-specific:**
