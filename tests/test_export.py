@@ -96,3 +96,40 @@ def test_export_share_sweep(key):
             e = [sw[f'{x:.2f}']['shared_savings_earnings_b'] for x in E.SHARE_SWEEP]
             c = [sw[f'{x:.2f}']['customer_savings_b_undiscounted'] for x in E.SHARE_SWEEP]
             assert e == sorted(e) and c == sorted(c, reverse=True)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_objective(key):
+    """Objective sweep: 0% matches the headline exactly, savings rise with the objective; earnings fields consistent."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            r = ex['runs'][pace][sc]
+            sw, h = r['objective_sweep'], r['headline']
+            assert set(sw) == {f'{x:.3f}' for x in E.OBJECTIVE_SWEEP}
+            z = sw['0.000']
+            for k in ('customer_savings_b_undiscounted', 'customer_savings_b_npv3', 'shared_savings_earnings_b',
+                      'monthly_saving_2035', 'monthly_saving_2050'):
+                assert z[k] == h[k], (pace, sc, k)
+            cs = [sw[f'{x:.3f}']['customer_savings_b_undiscounted'] for x in E.OBJECTIVE_SWEEP]
+            assert all(a < b for a, b in zip(cs, cs[1:])), (pace, sc, cs)
+            for basis in r['value_flows_m']:
+                assert r['value_flows_m'][basis]['sources']['additional_objective'] == 0.0
+            y = r['yearly']
+            for case in ('bau', 'shared_savings'):
+                for et, rb, epr in zip(y['earnings_total_m'][case], y['rate_base_m'][case], y['earnings_per_rate_base'][case]):
+                    assert epr == pytest.approx(et / rb, rel=1e-3)
+
+
+def test_export_flows_balance_with_objective():
+    """With a non-zero objective the new additional_objective source is positive and the flows still balance."""
+    uj, p = E.load_utility('DomVA')
+    for base in LY.OBJECTIVE_BASES:
+        run = LY.project_layers(uj, p, overrides={('objective', 'objective_pct'): 0.05, ('objective', 'objective_base'): base})
+        f = E.sankey(E.value_flows(run, p))
+        for basis, v in f.items():
+            assert v['sources']['additional_objective'] > 0
+            assert sum(v['to'].values()) == pytest.approx(v['net_value'], rel=1e-9)
+            cs = v['to']['residential_customers'] + v['to']['business_customers']
+        sm = LY.system_summary(run)
+        assert cs / 1e3 == pytest.approx(sm['Customer savings ($B, NPV 3%, 2026 $)'], rel=1e-9)

@@ -6,7 +6,47 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Utility-share sweep in the export (`5e1a2fb` script and METHODOLOGY; exports in this commit)
+## 2026-11-01: Additional savings objective layer (`7014403` engine, inputs, script, docs; exports in this commit)
+
+**What changed** (default 0%, so all results are unchanged; v1.0, CORRECTED and the three pins unchanged):
+- **New layer `objective`:** savings the utility commits to find by means the model does not specify, measured against this run's BAU (published plan by default).
+  - The base is the BAU distribution revenue requirement (default), other O&M, or plan capex. The capex base flows through rate base, depreciation, property tax and return, as deferral does.
+  - It ramps from 2027 over 3 years, and is persistent or fades over a set number of years.
+  - It is net of a 20% cost to achieve (expensed for the capex base).
+  - Net savings enter the pool, and earnings are attributed in proportion to pool contribution.
+  - All inputs are settings (`forward_assumptions.layers.objective`), with scenario overrides through `levels`.
+- **Outputs:**
+  - a waterfall step;
+  - columns `objective_level`, `objective_gross_m`, `objective_cost_to_achieve_m`, `objective_saving_m`;
+  - export value-flow source `additional_objective` (carved out of deferral);
+  - a policy tornado driver (low 0%, high 10%).
+- **Export:**
+  - `objective_sweep` (0 / 2.5 / 5 / 10%) for each utility, pace and scenario, with the same fields as `share_sweep`;
+  - yearly `earnings_total_m` (equity return + shared savings earnings) and `earnings_per_rate_base`, BAU and shared savings.
+- **Docs:** METHODOLOGY 3.9a (additional by assumption, no overlap test, why cost to achieve is netted off), the assumptions register (six settings; `_VERIFY` shares fall by dilution to Con Edison 39%, Dominion 37%, Pepco 41%, RG&E 52%), README and CLAUDE.md.
+- **Tests:** 244 in total (+23).
+  - At 0% every output is identical to the layer switched off.
+  - Savings rise steadily with the objective under each base.
+  - The capex base flows through rate base.
+  - The fade works.
+  - The export's 0% entry matches the headline exactly.
+  - Flows balance with the new source.
+- **Exports regenerated:** every pre-existing value is identical (checked field by field, including the tornado rows); the new fields are additions.
+
+**Objective sweep** (customer savings $B undiscounted / shared savings earnings $B / 2050 monthly saving $/month; base = distribution revenue requirement, net of 20% cost to achieve):
+
+| Central, utility forecast | 0% (default) | 2.5% | 5% | 10% |
+|---|---|---|---|---|
+| Con Edison | 37.85 / 13.01 / 105.69 | 42.28 / 14.91 / 114.48 | 46.72 / 16.81 / 123.27 | 55.59 / 20.62 / 140.85 |
+| Dominion | 19.31 / 4.12 / 15.79 | 21.88 / 5.22 / 16.95 | 24.45 / 6.33 / 18.10 | 29.60 / 8.53 / 20.41 |
+| Pepco | 4.35 / 0.43 / 24.31 | 4.70 / 0.58 / 26.17 | 5.05 / 0.73 / 28.03 | 5.75 / 1.03 / 31.75 |
+| RG&E | 3.80 / 1.23 / 37.56 | 4.49 / 1.53 / 44.59 | 5.17 / 1.82 / 51.62 | 6.54 / 2.40 / 65.69 |
+
+In the tornado, a 10% objective ranks first for RG&E, second for Dominion and third for Con Edison and Pepco.
+
+---
+
+## 2026-11-01: Utility-share sweep in the export (`5e1a2fb` script and METHODOLOGY; exports in `0b071fc`)
 
 **What changed** (no model changes; default utility share stays 0.30; every other export output unchanged, apart from the source commit in the metadata):
 - **`share_sweep` in `exports/<utility>.json`.** For each scenario and pace, the run is repeated at `utility_share` 0.20, 0.30 and 0.40 with every other input fixed. Each entry gives:
