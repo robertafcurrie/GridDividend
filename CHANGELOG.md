@@ -56,8 +56,8 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 | RG&E | Cautious | fast start: programs MW only | 0.10 / 0.31 / 0.61 / 1.05 / 1.70 | 1.62 (1.00) |
 | RG&E | Cautious | fast start: addressable only | 0.15 / 0.47 / 0.91 / 1.44 / 2.12 | 1.67 (1.04) |
 
-- **Gains:** fast start adds $0.1–0.6B of customer savings, and its main effect is the 2027 saving ($0.2–1.0/month instead of zero).
-- **Which component matters most:** the addressable-share ramp delivers nearly all of the gain on its own. Capacity and programs MW add less, because flexible MW build up slowly in 2027 anyway.
+- **Gains:** fast start adds $0.1–1.8B of customer savings (Con Edison Central +$1.82B, Cautious +$0.62B; Dominion +$0.67B / +$0.25B; RG&E +$0.30B / +$0.14B; Pepco +$0.22B / +$0.09B). It also creates a 2027 saving of $0.16–1.02/month where there was none.
+- **Which component matters most:** bringing the addressable-share ramp forward on its own captures nearly all of the gain everywhere except Con Edison Central, where bringing programs MW forward is worth about the same ($39.32B vs $39.30B). Capacity alone captures the least.
 
 **Dividend advance, revised** (still off by default; every current output unchanged; every non-advance export field identical):
 - **`advance_recovery_source`:** `bill_savings` (default when enabled) recovers through a rider that withholds part of each year's total customer saving vs BAU; shared savings earnings are unaffected. `pool` keeps the earlier behaviour.
@@ -74,7 +74,7 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 **Advance results** (utility-forecast pace; enabled defaults):
 
-| Utility | Case | Advance $M (PV 4%) | Credits paid $M | Recovered $M | Unrecovered 2050 $M | Customer savings $B: with advance, net of balance / without | Monthly credit 2027–2031 ($) |
+| Utility | Case | Advance $M (PV 4%) | Credits paid $M (nominal) | Recovered $M | Unrecovered 2050 $M | Customer savings $B: with advance, net of balance / without | Monthly credit 2027–2031 ($) |
 |---|---|---:|---:|---:|---:|---|---|
 | Con Edison | Cautious sized and realized | 3,010 | 3,381 | 5,907 | 0 | 9.29 / 11.81 | 6.40 / 6.36 / 6.32 / 6.27 / 6.23 |
 | Con Edison | Stress: Central sized, Cautious realized | 9,483 | 4,260 | 7,020 | 0 | 9.05 / 11.81 | 20.16 / 20.03 / 0.00 / 0.00 / 0.00 |
