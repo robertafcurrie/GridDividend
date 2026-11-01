@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ConEd | 31 | 28 | 60 | 47 | 166 | 36% | 50% |
-| RGE | 15 | 19 | 74 | 47 | 155 | 48% | 69% |
-| DomVA | 40 | 25 | 58 | 47 | 170 | 34% | 47% |
-| PepcoMD | 24 | 29 | 61 | 47 | 161 | 38% | 54% |
+| ConEd | 31 | 28 | 60 | 49 | 168 | 36% | 50% |
+| RGE | 15 | 19 | 74 | 49 | 157 | 47% | 69% |
+| DomVA | 40 | 25 | 58 | 49 | 172 | 34% | 47% |
+| PepcoMD | 24 | 29 | 61 | 49 | 163 | 37% | 54% |
 
 ## Status counts by layer
 
@@ -32,7 +32,7 @@ All four utilities together.
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
 | objective | 0 | 0 | 0 | 24 | 24 |
-| mechanism | 0 | 4 | 0 | 52 | 56 |
+| mechanism | 0 | 4 | 0 | 60 | 64 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
 | bau_plan | 9 | 6 | 6 | 40 | 61 |
@@ -56,7 +56,7 @@ _VERIFY / total status-tagged inputs.
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
 | objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
-| mechanism | 0 / 14 | 0 / 14 | 0 / 14 | 0 / 14 |
+| mechanism | 0 / 16 | 0 / 16 | 0 / 16 | 0 / 16 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
 | bau_plan | 0 / 14 | 3 / 15 | 2 / 16 | 1 / 16 |
@@ -192,12 +192,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
 | mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
 | mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
-| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
 | mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
 | mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
-| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-01 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
 | mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -375,12 +377,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
 | mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
 | mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
-| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
 | mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
 | mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
-| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-01 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
 | mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -574,12 +578,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
 | mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
 | mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
-| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
 | mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
 | mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
-| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-01 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
 | mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -772,12 +778,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
 | mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
 | mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
-| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
 | mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
 | mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
-| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-01 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
 | mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |

@@ -265,6 +265,7 @@ def advance_block(uj, params, scenario, sizing=None):
     balance, and a summary including the worst year against BAU.
     """
     ov = dict(ADVANCE_ON)
+    base_run = LY.project_layers(uj, params, scenario=scenario)
     if sizing:
         ov[('mechanism', 'advance_sizing_scenario')] = sizing
     run = LY.project_layers(uj, params, scenario=scenario, overrides=ov)
@@ -287,12 +288,17 @@ def advance_block(uj, params, scenario, sizing=None):
                                         'shared_savings': _r(s['utility_earnings_m'] + s['advance_return_m'], 2)},
                    'savings_pool_m': _r(np.nan_to_num(s['savings_pool_m'].values)),
                    'advance_credit_m': _r(s['advance_credit_m'], 3), 'advance_recovery_m': _r(s['advance_recovery_m'], 3),
-                   'advance_financing_m': _r(s['advance_financing_m'], 3), 'advance_balance_m': _r(s['advance_balance_m'], 3)},
+                   'advance_financing_m': _r(s['advance_financing_m'], 3), 'advance_balance_m': _r(s['advance_balance_m'], 3),
+                   'advance_credit_usd_month': _r(s['advance_credit_usd_month']),
+                   'advance_recovery_usd_month': _r(s['advance_recovery_usd_month'])},
         'summary': {'sizing_scenario': ad['sizing_scenario'], 'realized_scenario': scenario,
                     'advance_size_m_pv3_2026': ad['size_m'], 'planned_credit_per_year_m': ad['credit_per_year_m'],
                     'credit_years': ad['credit_years'], 'start_year': ad['start_year'],
                     'financing': ad['financing'], 'financing_rate': ad['rate'],
-                    'schedule_share_of_sizing_pool': ad['schedule_share_of_pool'],
+                    'recovery_source': ad['recovery_source'], 'sizing_basis': ad['sizing_basis'],
+                    'schedule_share_of_recoverable_base': ad['schedule_share_of_base'],
+                    'monthly_credit_2027_2031_usd': {str(y): float(s.set_index('year').loc[y, 'advance_credit_usd_month'])
+                                                     for y in range(2027, 2032)},
                     'credits_paid_m': float(s['advance_credit_m'].sum()),
                     'recoveries_m': float(s['advance_recovery_m'].sum()),
                     'financing_cost_m': float(s['advance_financing_m'].sum()),
@@ -302,6 +308,8 @@ def advance_block(uj, params, scenario, sizing=None):
                     'years_credit_paused': [y for y, c, pl in zip(YEARS, s['advance_credit_m'], (YEARS[j] in range(ad['start_year'], ad['start_year'] + ad['credit_years']) for j in range(len(YEARS)))) if pl and c == 0],
                     'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
                     'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+                    'customer_savings_without_advance_b': LY.system_summary(base_run)['Customer savings ($B, undiscounted nominal)'],
+                    'customer_savings_without_advance_b_npv3': LY.system_summary(base_run)['Customer savings ($B, NPV 3%, 2026 $)'],
                     'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
                     'advance_return_b': float(s['advance_return_m'].sum()) / 1e3,
                     'customer_savings_less_unrecovered_balance_b': (sm['Customer savings ($B, undiscounted nominal)']
@@ -353,7 +361,7 @@ def build_export(key):
                         'objective_sweep_note': 'Each scenario and pace re-run with an additional savings objective of 0 / 2.5 / 5 / 10% of its base (default 0%, base dist_revenue_requirement, net of 20% cost to achieve), every other input fixed. The objective is additional to the other layers by assumption.',
                         'objective_sweep_run_note': 'Each objective_sweep level carries its full chart data under run (yearly, waterfall_usd_month, value_flows_m), built exactly as the top-level run block.',
                         'earnings_note': 'earnings_total_m = equity return on rate base + shared savings earnings; earnings_per_rate_base = earnings_total_m / rate base (wires + program regulatory asset).',
-                        'advance_note': 'advance: each scenario with the customer dividend advance on (default off in the model): level bill credit for advance_credit_years from 2027 sized at 1.0 x the NPV (3%, 2026 $) of Cautious customer savings, financed at the after-tax WACC as a utility regulatory asset, recovered from the positive pool before sharing on a schedule that follows the sizing scenario pool; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.',
+                        'advance_note': 'advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}

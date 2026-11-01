@@ -1420,9 +1420,9 @@
             "status": "setting"
           },
           "advance_sizing_fraction": {
-            "value": 1.0,
+            "value": 0.5,
             "unit": "fraction",
-            "source": "Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance off).",
+            "source": "Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverable', default 0.5), or of the NPV at 3% of its customer savings ('customer_savings' basis, the earlier sizing).",
             "as_of": "2026-11-01",
             "status": "setting"
           },
@@ -1441,9 +1441,9 @@
             "status": "setting"
           },
           "advance_financing": {
-            "value": "utility_regulatory_asset",
-            "unit": "'utility_regulatory_asset' | 'securitized'",
-            "source": "Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separately from shared savings earnings; securitized = it accrues at advance_securitized_rate (interest to bondholders).",
+            "value": "securitized",
+            "unit": "'securitized' | 'utility_regulatory_asset'",
+            "source": "Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_asset = it accrues at the utility's after-tax WACC and that return is the utility's, reported separately from shared savings earnings.",
             "as_of": "2026-11-01",
             "status": "setting"
           },
@@ -1458,6 +1458,20 @@
             "value": true,
             "unit": "true | false",
             "source": "Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared-savings bill exceeds BAU because of the advance.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_recovery_source": {
+            "value": "bill_savings",
+            "unit": "'bill_savings' | 'pool'",
+            "source": "Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (efficiency energy and value streams included, after shared savings earnings); pool = recovered from the positive savings pool before sharing (the earlier behaviour, which also reduces shared savings earnings).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_sizing_basis": {
+            "value": "recoverable",
+            "unit": "'recoverable' | 'customer_savings'",
+            "source": "Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving for bill_savings, positive pool for pool), PV at the financing rate; customer_savings = NPV at 3% of the sizing scenario's customer savings (the earlier sizing, which the pool cannot repay).",
             "as_of": "2026-11-01",
             "status": "setting"
           }

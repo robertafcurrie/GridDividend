@@ -920,24 +920,36 @@ def test_advance_npv_equals_recoveries_plus_financing(key, nb, fin):
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
-def test_advance_sizing_cap_and_true_up(key, nb):
+@pytest.mark.parametrize('src', LY.ADVANCE_SOURCES)
+def test_advance_sizing_cap_and_true_up(key, nb, src):
     uj, p = _utility(key, nb)
-    r = LY.project_layers(uj, p, scenario='Cautious', overrides=ADV)
+    r = LY.project_layers(uj, p, scenario='Cautious', overrides={**ADV, ('mechanism', 'advance_recovery_source'): src})
     s, b, ad = r['ss'], r['bau'], r['advance']
-    size = 1.0 * LY.system_summary(LY.project_layers(uj, p, scenario='Cautious'))['Customer savings ($B, NPV 3%, 2026 $)'] * 1e3
-    assert ad['size_m'] == pytest.approx(size, rel=1e-12)
+    assert ad['financing'] == 'securitized' and ad['rate'] == 0.04 and ad['sizing_basis'] == 'recoverable'
+    d = 1.04 ** -np.arange(len(LY.YEARS))
+    base = np.array(ad['recoverable_base_m'])
+    assert ad['size_m'] == pytest.approx(0.5 * (base * d).sum(), rel=1e-12)
     pc = np.array(ad['planned_credit_m'])
-    assert (pc / 1.03 ** np.arange(len(LY.YEARS))).sum() == pytest.approx(size, rel=1e-9)
+    assert (pc * d).sum() == pytest.approx(ad['size_m'], rel=1e-9)
     assert pc[LY.YEARS.index(2027)] > 0 and pc[LY.YEARS.index(2026)] == 0
-    # cap: customers' net saving (all customers: delivery, programs, capacity and the value streams
-    # in the pool) is never negative in a recovery year, and no year's residential bill exceeds BAU
-    pay = lambda d: d['rr_m'] + d['program_bill_cost_m'] + d['capacity_cost_m']
-    net = ((pay(b) - pay(s)) + s['wholesale_value_m'] + s['transmission_avoided_m']
-           + s['losses_energy_value_m'] + s['losses_peak_value_m']).values
-    assert (net[s['advance_recovery_m'].values > 0] >= -1e-6).all()
+    # cap: customers' total net saving is never negative in a recovery year; no residential bill above BAU
+    cust = LY._customer_saving_yearly(r)
+    assert (cust[s['advance_recovery_m'].values > 0] >= -1e-6).all()
     assert (s['avg_bill_total'].values <= b['avg_bill_total'].values + 1e-9).all()
     # true-up: a planned credit is paid unless last year's balance was above schedule
-    sched, bal, cr = ad['schedule_m'], s['advance_balance_m'].values, s['advance_credit_m'].values
+    sched, bal, cr = s['advance_schedule_m'].values, s['advance_balance_m'].values, s['advance_credit_m'].values
     for t in range(1, len(LY.YEARS)):
         if pc[t] > 0:
             assert (cr[t] == 0) == (bal[t - 1] > sched[t - 1] + 1e-9), LY.YEARS[t]
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('src', LY.ADVANCE_SOURCES)
+@pytest.mark.parametrize('fin', LY.ADVANCE_FINANCING)
+def test_advance_cautious_sized_and_realized_clears(key, nb, src, fin):
+    """Sized on Cautious recoverable savings and realized Cautious: no balance left in 2050 (within rounding)."""
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p, scenario='Cautious', overrides={**ADV, ('mechanism', 'advance_recovery_source'): src,
+                                                                  ('mechanism', 'advance_financing'): fin})
+    assert abs(r['ss']['advance_balance_m'].iloc[-1]) < 1e-3
+    assert r['ss']['advance_credit_m'].sum() > 0
