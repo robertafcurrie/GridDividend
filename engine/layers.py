@@ -770,6 +770,67 @@ def _capacity_price(cap, t, y, infl, plan_on):
     return max(base, p0 + (cap['long_run_price_m_per_mw_yr'] * (1 + infl) ** (ly - int(cap.get('long_run_price_year', 2025))) - p0) * w)
 
 
+def _near_term(ramp, y):
+    """Near-term ramp value for year y from {year: fraction} (2026-2030 only), else None."""
+    if not ramp or y > 2030:
+        return None
+    v = ramp.get(str(y), ramp.get(y))
+    return None if v is None else float(v)
+
+
+ADVANCE_FINANCING = ('utility_regulatory_asset', 'securitized')
+
+
+def _advance_setup(utility_json, params, a, level, overrides, enabled, network, uplift_mode, flex_cost_scale):
+    """
+    Customer dividend advance (mechanism.advance_enabled). Returns None when off, else:
+      size_m      = advance_sizing_fraction x NPV at 3% (2026 $) of customer savings in
+                    advance_sizing_scenario, run with the advance off and every other input as given
+      credit[t]   = level annual credit over advance_credit_years from advance_start_year,
+                    with PV at 3% (2026 $) equal to size_m
+      rate        = financing rate: the utility's after-tax WACC (utility_regulatory_asset) or
+                    advance_securitized_rate (securitized)
+      schedule[t] = scheduled end-of-year balance: accrues at rate, adds planned credits, less
+                    scheduled recoveries in proportion to the sizing scenario's positive pool
+                    (after carry-forward), scaled so the balance clears by 2050
+    """
+    mech = a['mechanism']
+    if not mech.get('advance_enabled'):
+        return None
+    fin = mech.get('advance_financing', 'utility_regulatory_asset')
+    if fin not in ADVANCE_FINANCING:
+        raise ValueError(f'advance_financing {fin!r} must be one of {ADVANCE_FINANCING}')
+    ov = {**(overrides or {}), ('mechanism', 'advance_enabled'): False}
+    sizing = project_layers(utility_json, params, level=level, overrides=ov, enabled=enabled, network=network,
+                            scenario=mech.get('advance_sizing_scenario', 'Cautious'), uplift_mode=uplift_mode,
+                            flex_cost_scale=flex_cost_scale)
+    npv = system_summary(sizing)['Customer savings ($B, NPV 3%, 2026 $)'] * 1e3
+    size = float(mech.get('advance_sizing_fraction', 1.0)) * max(0.0, npv)
+    start, n = int(mech.get('advance_start_year', 2027)), int(mech.get('advance_credit_years', 5))
+    yrs = [y for y in YEARS if start <= y < start + n]
+    c = size / sum(1.03 ** -(y - YEARS[0]) for y in yrs) if yrs else 0.0
+    credit = np.array([c if y in yrs else 0.0 for y in YEARS])
+    rate = params['wacc'] if fin == 'utility_regulatory_asset' else float(mech.get('advance_securitized_rate', 0.04))
+    # Recovery schedule: in proportion to the sizing scenario's positive pool (after carry-forward),
+    # scaled so the scheduled balance clears by 2050
+    pos, carry = np.zeros(len(YEARS)), 0.0
+    for t, pv in enumerate(np.nan_to_num(sizing['ss']['savings_pool_m'].values)):
+        net = pv + carry
+        carry = min(0.0, net)
+        pos[t] = max(0.0, net) if YEARS[t] >= start else 0.0
+    fv = sum(credit[t] * (1 + rate) ** (len(YEARS) - 1 - t) for t in range(len(YEARS)))
+    den = sum(pos[t] * (1 + rate) ** (len(YEARS) - 1 - t) for t in range(len(YEARS)))
+    k = fv / den if den > 0 else np.inf
+    sched, b = np.zeros(len(YEARS)), 0.0
+    for t, y in enumerate(YEARS):
+        if y >= start:
+            b = b * (1 + rate) + credit[t] - (k * pos[t] if np.isfinite(k) else 0.0)
+        sched[t] = max(0.0, b)
+    return dict(size_m=size, sizing_npv_m=npv, sizing_scenario=mech.get('advance_sizing_scenario', 'Cautious'),
+                credit_per_year_m=c, credit=credit, rate=rate, financing=fin, schedule_share_of_pool=k,
+                schedule=sched, start_year=start, credit_years=n)
+
+
 # ── Projection ───────────────────────────────────────────────────────────────
 
 def project_layers(utility_json, params, level='central', overrides=None, enabled=None,
@@ -866,7 +927,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     kwh_b = utility_json['starting_bill']['benchmark_kwh_month']
     core0 = sum(d['month'] for d in lines0 if d['category'] == 'program_surcharge' and d['core'])
     res_alloc = (core0 / kwh_b) / (spend0 / S0) if spend0 > 0 else 1.0
-    trans_year = int(pr['transition_year'])
+    # Fast start (mechanism option): the first savings year is 2027 instead of the transition year
+    trans_year = 2027 if mech.get('fast_start') else int(pr['transition_year'])
+    nt = lambda key, y: _near_term(mech.get(key), y)
     ee_kw_per_mwh = (pr['ee_kw_per_mwh'] if pr.get('ee_kw_per_mwh') is not None
                      else pr['ee_peak_coincidence'] / (8.76 * lf_new))
     price0 = cap['price_m_per_mw_yr']
@@ -916,6 +979,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                          0.0, 1.0)
     cond0 = None
 
+    adv = _advance_setup(utility_json, params, a, level, overrides, enabled, network, uplift_mode, flex_cost_scale)
     res, mw_rows, bau_band_t = {}, [], []
     for case in ('bau', 'ss'):
         ss = case == 'ss'
@@ -930,6 +994,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         rb = params['rate_base_start_m']
         reg_vint, reg_asset = [], 0.0
         carry = 0.0
+        adv_bal, adv_paused = 0.0, False
         ee_vint = []
         Cb = [bd['C0'] for bd in bands]
         pipes = [list(sd) for sd in seeds]
@@ -945,6 +1010,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             active = Lp and y >= trans_year
             # ── Programs: flexible MW, EE, flexible connections ──────────────
             mw_b, mw_s = flex_mw(pr, y, False), flex_mw(pr, y, active)
+            f_mw = nt('near_term_ramp_programs_mw', y) if active else None
+            if f_mw is not None:   # near-term programs ramp: fraction of the way from today's MW to the 2035 target
+                mw_s = {k: pr[f'mw_start_{k}'] + f_mw * (pr[f'mw_2035_{k}'] - pr[f'mw_start_{k}']) for k in FLEX_TYPES}
             if active:      # maximum annual growth per type (share of 2026 peak per year)
                 base_prev = prev_mw or mw_b
                 mw_s = {k: (min(mw_s[k], max(base_prev[k], mw_b[k]) + ramp[k] * P0) if ramp[k] is not None
@@ -1086,7 +1154,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     cb = float(np.sum(res['bau']['model_growth_capex_m'].values[:t + 1]))
                     deferrable = (min(1.0, max(0.0, 1 - (model_growth_cum + growth) / cb)) if cb > 1e-9 else 0.0)
                     ramp_p = min(1.0, (y - trans_year + 1) / plan['ramp_years'])
-                    av_g = cat['growth'] * min(ad['growth'], deferrable)
+                    f_ad = nt('near_term_ramp_addressable', y)
+                    if f_ad is not None:                     # near-term addressable ramp replaces the default
+                        ramp_p = f_ad
+                    av_g = cat['growth'] * min(ad['growth'] * (f_ad if f_ad is not None else 1.0), deferrable)
                     av_r = cat['replacement'] * ad['replacement'] * ramp_p
                     av_m = cat['gridmod'] * ad['gridmod'] * ramp_p
                     av_o = cat['other'] * ad['other'] * ramp_p
@@ -1167,6 +1238,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # MW lower the obligation once each, in the capacity layer (off: no credit)
             sys_peak = P[t] - (D - served)
             mw_red = min(firm_flex + (ee_mw if active else 0.0), sys_peak) if Lc else 0.0
+            f_cap = nt('near_term_ramp_capacity', y) if Lc else None
+            if f_cap is not None:                        # near-term capacity ramp: fraction of the credit
+                mw_red *= f_cap
             cap_cost = (sys_peak - mw_red) * price
             prog_bill_cost = 0.0 if active else bau_spend
             # ── Value streams (shared savings, once programs are active) ─────
@@ -1192,6 +1266,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # Pool = reduction in what customers pay vs BAU (+ value streams in the pool);
             # the utility's share is recovered in the revenue requirement
             earnings = 0.0
+            adv_credit = adv_rec = adv_fin = 0.0
             pool = np.nan
             if ss:
                 b = res['bau']
@@ -1201,11 +1276,30 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     pool += roe_cost                     # the ROE lever sits outside the pool
                 if vpool:
                     pool += vpool
-                if Lm:
+                if adv and Lm:
+                    # Customer dividend advance: a level bill credit financed as a balance at the
+                    # financing rate, recovered from the positive pool before sharing, on a schedule
+                    # that follows the sizing scenario's pool and clears it by 2050; capped so customers' net saving is never
+                    # negative; next year's credit paused while the balance is above schedule
+                    sh = mech['utility_share']
+                    adv_fin = adv_bal * adv['rate']
+                    adv_credit = adv['credit'][t] if not adv_paused else 0.0
+                    due = adv_bal + adv_fin + adv_credit
+                    net = pool + carry
+                    if net > 0:
+                        to_sched = max(0.0, due - adv['schedule'][t])
+                        rec_cap = max(0.0, (pool - sh * net + adv_credit) / (1 - sh)) if mech.get('advance_cap', True) else np.inf
+                        adv_rec = min(to_sched, net, due, rec_cap)
+                    net -= adv_rec
+                    carry = min(0.0, net)
+                    earnings = sh * max(0.0, net)
+                    adv_bal = due - adv_rec
+                    adv_paused = adv_bal > adv['schedule'][t] + 1e-9     # true-up for next year
+                elif Lm:
                     net = pool + carry
                     carry = min(0.0, net)
                     earnings = mech['utility_share'] * max(0.0, net)
-            adj = earnings
+            adj = earnings + adv_rec - adv_credit
             rr = rr_core + adj
             if not ss and t == 0:
                 rr_ref = rr_dist
@@ -1285,6 +1379,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 objective_level=obj_level, objective_gross_m=obj_gross, objective_cost_to_achieve_m=obj_cta,
                 objective_saving_m=obj_saving,
                 equity_return_m=rb_earning * eq_roe + roe_cost,
+                advance_credit_m=adv_credit, advance_recovery_m=adv_rec, advance_financing_m=adv_fin,
+                advance_balance_m=adv_bal,
+                advance_return_m=(adv_fin if (adv and adv['financing'] == 'utility_regulatory_asset') else 0.0),
                 utility_earnings_m=rb_earning * eq_roe + roe_cost + earnings))
             if ss:
                 mw_rows.append(dict(year=y, **{f'{k}_bau_mw': mw_b[k] for k in FLEX_TYPES},
@@ -1313,7 +1410,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 bands=bands, band_detail={'bau': res['bau_band_df'], 'ss': res['ss_band_df']},
                 program_spend0_m=spend0, program_spend0_parts=spend_parts, starting_lines=lines0,
                 ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc, uplift_mode=mode,
-                benchmark_kwh=kwh_b, operating_limit=op_x, load_calibration=load_cal)
+                benchmark_kwh=kwh_b, operating_limit=op_x, load_calibration=load_cal,
+                advance=({**{k: v for k, v in adv.items() if k not in ('credit', 'schedule')},
+                          'planned_credit_m': list(adv['credit']), 'schedule_m': list(adv['schedule'])} if adv else None))
 
 
 # ── Outputs ──────────────────────────────────────────────────────────────────

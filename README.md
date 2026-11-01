@@ -43,7 +43,7 @@ Each layer has its own switch and low / central / high inputs, each with a sourc
 7. **Avoided transmission:** transmission cost avoided by peak reduction.
 8. **Avoided distribution losses:** marginal losses avoided by efficiency and peak reduction.
 9. **Additional savings objective** (off by default): savings the utility commits to find by means the model does not specify, as a share of a base, net of cost to achieve. It is additional to the other layers by assumption.
-10. **Shared savings mechanism:** the utility's share of the savings pool.
+10. **Shared savings mechanism:** the utility's share of the savings pool. Optional, off by default: a **fast start** (first savings year 2027), and a **customer dividend advance**, an early bill credit recovered later from the pool.
 11. **ROE lever:** the allowed return in shared savings relative to BAU, a separate lever outside the pool.
 
 **The network.** The distribution network has explicit capacity in loading bands, including a constrained sub-band of load above the planning limit (from Dominion's grid-utilization filing).
@@ -173,7 +173,7 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel
     - RG&E's is the Gold Book zone (proxy). Matching it with RG&E's 57% share of the zone's large loads needs RG&E's other load to fall 1.7%/yr.
   - **RG&E's data centres** follow the NYISO 2026 Gold Book Zone B large-load forecast, allocated by RG&E's share of the zone's peak (57%).
   - The addressable shares (how much shared savings can defer or right-size) are settings.
-- **Two-fifths to a half of the inputs are still `_VERIFY`.** By utility: Con Edison 39%, Dominion 37%, Pepco 41%, RG&E 52% of the status-tagged inputs in `starting_bill` and `forward_assumptions` (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
+- **About half of the measured inputs are still `_VERIFY`.** By utility: Con Edison 50%, Dominion 47%, Pepco 54%, RG&E 69% of the measured inputs in `starting_bill` and `forward_assumptions` (36 / 34 / 38 / 48% of all status-tagged inputs, including settings) (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
 - **Proxies.** Con Edison, RG&E and Pepco use Dominion's measured network loading as a `_VERIFY` proxy until their own feeder data is found. New York uses PJM's price spreads for wholesale energy, and the other utilities use Con Edison's connection timelines for ordinary load.
 - **Avoided transmission is a range.** PJM's network service rates are average costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run, so the avoidable share runs from 0 to 1.
 - **ROE is a separate lever.** Central assumes no change in allowed ROE. Changing it moves bills and the utility's equity return, not shared savings earnings.

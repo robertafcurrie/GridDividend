@@ -844,3 +844,100 @@ def test_objective_persistence_fades():
     r = LY.project_layers(uj, p, overrides={('objective', 'objective_pct'): 0.05, ('objective', 'objective_persistence'): 5})
     lv = r['ss'].set_index('year')['objective_level']
     assert lv[2029] == pytest.approx(0.05) and lv[2031] == pytest.approx(0.03) and lv[2034] == 0
+
+
+# ── Mechanism options: fast start and customer dividend advance ───────────────
+
+NEW_MECH = ('fast_start', 'near_term_ramp_capacity', 'near_term_ramp_programs_mw', 'near_term_ramp_addressable',
+            'advance_enabled', 'advance_start_year', 'advance_sizing_fraction', 'advance_sizing_scenario',
+            'advance_credit_years', 'advance_financing', 'advance_securitized_rate', 'advance_cap')
+ADV = {('mechanism', 'advance_enabled'): True}
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_mechanism_option_defaults_change_nothing(key, nb):
+    """Defaults (fast start off, ramps null, advance off) give exactly the outputs of a JSON without the new inputs."""
+    import copy
+    uj, p = _utility(key, nb)
+    mp = uj['forward_assumptions']['layers']['mechanism']['params']
+    assert all(k in mp for k in NEW_MECH) and mp['fast_start']['value'] is False and mp['advance_enabled']['value'] is False
+    uj0 = copy.deepcopy(uj)
+    for k in NEW_MECH:
+        del uj0['forward_assumptions']['layers']['mechanism']['params'][k]
+    for sc in LY.SCENARIOS:
+        a, b = LY.project_layers(uj, p, scenario=sc), LY.project_layers(uj0, p, scenario=sc)
+        for case in ('bau', 'ss'):
+            for col in b[case].columns:
+                np.testing.assert_array_equal(a[case][col].values, b[case][col].values, err_msg=f'{sc} {case} {col}')
+        assert a['advance'] is None and (a['ss']['advance_credit_m'] == 0).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_fast_start_first_savings_year_2027(key, nb):
+    uj, p = _utility(key, nb)
+    base = LY.project_layers(uj, p)['ss'].set_index('year')
+    fs = LY.project_layers(uj, p, overrides={('mechanism', 'fast_start'): True})
+    s, b = fs['ss'].set_index('year'), fs['bau']
+    assert base.loc[2027, 'ee_gwh'] == 0 and base.loc[2027, 'new_program_spend_m'] == 0
+    assert s.loc[2027, 'ee_gwh'] > 0 and s.loc[2027, 'new_program_spend_m'] > 0 and s.loc[2027, 'savings_pool_m'] != 0
+    assert s.loc[2027, 'program_bill_cost_m'] == 0          # core surcharges leave the bill in 2027
+    np.testing.assert_array_equal(b['avg_bill_total'].values, LY.project_layers(uj, p)['bau']['avg_bill_total'].values)
+
+
+def test_near_term_ramps():
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    pr = uj['forward_assumptions']['layers']['programs']['params']
+    ov = {('mechanism', 'fast_start'): True, **LY.no_ramp_overrides(),
+          ('mechanism', 'near_term_ramp_programs_mw'): {'2027': 0.5}}
+    m = LY.project_layers(uj, p, overrides=ov)['mw'].set_index('year')
+    st, tg = pr['mw_start_dr']['value'], pr['mw_2035_dr']['central']
+    assert m.loc[2027, 'dr_ss_mw'] == pytest.approx(st + 0.5 * (tg - st))
+    r = LY.project_layers(uj, p, overrides={('mechanism', 'near_term_ramp_capacity'): {'2028': 0.0}})
+    s = r['ss'].set_index('year')
+    assert s.loc[2028, 'peak_reduction_mw'] == 0 and s.loc[2029, 'peak_reduction_mw'] > 0
+    r = LY.project_layers(uj, p, overrides={('mechanism', 'near_term_ramp_addressable'): {'2028': 1.0}})
+    s, b = r['ss'].set_index('year'), r['bau'].set_index('year')
+    ad = r['assumptions']['bau_plan']['addressable_replacement']
+    assert s.loc[2028, 'capex_avoided_replacement_m'] == pytest.approx(b.loc[2028, 'plan_replacement_capex_m'] * ad)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('fin', ['utility_regulatory_asset', 'securitized'])
+def test_advance_npv_equals_recoveries_plus_financing(key, nb, fin):
+    """Credits + financing - recoveries = 2050 balance; PV at the financing rate: credits = recoveries + balance."""
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p, scenario='Central', overrides={**ADV, ('mechanism', 'advance_financing'): fin})
+    s, ad = r['ss'], r['advance']
+    c, rec, f, bal = (s[k].values for k in ('advance_credit_m', 'advance_recovery_m', 'advance_financing_m', 'advance_balance_m'))
+    assert c.sum() + f.sum() - rec.sum() == pytest.approx(bal[-1], abs=1e-6)
+    d = (1 + ad['rate']) ** -np.arange(len(LY.YEARS))
+    assert (c * d).sum() == pytest.approx((rec * d).sum() + bal[-1] * d[-1], rel=1e-9, abs=1e-6)
+    assert ad['rate'] == (p['wacc'] if fin == 'utility_regulatory_asset' else 0.04)
+    if fin == 'utility_regulatory_asset':
+        np.testing.assert_allclose(s['advance_return_m'].values, f)
+    else:
+        assert (s['advance_return_m'] == 0).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_advance_sizing_cap_and_true_up(key, nb):
+    uj, p = _utility(key, nb)
+    r = LY.project_layers(uj, p, scenario='Cautious', overrides=ADV)
+    s, b, ad = r['ss'], r['bau'], r['advance']
+    size = 1.0 * LY.system_summary(LY.project_layers(uj, p, scenario='Cautious'))['Customer savings ($B, NPV 3%, 2026 $)'] * 1e3
+    assert ad['size_m'] == pytest.approx(size, rel=1e-12)
+    pc = np.array(ad['planned_credit_m'])
+    assert (pc / 1.03 ** np.arange(len(LY.YEARS))).sum() == pytest.approx(size, rel=1e-9)
+    assert pc[LY.YEARS.index(2027)] > 0 and pc[LY.YEARS.index(2026)] == 0
+    # cap: customers' net saving (all customers: delivery, programs, capacity and the value streams
+    # in the pool) is never negative in a recovery year, and no year's residential bill exceeds BAU
+    pay = lambda d: d['rr_m'] + d['program_bill_cost_m'] + d['capacity_cost_m']
+    net = ((pay(b) - pay(s)) + s['wholesale_value_m'] + s['transmission_avoided_m']
+           + s['losses_energy_value_m'] + s['losses_peak_value_m']).values
+    assert (net[s['advance_recovery_m'].values > 0] >= -1e-6).all()
+    assert (s['avg_bill_total'].values <= b['avg_bill_total'].values + 1e-9).all()
+    # true-up: a planned credit is paid unless last year's balance was above schedule
+    sched, bal, cr = ad['schedule_m'], s['advance_balance_m'].values, s['advance_credit_m'].values
+    for t in range(1, len(LY.YEARS)):
+        if pc[t] > 0:
+            assert (cr[t] == 0) == (bal[t - 1] > sched[t - 1] + 1e-9), LY.YEARS[t]

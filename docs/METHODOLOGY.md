@@ -813,6 +813,54 @@ This is a simplification. The point of the mechanism is that the share is an inc
 - No performance corridor, cap or floor beyond carry-forward.
 - No timing lag between saving and earning.
 
+### 3.10a Mechanism options: fast start and customer dividend advance
+
+Both options are off by default, and with the defaults every output is identical to a run without them (tested).
+
+**Fast start** (`fast_start`). The first savings year becomes 2027 instead of `programs.transition_year` (2028). Programs become core business, flexible MW and efficiency begin, the value streams start, and the plan's right-sizing ramp starts a year earlier. Three optional near-term ramps (2026–2030) let each part be brought forward or held back on its own:
+- `near_term_ramp_capacity` {year: fraction}: the share of the capacity credit counted in that year.
+- `near_term_ramp_programs_mw` {year: fraction}: flexible MW as that fraction of the way from today's programs to the 2035 target, still subject to the ramp limit.
+- `near_term_ramp_addressable` {year: fraction}: replaces the addressable-share ramp in that year and scales the growth cap.
+
+**Customer dividend advance** (`advance_enabled`). Customers receive part of the expected savings early, as a level annual bill credit, and the utility recovers it later from the savings pool.
+
+```
+size        = advance_sizing_fraction x NPV at 3% (2026 $) of customer savings in advance_sizing_scenario
+              (default 1.0 x Cautious; run with the advance off, every other input as given)
+credit_t    = C for advance_credit_years from advance_start_year (2027), with PV at 3% of the credits = size
+balance_t   = balance_t-1 x (1 + r) + credit_t - recovery_t
+              r = after-tax WACC (utility_regulatory_asset, default) or advance_securitized_rate (4%, securitized)
+schedule_t  = scheduled balance: accrues at r, adds planned credits, less k x the sizing scenario's positive pool
+              (after carry-forward), with k set so that it clears by 2050
+recovery_t  = from the positive pool before sharing: min(amount needed to return to schedule, net pool, cap)
+cap         = recoveries limited so customers' net saving that year (pool - earnings - recovery + credit) >= 0
+true-up     = if the year-end balance is above schedule, next year's credit is paused
+earnings_t  = utility_share x (net pool - recovery);  rider recovers earnings + recovery - credit
+```
+
+**What the utility earns.** Under `utility_regulatory_asset`, the return on the balance (`advance_return_m`) is the utility's, reported separately from shared savings earnings. Under securitisation it is interest paid to bondholders.
+
+**Identities (tested).** Credits + financing − recoveries = the balance left in 2050. At the financing rate, the PV of credits equals the PV of recoveries plus the PV of that remaining balance: the advance is repaid by recoveries that include its financing cost.
+
+**What the defaults show (exports, `advance` and `advance_stress`).** At 1.0 × Cautious NPV, the advance cannot be repaid from the pool alone, even when Cautious comes true: the schedule needs more than the whole expected positive pool (k = 1.7 to 21 times). There are two reasons:
+- The sizing measure, customer savings, includes the efficiency energy savings that customers keep outside the pool.
+- The balance accrues at the utility's WACC (about 7%) while the size is set at a 3% NPV.
+
+The consequences:
+- Credits pause in some years.
+- Recoveries take most of the pool while the cap allows, so shared savings earnings fall.
+- A balance remains in 2050 for customers or the utility to absorb. The export reports customer savings less that unrecovered balance.
+- Securitisation at 4% roughly halves the unrecovered balance, but does not remove it.
+
+The stress case, sized on Central but realising Cautious, makes this much larger.
+
+The cap holds throughout: no year's residential shared-savings bill exceeds BAU. The binding constraint is recoverability, not bills. A viable advance needs a smaller sizing fraction, sizing on the pool rather than on customer savings, cheaper financing, or a longer recovery period.
+
+**Limitations.**
+- The credit term (`advance_credit_years`, 5) is the model's choice.
+- The cap is applied to all customers together, not to each class.
+- The unrecovered balance is reported, not assigned.
+
 ### 3.11 ROE lever (layer 10)
 
 **What it represents.** A regulator could change the allowed return on equity alongside shared savings, for example to reward or penalise performance (Illinois CEJA performance metrics adjust ROE by 20–60 basis points; Ameren Illinois ±24 bp). This is a **separate lever**, outside the pool.
@@ -971,7 +1019,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 39%, Dominion 37%, Pepco 41%, RG&E 52%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+Of the measured inputs (sourced, derived or `_VERIFY`, i.e. excluding settings), about half are `_VERIFY`: Con Edison 50%, Dominion 47%, Pepco 54%, RG&E 69%. As a share of all status-tagged inputs, including the settings that each new feature adds, the figures are 36%, 34%, 38% and 48%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.
@@ -1071,6 +1119,10 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_objective_zero_is_a_no_op` | At the default 0%, every output equals the run with the objective layer off |
 | `test_objective_savings_rise_with_level` | For each base, customer savings rise steadily with the objective (0 / 2.5 / 5 / 10%); BAU is untouched |
 | `test_objective_capex_base_flows_through_rate_base`, `test_objective_persistence_fades` | The capex base lowers capex and rate base, with the RR saving equal to the RR difference; the fade option works |
+| `test_mechanism_option_defaults_change_nothing` | Fast start off, ramps null, advance off: every output identical to a JSON without the new inputs |
+| `test_fast_start_first_savings_year_2027`, `test_near_term_ramps` | Fast start makes 2027 the first savings year (BAU unchanged); each near-term ramp acts on its own |
+| `test_advance_npv_equals_recoveries_plus_financing` | Credits + financing − recoveries = 2050 balance; PV of credits = PV of recoveries + PV of the balance; return reported only for the regulatory asset |
+| `test_advance_sizing_cap_and_true_up` | Size = fraction × the sizing NPV; PV of planned credits = size; customers' net saving never negative in a recovery year; no residential bill above BAU; credits paused exactly when behind schedule |
 | `test_rge_data_centres_follow_gold_book_zone_b` | RG&E's data-centre load = 300 MW + Gold Book Zone B increments × its zone share; high = 5%/yr |
 
 `tests/test_assumptions_register.py` checks two things:
@@ -1192,6 +1244,8 @@ These need a decision before they are changed:
 | **Deferrable share** | The network model's cumulative reinforcement avoided as a share of BAU reinforcement; caps growth-driven avoidance with the addressable share |
 | **Electrification pace** | Utility forecast (central: BAU load calibrated to the utility's own forecast) or state policy (the model's electrification assumptions) |
 | **Additional savings objective** | Savings the utility commits to find by unspecified means, as a share of a base, net of cost to achieve; additional to the other layers by assumption |
+| **Customer dividend advance** | Level bill credit paid early, financed as a balance, recovered from the pool before sharing, with a true-up and a cap |
+| **Fast start** | First savings year 2027 instead of the transition year, with separate near-term ramps for capacity, programs MW and the plan's addressable shares |
 | **Load link** | Scaling of the plan's growth-driven capex by the model's load growth relative to the plan's assumed load growth |
 | **Taper year** | Year by which BAU capex growth reaches load growth on the taper path |
 | **Savings pool contribution** | The change in the cumulative pool when a layer is added in waterfall order |

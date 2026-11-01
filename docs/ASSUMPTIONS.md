@@ -8,12 +8,12 @@ Status: **sourced** = read from a cited document; **derived** = calculated from 
 
 Status-tagged inputs of the layered model (`starting_bill` and `forward_assumptions`).
 
-| Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share |
-|---|---:|---:|---:|---:|---:|---:|
-| ConEd | 31 | 28 | 60 | 35 | 154 | 39% |
-| RGE | 15 | 19 | 74 | 35 | 143 | 52% |
-| DomVA | 40 | 25 | 58 | 35 | 158 | 37% |
-| PepcoMD | 24 | 29 | 61 | 35 | 149 | 41% |
+| Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| ConEd | 31 | 28 | 60 | 47 | 166 | 36% | 50% |
+| RGE | 15 | 19 | 74 | 47 | 155 | 48% | 69% |
+| DomVA | 40 | 25 | 58 | 47 | 170 | 34% | 47% |
+| PepcoMD | 24 | 29 | 61 | 47 | 161 | 38% | 54% |
 
 ## Status counts by layer
 
@@ -32,7 +32,7 @@ All four utilities together.
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
 | objective | 0 | 0 | 0 | 24 | 24 |
-| mechanism | 0 | 4 | 0 | 4 | 8 |
+| mechanism | 0 | 4 | 0 | 52 | 56 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
 | bau_plan | 9 | 6 | 6 | 40 | 61 |
@@ -56,7 +56,7 @@ _VERIFY / total status-tagged inputs.
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
 | objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
-| mechanism | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
+| mechanism | 0 / 14 | 0 / 14 | 0 / 14 | 0 / 14 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
 | bau_plan | 0 / 14 | 3 / 15 | 2 / 16 | 1 / 16 |
@@ -186,6 +186,18 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -357,6 +369,18 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -544,6 +568,18 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Virginia.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -730,6 +766,18 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Maryland.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-01 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-01 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 1.0 |  |  |  | fraction | setting | 2026-11-01 | Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-01 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | utility_regulatory_asset |  |  |  | 'utility_regulatory_asset' \| 'securitized' | setting | 2026-11-01 | Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separate… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-01 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |

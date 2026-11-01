@@ -1230,6 +1230,90 @@
             "source": "Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (EE energy-purchase savings go wholly to customers). The v1.0-style 'capex' basis was removed from the layered model (it gave customers the capacity and value streams about 1.7 times over).",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "fast_start": {
+            "value": false,
+            "unit": "true | false",
+            "source": "Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan right-sizing) instead of programs.transition_year. Default off.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "near_term_ramp_capacity": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first savings year. Lets capacity be brought forward or held back independently.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "near_term_ramp_programs_mw": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subject to the ramp limit; null = the linear target path.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "near_term_ramp_addressable": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in each listed year 2026-2030); null = the default ramp.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_enabled": {
+            "value": false,
+            "unit": "true | false",
+            "source": "Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and recovered from the savings pool before sharing. Default off.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_start_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Setting: first year of the advance credit.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_sizing_fraction": {
+            "value": 1.0,
+            "unit": "fraction",
+            "source": "Setting: the advance (PV at 3%, 2026 $) as a fraction of the NPV at 3% of customer savings in advance_sizing_scenario (run with the advance off).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_sizing_scenario": {
+            "value": "Cautious",
+            "unit": "'Cautious' | 'Central'",
+            "source": "Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_credit_years": {
+            "value": 5,
+            "unit": "years",
+            "source": "Setting: years over which the level credit is paid (the model's choice; not specified in the request).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_financing": {
+            "value": "utility_regulatory_asset",
+            "unit": "'utility_regulatory_asset' | 'securitized'",
+            "source": "Setting: utility_regulatory_asset = the balance accrues at the utility's after-tax WACC and that return is the utility's, reported separately from shared savings earnings; securitized = it accrues at advance_securitized_rate (interest to bondholders).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_securitized_rate": {
+            "value": 0.04,
+            "unit": "per year",
+            "source": "Setting: financing rate when the advance is securitized.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "advance_cap": {
+            "value": true,
+            "unit": "true | false",
+            "source": "Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared-savings bill exceeds BAU because of the advance.",
+            "as_of": "2026-11-01",
+            "status": "setting"
           }
         }
       },

@@ -149,13 +149,14 @@ def build_md(rows):
            '[METHODOLOGY.md](METHODOLOGY.md)).', '',
            '## Status counts by utility', '',
            'Status-tagged inputs of the layered model (`starting_bill` and `forward_assumptions`).', '',
-           '| Utility | ' + ' | '.join(STATUSES) + ' | Total | _VERIFY share |',
-           '|---|' + '---:|' * (len(STATUSES) + 2)]
+           '| Utility | ' + ' | '.join(STATUSES) + ' | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |',
+           '|---|' + '---:|' * (len(STATUSES) + 3)]
     for ukey in UTILITIES:
         c = Counter(r['status'] for r in tagged if r['utility'] == ukey)
         tot = sum(c[s] for s in STATUSES)
+        meas = tot - c['setting']
         out.append(f'| {ukey} | ' + ' | '.join(str(c[s]) for s in STATUSES)
-                   + f" | {tot} | {c['_VERIFY'] / tot:.0%} |")
+                   + f" | {tot} | {c['_VERIFY'] / tot:.0%} | {c['_VERIFY'] / meas:.0%} |")
     untagged = [r for r in tagged if r['status'] not in STATUSES]
     if untagged:
         out += ['', f'Inputs without a status: {len(untagged)} (' +
