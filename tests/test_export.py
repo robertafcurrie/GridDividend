@@ -68,3 +68,31 @@ def test_export_totals_match_headline(key):
                 w = r['waterfall_usd_month'][str(y)]
                 assert w['BAU'] - w['Shared savings'] == pytest.approx(sav, abs=1e-3)
     assert {row['type'] for row in ex['tornado']['utility_forecast']['rows']} <= {'policy', 'external'}
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_share_sweep(key):
+    """0.30 matches the headline; customer savings + earnings is the same at every share where the pool is positive."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            r = ex['runs'][pace][sc]
+            sw, h = r['share_sweep'], r['headline']
+            assert set(sw) == {f'{x:.2f}' for x in E.SHARE_SWEEP}
+            base = sw['0.30']
+            assert base['customer_savings_b_undiscounted'] == pytest.approx(h['customer_savings_b_undiscounted'], rel=1e-12)
+            assert base['customer_savings_b_npv3'] == pytest.approx(h['customer_savings_b_npv3'], rel=1e-12)
+            assert base['shared_savings_earnings_b'] == pytest.approx(h['shared_savings_earnings_b'], rel=1e-12)
+            assert base['monthly_saving_2035'] == pytest.approx(h['monthly_saving_2035'], rel=1e-12)
+            assert base['monthly_saving_2050'] == pytest.approx(h['monthly_saving_2050'], rel=1e-12)
+            pool = base['yearly']['savings_pool_m']
+            total = {k: [c + e for c, e in zip(v['yearly']['customer_savings_m'], v['yearly']['shared_savings_earnings_m'])]
+                     for k, v in sw.items()}
+            for i, pv in enumerate(pool):
+                if pv > 0:
+                    for k in sw:
+                        assert total[k][i] == pytest.approx(total['0.30'][i], abs=2e-3), (pace, sc, k, i)
+            # earnings rise and customer savings fall with the share
+            e = [sw[f'{x:.2f}']['shared_savings_earnings_b'] for x in E.SHARE_SWEEP]
+            c = [sw[f'{x:.2f}']['customer_savings_b_undiscounted'] for x in E.SHARE_SWEEP]
+            assert e == sorted(e) and c == sorted(c, reverse=True)

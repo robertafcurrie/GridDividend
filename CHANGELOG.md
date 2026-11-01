@@ -6,7 +6,34 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Results export for the web explorer (`dc2480a` script; exports in this commit)
+## 2026-11-01: Utility-share sweep in the export (`5e1a2fb` script and METHODOLOGY; exports in this commit)
+
+**What changed** (no model changes; default utility share stays 0.30; every other export output unchanged, apart from the source commit in the metadata):
+- **`share_sweep` in `exports/<utility>.json`.** For each scenario and pace, the run is repeated at `utility_share` 0.20, 0.30 and 0.40 with every other input fixed. Each entry gives:
+  - customer savings, undiscounted and NPV 3%;
+  - shared savings earnings, undiscounted and NPV 3%;
+  - the 2035 and 2050 monthly residential saving;
+  - yearly customer savings, earnings and pool.
+- **METHODOLOGY 3.10:** the model holds value creation constant across shares; the share only divides the pool. This is a simplification: a larger share should strengthen the incentive and raise the value created, which the model does not represent.
+- **`tests/test_export.py`** (+4 tests, 221 in total):
+  - the 0.30 entry matches the headline;
+  - customer savings plus earnings is the same at every share in years where the pool is positive;
+  - earnings rise and customer savings fall with the share.
+
+Customer savings / shared savings earnings ($B undiscounted) / 2050 monthly saving ($/month):
+
+| Central, utility forecast | 20% | 30% (default) | 40% |
+|---|---|---|---|
+| Con Edison | 42.19 / 8.67 / 110.10 | 37.85 / 13.01 / 105.69 | 33.51 / 17.35 / 101.28 |
+| Dominion | 20.68 / 2.75 / 16.71 | 19.31 / 4.12 / 15.79 | 17.93 / 5.50 / 14.88 |
+| Pepco | 4.50 / 0.29 / 25.44 | 4.35 / 0.43 / 24.31 | 4.21 / 0.57 / 23.19 |
+| RG&E | 4.22 / 0.82 / 41.44 | 3.80 / 1.23 / 37.56 | 3.39 / 1.64 / 33.68 |
+
+At each utility, customer savings plus earnings is the same at all three shares; the share moves value between customers and the utility.
+
+---
+
+## 2026-11-01: Results export for the web explorer (`dc2480a` script; exports in `edb74a8`)
 
 **What changed** (no model changes; all existing tests unchanged):
 - **`scripts/export_results.py`** writes `exports/<utility>.json` for Con Edison, RG&E, Dominion and Pepco. Each file covers every scenario (Cautious / Central / Ambitious) × electrification pace (utility forecast / state policy):

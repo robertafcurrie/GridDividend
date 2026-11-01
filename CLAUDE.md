@@ -51,7 +51,7 @@ notebooks/
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
 scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
-scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; tornado; metadata)
+scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; tornado; metadata)
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
