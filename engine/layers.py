@@ -1288,6 +1288,54 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             vpool = (whl * bool(we.get('in_pool', True)) + tx_av * bool(tx.get('in_pool', True))
                      + (loss_e + loss_p) * bool(lo.get('in_pool', True)))
             # ── Mechanism ────────────────────────────────────────────────────
+            def _bills(adj_val):
+                """Bill lines for this year with the rider recovering prog_rr + adj_val."""
+                usage = (S[t] - (ee_gwh if active else 0.0)) / S[t]
+                dist_bill = dist0 * (rr_dist / rr_ref) * (S0 / S_case)
+                if tx_av and not tx_on_lines:          # transmission recovered in delivery rates (New York)
+                    dist_bill *= 1 - tx_av / rr_dist
+                f_sup = (whl + loss_e) / (sup_kwh * S_case) if (whl or loss_e) and sup_kwh > 0 else 0.0
+                f_tx = (tx_av / (P[t] * tx['cost_kw_yr'] * 1000 * tx_idx(t) / 1e6)
+                        if tx_av and tx_on_lines else 0.0)
+                rider = dict(id='core_program_and_earnings_recovery',
+                             name='Core programs and shared savings earnings (per kWh)',
+                             category='program_surcharge', bill_section='delivery', unit='$/kWh', core=False,
+                             program_type=None, origin='projection', volumetric=True,
+                             month=(prog_rr + adj_val) / S_case * kwh_b * res_alloc)
+                bench, avg = [], []
+                for d in lines0 + [rider]:
+                    e = dict(d)
+                    c = d['category']
+                    if d['origin'] == 'projection':
+                        pass
+                    elif c in DIST_CATS:
+                        e['month'] = dist_bill * d['month'] / dist0 if dist0 else 0.0
+                    elif c == 'program_surcharge':
+                        e['month'] = (0.0 if (d['core'] and active)
+                                      else d['month'] * _infl(pj['program_surcharge_growth'], t))
+                    elif c == 'supply_energy':
+                        e['month'] = d['month'] * _infl(pj['supply_energy_growth'], t)
+                        if f_sup:
+                            e['month'] *= 1 - f_sup
+                    elif c == 'transmission':
+                        e['month'] = d['month'] * tx_idx(t)
+                        if f_tx:
+                            e['month'] *= 1 - f_tx
+                    elif c == 'capacity':
+                        e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red - mw_loss) / P0) / (S_case / S0)
+                    elif c == 'taxes_and_fees' and d.get('pct') is None:
+                        e['month'] = d['month']
+                    bench.append(e)
+                    f = dict(e)
+                    if f.get('pct') is None and d.get('volumetric'):
+                        f['month'] = e['month'] * usage
+                    avg.append(f)
+                _apply_pct(bench)
+                _apply_pct(avg)
+                _apply_pct(bench)
+                _apply_pct(avg)
+                return bench, avg, usage
+
             # Pool = reduction in what customers pay vs BAU (+ value streams in the pool);
             # the utility's share is recovered in the revenue requirement
             earnings = 0.0
@@ -1316,10 +1364,21 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                                     - (adv['schedule_share_of_base'] * adv['base'][t] if np.isfinite(adv['schedule_share_of_base']) else 0.0))
                     target = max(0.0, due - adv_sched)
                     net = pool + carry
+                    # residential cap: the average residential bill stays at or below BAU
+                    if mech.get('advance_cap', True):
+                        avg_tot = lambda adj_v: sum(d['month'] for d in _bills(adj_v)[1])
+                        e0 = sh * max(0.0, net)
+                        a0 = avg_tot(e0)
+                        slope = avg_tot(e0 + 1.0) - a0
+                        head = res['bau']['avg_bill_total'].iloc[t] - a0
+                        res_room = adv_credit + head / slope if slope > 0 else np.inf    # max (rider increase) in $M
+                    else:
+                        res_room = np.inf
                     if adv['recovery_source'] == 'pool':
                         if net > 0:
                             rec_cap = (max(0.0, (pool - sh * net + adv_credit) / (1 - sh))
                                        if mech.get('advance_cap', True) else np.inf)
+                            rec_cap = min(rec_cap, max(0.0, res_room / (1 - sh)))
                             adv_rec = min(target, net, due, rec_cap)
                         net -= adv_rec
                         carry = min(0.0, net)
@@ -1331,6 +1390,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                                 + (whl + tx_av + loss_e + loss_p) - earnings
                                 + (ee_gwh if active else 0.0) * sup0_kwh * _infl(pj['supply_energy_growth'], t))
                         rec_cap = max(0.0, cust + adv_credit) if mech.get('advance_cap', True) else np.inf
+                        rec_cap = min(rec_cap, max(0.0, res_room))
                         adv_rec = min(target, max(0.0, cust), due, rec_cap)
                     adv_bal = due - adv_rec
                     adv_paused = adv_bal > adv_sched + 1e-9      # true-up for next year
@@ -1343,48 +1403,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             if not ss and t == 0:
                 rr_ref = rr_dist
             # ── Bills ────────────────────────────────────────────────────────
-            usage = (S[t] - (ee_gwh if active else 0.0)) / S[t]
-            dist_bill = dist0 * (rr_dist / rr_ref) * (S0 / S_case)
-            if tx_av and not tx_on_lines:          # transmission recovered in delivery rates (New York)
-                dist_bill *= 1 - tx_av / rr_dist
-            f_sup = (whl + loss_e) / (sup_kwh * S_case) if (whl or loss_e) and sup_kwh > 0 else 0.0
-            f_tx = (tx_av / (P[t] * tx['cost_kw_yr'] * 1000 * tx_idx(t) / 1e6)
-                    if tx_av and tx_on_lines else 0.0)
-            rider = dict(id='core_program_and_earnings_recovery',
-                         name='Core programs and shared savings earnings (per kWh)',
-                         category='program_surcharge', bill_section='delivery', unit='$/kWh', core=False,
-                         program_type=None, origin='projection', volumetric=True,
-                         month=(prog_rr + adj) / S_case * kwh_b * res_alloc)
-            bench, avg = [], []
-            for d in lines0 + [rider]:
-                e = dict(d)
-                c = d['category']
-                if d['origin'] == 'projection':
-                    pass
-                elif c in DIST_CATS:
-                    e['month'] = dist_bill * d['month'] / dist0 if dist0 else 0.0
-                elif c == 'program_surcharge':
-                    e['month'] = (0.0 if (d['core'] and active)
-                                  else d['month'] * _infl(pj['program_surcharge_growth'], t))
-                elif c == 'supply_energy':
-                    e['month'] = d['month'] * _infl(pj['supply_energy_growth'], t)
-                    if f_sup:
-                        e['month'] *= 1 - f_sup
-                elif c == 'transmission':
-                    e['month'] = d['month'] * tx_idx(t)
-                    if f_tx:
-                        e['month'] *= 1 - f_tx
-                elif c == 'capacity':
-                    e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red - mw_loss) / P0) / (S_case / S0)
-                elif c == 'taxes_and_fees' and d.get('pct') is None:
-                    e['month'] = d['month']
-                bench.append(e)
-                f = dict(e)
-                if f.get('pct') is None and d.get('volumetric'):
-                    f['month'] = e['month'] * usage
-                avg.append(f)
-            _apply_pct(bench)
-            _apply_pct(avg)
+            bench, avg, usage = _bills(adj)
             cb, ca = by_category(bench), by_category(avg)
             rows.append(dict(
                 year=y, **{f'bill_{c}': v for c, v in cb.items()}, bill_total=sum(cb.values()),

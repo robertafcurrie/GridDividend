@@ -838,7 +838,8 @@ balance_t   = balance_t-1 x (1 + r) + credit_t - recovery_t
 recovery_t  = min(amount needed to return to schedule, recovery source available that year, cap, balance due)
               bill_savings: a rider withholding part of customers' total saving that year; shared savings earnings unchanged
               pool: taken from the positive pool before sharing, so it also reduces shared savings earnings
-cap         = customers' net saving that year (after the recovery and the credit) is never negative
+cap         = customers' net saving that year (after the recovery and the credit) is never negative, and the
+              average residential bill stays at or below BAU (the bill is recomputed to find the headroom)
 true-up     = if the year-end balance is above schedule, next year's credit is paused
 ```
 
@@ -860,7 +861,7 @@ true-up     = if the year-end balance is above schedule, next year's credit is p
 
 **Limitations.**
 - The credit term (5 years) is the model's choice.
-- The cap applies to all customers together, not to each class.
+- The cap applies to all customers together and to the average residential bill, not to each class separately.
 - An unrecovered balance is reported, not assigned.
 
 ### 3.11 ROE lever (layer 10)
