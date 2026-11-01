@@ -66,6 +66,7 @@ The local consumer utility tax varies by locality and is excluded. The published
 - **Capacity:** the PJM 2027/28 auction cleared at the $333.44/MW-day cap, applied from 2027.
 - **Long-run capacity value** (sensitivity): Brattle's 2025 CONE study for PJM, $528/MW-day UCAP Net CONE (about $193/kW-year). PJM's 2027/28 Net CONE for DOM is $178/MW-day, below today's cap.
 - **Gap to close:** Dominion's distribution capex by driver (growth, replacement), which would replace the proxy split.
+- **Load the plan assumes:** 5.4% a year, PJM's 2026 forecast for the DOM zone (proxy, `_VERIFY`). It includes transmission-connected data centres. The model's system peak grows 2.47% a year, so the load link scales plan-year growth capex by 0.44.
 
 ## Utility-specific vs borrowed
 

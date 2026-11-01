@@ -1648,6 +1648,20 @@
           "source": "Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and planning practice take time to reach full effect).",
           "as_of": "2026-10-31",
           "status": "setting"
+        },
+        "link_growth_to_load": {
+          "value": true,
+          "unit": "true | false",
+          "source": "Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative system peak growth since 2026 relative to the load growth the plan assumes (plan_load_growth). False: plan capex fixed regardless of load. Replacement, grid modernisation and other categories stay on plan either way.",
+          "as_of": "2026-11-01",
+          "status": "setting"
+        },
+        "plan_load_growth": {
+          "value": 0.007,
+          "unit": "per year (system peak)",
+          "source": "Con Edison 2025 Form 10-K, Electric Peak Demand: CECONY forecasts an average annual increase in peak demand at design conditions of about 0.7% a year over the next five years (2026-2030), and states the five-year forecast is used for capital expenditure planning.",
+          "as_of": "2026-11-01",
+          "status": "sourced"
         }
       }
     }

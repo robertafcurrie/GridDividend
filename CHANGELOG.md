@@ -6,7 +6,71 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-10-31: Verification of published-plan BAU inputs (this commit)
+## 2026-11-01: RG&E data centres from the Gold Book; plan growth capex linked to load (this commit)
+
+**What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
+
+1. **RG&E data-centre growth.** Central is now the NYISO 2026 Gold Book view for Zone B (Table I-14 large loads: +150 / 280 / 400 MW by 2028 / 2029 / 2030, then flat), allocated by RG&E's share of the Zone B peak (1,050 / 1,828 MW = 57.4%). That is +86 / 161 / 230 MW on the 300 MW starting estimate.
+   - The full-zone increment is an upper bound, because Zone B also covers National Grid's Genesee territory.
+   - The unsourced 5% a year is kept as the high case; low is 0%.
+   - `dc_growth` can now be a rate or a {year: MW added} path (`engine.layers.dc_path`).
+2. **Plan growth capex linked to load.** New setting `bau_plan.link_growth_to_load`, central on.
+   - Each plan's assumed load growth is recorded in `plan_load_growth`:
+     - Con Edison 0.7% a year: its 10-K forecast, used for capital planning;
+     - Pepco 0.33%: Maryland Ten-Year Plan;
+     - Dominion 5.4%: PJM 2026 DOM zone forecast (proxy, `_VERIFY`);
+     - RG&E 3.03%: Gold Book Zone B 2026–2031 (proxy, `_VERIFY`).
+   - In the plan years, the growth-driven category is scaled by (model peak_t / peak_2026 − 1) / ((1 + plan_load_growth)^t − 1). After the plan, each category is carried forward at the path's growth rate. Replacement, grid modernisation and other stay on plan.
+   - `false` keeps plan capex fixed regardless of load.
+   - Scale factors in the last plan year: Con Edison 1.82, RG&E 1.69, Dominion 0.44, Pepco 2.61.
+3. **Tests:** two new tests (204 in total). The pinned-output tests run RG&E at its earlier 5%.
+4. **Updated:** METHODOLOGY (2.5, 3.2, 3.3a, 7, 8, glossary), README, the assumptions register (`_VERIFY` shares: Con Edison 41%, Dominion 38%, Pepco 43%, RG&E 54%), utility notes, CLAUDE.md, notebooks and reports.
+
+**RG&E's BAU uses the company's filed proposal in Case 25-E-0379 pending the final order.** Staff recommended $226.3M and $246.1M of electric capital for 2026–27 against $308.4M and $420.6M proposed; the BAU and the savings should be revisited when the order issues.
+
+**Effect on results.** The opportunity grows where the model's load outpaces the utility's own forecast, and shrinks for Dominion:
+- **Con Edison:** the model grows peak 1.26% a year against Con Edison's 0.7%, mainly through electrification, so growth-driven plan capex scales up and BAU spends more. Central customer savings $34.9B → $49.5B; 2050 saving $82.01 → $125.09/month.
+- **Dominion:** PJM's 5.4% zone forecast includes transmission-connected data centres the distribution model does not carry, so BAU growth capex scales down. $18.8B → $16.4B.
+- **Pepco:** $4.6B → $5.0B.
+- **RG&E:** the Gold Book data-centre path alone takes it to $4.99B; with the link, $6.12B.
+
+Arrows run before → after; for RG&E, the middle value is the Gold Book data-centre change alone:
+
+| Utility | Scenario | BAU bill 2035 / 2050, $/month | Customer savings $B undiscounted | 2035 saving $/month | 2050 saving $/month | Shared savings earnings $B | BAU capex 2026–2050 $B |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 348 / 620 → 406 / 783 | 10.59 → **14.30** | 4.36 → 5.17 | 21.52 → **31.63** | 2.83 → 4.42 | 230.7 → 323.5 |
+| Con Edison | Central | 348 / 620 → 406 / 783 | 34.92 → **49.46** | 14.46 → 17.75 | 82.01 → **125.09** | 11.56 → 17.79 | 230.7 → 323.5 |
+| Con Edison | Ambitious | 348 / 620 → 406 / 783 | 62.33 → **86.12** | 24.50 → 29.88 | 136.44 → **209.07** | 19.89 → 30.09 | 230.7 → 323.5 |
+| Dominion | Cautious | 238 / 330 → 232 / 317 | 5.94 → **5.13** | 2.69 → 2.64 | 5.18 → **4.61** | 0.23 → 0.06 | 84.9 → 61.7 |
+| Dominion | Central | 238 / 330 → 232 / 317 | 18.85 → **16.40** | 6.38 → 6.19 | 14.45 → **12.59** | 3.73 → 2.68 | 84.9 → 61.7 |
+| Dominion | Ambitious | 238 / 330 → 232 / 317 | 49.13 → **42.81** | 15.18 → 14.70 | 35.46 → **30.45** | 11.81 → 9.10 | 84.9 → 61.7 |
+| Pepco | Cautious | 298 / 419 → 308 / 443 | 2.35 → **2.62** | 6.40 → 6.54 | 10.43 → **12.67** | 0.03 → 0.09 | 8.0 → 11.2 |
+| Pepco | Central | 298 / 419 → 308 / 443 | 4.58 → **5.04** | 10.76 → 11.09 | 23.05 → **27.26** | 0.44 → 0.64 | 8.0 → 11.2 |
+| Pepco | Ambitious | 298 / 419 → 308 / 443 | 6.47 → **7.16** | 14.23 → 14.71 | 32.87 → **39.80** | 0.97 → 1.26 | 8.0 → 11.2 |
+| RG&E | Cautious | 278 / 424 → 267 / 507 → 287 / 561 | 1.97 → 1.86 → **2.07** | 4.18 → 3.95 → 4.06 | 12.48 → 14.71 → **17.00** | 0.60 → 0.56 → 0.65 | 35.9 → 34.0 → 40.0 |
+| RG&E | Central | 278 / 424 → 267 / 507 → 287 / 561 | 5.50 → 4.99 → **6.12** | 10.24 → 9.23 → 10.14 | 39.97 → 46.02 → **61.09** | 1.88 → 1.67 → 2.15 | 35.9 → 34.0 → 40.0 |
+| RG&E | Ambitious | 278 / 424 → 267 / 507 → 287 / 561 | 8.90 → 8.11 → **9.57** | 16.12 → 15.46 → 16.95 | 62.06 → 68.09 → **86.92** | 2.84 → 2.53 → 3.15 | 35.9 → 34.0 → 40.0 |
+
+**Tornado: data-centre and baseline growth rows** (2050 saving, $/month):
+
+| Utility | Row | Before: low / high change in 2050 saving, $/month (swing) | After: low / high (swing), rank |
+|---|---|---|---|
+| Con Edison | Data-centre growth | +0.0 / -19.3 (19.3) | +0.0 / +16.7 (16.7), #8 |
+| Con Edison | Baseline growth | +16.4 / -11.4 (27.8) | -13.4 / +7.3 (20.7), #7 |
+| Dominion | Data-centre growth | +2.9 / -3.2 (6.1) | +1.3 / -2.1 (3.3), #2 |
+| Dominion | Baseline growth | +0.7 / -0.6 (1.2) | +0.1 / -0.2 (0.3), #26 |
+| Pepco | Data-centre growth | +0.2 / -0.7 (0.9) | +0.0 / -0.6 (0.6), #23 |
+| Pepco | Baseline growth | +1.4 / -1.1 (2.5) | -2.4 / +0.8 (3.3), #8 |
+| RG&E | Data-centre growth | +21.8 / +0.0 (21.8) | -21.7 / -24.7 (3.0), #15 |
+| RG&E | Baseline growth | +2.9 / -2.5 (5.4) | -2.2 / -1.4 (0.8), #33 |
+
+With plan capex fixed, more load lowered the per-customer saving: fixed costs were spread over more kWh. Linked, more load also means more growth spending to defer, so the two effects largely offset, and the rows shrink or change sign.
+
+Top three drivers after: Con Edison: ee_incremental_savings_pct (51.5), locational_match (47.9), reinforcement_lead_years (32.9); Dominion: ee_incremental_savings_pct (14.6), dc_growth (3.3), supply_energy_growth (3.3); Pepco: ee_incremental_savings_pct (10.2), supply_energy_growth (9.1), ee_levelised_cost_kwh (5.4); RG&E: addressable_replacement (23.6), reinforcement_lead_years (20.4), utility_share (18.7). The reinforcement lead time now ranks high for Con Edison and RG&E, because it governs how much of the growth-driven spending the network model finds deferrable.
+
+---
+
+## 2026-10-31: `94992aa` Verification of published-plan BAU inputs
 
 **What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
 

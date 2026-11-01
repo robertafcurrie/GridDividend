@@ -343,7 +343,7 @@ def system_path(params, a, on):
             base = N0 * (1 + s['baseline_energy_growth']) ** t
             ev = N0 * ((1 + g_ev) ** t - 1)
             build = N0 * ((1 + g_bld) ** t - 1)
-            dc = dc0 * (1 + s['dc_growth']) ** t
+            dc = dc_path(dc0, s['dc_growth'], y, t)
         else:
             base, build, ev, dc = N0, 0.0, 0.0, dc0
         non_dc_e = base + build + ev
@@ -356,6 +356,18 @@ def system_path(params, a, on):
                          ev_peak_mw=ev_pk, elec_peak_mw=elec_pk,
                          dc_dist_new_mw=max(0.0, dc - dc0) * dshare))
     return pd.DataFrame(rows)
+
+
+def dc_path(dc0, g, y, t):
+    """
+    Data-centre load in year y, MW: dc0 x (1 + g)^t for a growth rate g, or dc0 plus
+    an explicit added-MW path {year: MW added since 2026} (e.g. the NYISO Gold Book
+    large-load forecast for the zone), linear between listed years, flat after the last.
+    """
+    if isinstance(g, dict):
+        pts = sorted((int(k), float(v)) for k, v in g.items())
+        return dc0 + float(np.interp(y, [k for k, _ in pts], [v for _, v in pts], left=0.0, right=pts[-1][1]))
+    return dc0 * (1 + g) ** t
 
 
 def _program_spend0(utility_json, params):
@@ -606,7 +618,14 @@ def plan_paths(params, a, fa, sysdf, infl):
     system peak (network service rates are revenue over zonal peak) for the plan
     years, then its growth tapers to projection.transmission_growth by
     `taper_year`.
-    Output: dict: capex ($M nominal per year, 25 values), shares {category:
+    With link_growth_to_load on (central), the growth category in plan years is
+    scaled by (model system peak_t / peak_2026 - 1) / ((1 + plan_load_growth)^t - 1),
+    floored at 0: more load than the plan assumes means more growth-driven spending,
+    less load means less. Replacement, grid modernisation and other stay on plan.
+    Beyond the plan, each category is carried forward from the last plan year at the
+    path's growth rate.
+    Output: dict: capex ($M nominal per year, 25 values), cats {category: $M per
+      year}, growth_scale, linked, shares {category:
       share}, addressable {category: share}, ramp_years, tx_index (transmission
       line index, 2026 = 1, or None), plan_end (last plan year), plan_cagr.
     """
@@ -619,21 +638,37 @@ def plan_paths(params, a, fa, sysdf, infl):
     if path not in BEYOND_PATHS:
         raise ValueError(f'beyond_path {path!r} must be one of {BEYOND_PATHS}')
     DN = sysdf['net_peak_mw'].values
+    P_sys = sysdf['peak_mw'].values
+    shares = dict(zip(PLAN_CATEGORIES, bp['category_shares']))
+    if abs(sum(shares.values()) - 1) > 1e-6:
+        raise ValueError('bau_plan category_shares must sum to 1')
+    # Link growth-driven capex to load (setting): in plan years, the growth category is
+    # scaled by the model's cumulative system peak growth since 2026 relative to the
+    # load growth the plan assumes (plan_load_growth, per year); other categories stay on plan
+    link = bool(bp.get('link_growth_to_load', False)) and bp.get('plan_load_growth') is not None
+    g_lp = bp.get('plan_load_growth')
+    scale = np.ones(len(YEARS))
+    for t, y in enumerate(YEARS):
+        if link and t > 0 and y in yrs:
+            plan_cum = (1 + g_lp) ** t - 1
+            model_cum = P_sys[t] / P_sys[0] - 1
+            scale[t] = max(0.0, model_cum / plan_cum) if plan_cum > 1e-12 else 1.0
     if path == 'policy':
         hi = fa['layers']['system_needs']['params']['electrification_growth']['high']
         a_hi = {**a, 'system_needs': {**a['system_needs'], 'electrification_growth': hi}}
         DN = system_path(params, a_hi, True)['net_peak_mw'].values
-    capex = np.zeros(len(YEARS))
+    cats = {c: np.zeros(len(YEARS)) for c in PLAN_CATEGORIES}
     for t, y in enumerate(YEARS):
         if y in yrs:
-            capex[t] = capex_plan[yrs.index(y)]
+            cp = capex_plan[yrs.index(y)]
+            for c in PLAN_CATEGORIES:
+                cats[c][t] = cp * shares[c] * (scale[t] if c == 'growth' else 1.0)
             continue
         g_load = (DN[t] / DN[t - 1]) * (1 + infl) - 1
         g = {'continue': g_plan, 'policy': g_load}.get(path) if path != 'taper' else _taper(g_plan, g_load, y, y_end, ty)
-        capex[t] = capex[t - 1] * (1 + g)
-    shares = dict(zip(PLAN_CATEGORIES, bp['category_shares']))
-    if abs(sum(shares.values()) - 1) > 1e-6:
-        raise ValueError('bau_plan category_shares must sum to 1')
+        for c in PLAN_CATEGORIES:                 # each category carried forward from the last plan year
+            cats[c][t] = cats[c][t - 1] * (1 + g)
+    capex = sum(cats.values())
     addr = {c: bp.get(f'addressable_{c}', 0.0) or 0.0 for c in PLAN_CATEGORIES}
     tx_index = None
     if bp.get('transmission_plan_rate_base_m'):
@@ -650,7 +685,7 @@ def plan_paths(params, a, fa, sysdf, infl):
                     gt_end = tx_index[t - 1] / tx_index[t - 2] - 1
                 g = _taper(gt_end, a['projection']['transmission_growth'], y, tyrs[-1], ty)
                 tx_index[t] = tx_index[t - 1] * (1 + g)
-    return dict(capex=capex, shares=shares, addressable=addr, ramp_years=bp.get('addressable_ramp_years', 5) or 5,
+    return dict(capex=capex, cats=cats, growth_scale=scale, linked=link, shares=shares, addressable=addr, ramp_years=bp.get('addressable_ramp_years', 5) or 5,
                 tx_index=tx_index, plan_end=y_end, plan_cagr=g_plan, path=path, taper_year=ty)
 
 
@@ -981,17 +1016,18 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 # modernisation and other spending are right-sized at their addressable
                 # shares, ramping in over addressable_ramp_years from the transition year
                 capex_bau = plan['capex'][t]
-                sh, ad = plan['shares'], plan['addressable']
+                ad = plan['addressable']
+                cat = {c: plan['cats'][c][t] for c in PLAN_CATEGORIES}
                 if ss and Ld and active:
                     cb = float(np.sum(res['bau']['model_growth_capex_m'].values[:t + 1]))
                     deferrable = (min(1.0, max(0.0, 1 - (model_growth_cum + growth) / cb)) if cb > 1e-9 else 0.0)
                     ramp_p = min(1.0, (y - trans_year + 1) / plan['ramp_years'])
-                    av_g = capex_bau * sh['growth'] * min(ad['growth'], deferrable)
-                    av_r = capex_bau * sh['replacement'] * ad['replacement'] * ramp_p
-                    av_m = capex_bau * sh['gridmod'] * ad['gridmod'] * ramp_p
-                    av_o = capex_bau * sh['other'] * ad['other'] * ramp_p
+                    av_g = cat['growth'] * min(ad['growth'], deferrable)
+                    av_r = cat['replacement'] * ad['replacement'] * ramp_p
+                    av_m = cat['gridmod'] * ad['gridmod'] * ramp_p
+                    av_o = cat['other'] * ad['other'] * ramp_p
                 capex = capex_bau - (av_g + av_r + av_m + av_o)
-                growth = capex_bau * sh['growth'] - av_g
+                growth = cat['growth'] - av_g
             model_growth_cum += model_growth
             # Connected sooner = load served above what BAU serves in each band (efficiency
             # lowers demand but connects nobody, so it is not counted)
@@ -1134,6 +1170,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 model_growth_capex_m=model_growth, plan_capex_m=(plan['capex'][t] if plan_on else np.nan),
                 capex_avoided_growth_m=av_g, capex_avoided_replacement_m=av_r, capex_avoided_gridmod_m=av_m,
                 capex_avoided_other_m=av_o, deferrable_growth_share=deferrable,
+                **{f'plan_{c}_capex_m': (plan['cats'][c][t] if plan_on else np.nan) for c in PLAN_CATEGORIES},
+                plan_growth_scale=(plan['growth_scale'][t] if plan_on else np.nan),
                 rate_base_m=rb_earning, wires_rate_base_m=rb, regulatory_asset_m=reg_asset, rr_dist_m=rr_dist,
                 program_rr_m=prog_rr, rr_core_m=rr_core, rr_m=rr,
                 program_spend_m=(ss_spend if active else bau_spend), new_program_spend_m=new_spend,

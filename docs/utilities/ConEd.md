@@ -69,6 +69,7 @@ The layered model's central data-centre growth is **0%** (low 0% / high 6%, the 
   The mapping to these four categories is the model's.
 - **No separate transmission plan:** transmission has no bill line in New York.
 - **Long-run capacity value** (sensitivity): $200/kW-year. Brattle for NY DPS and NYSERDA (Jan 2025, via Utility Dive): avoided generation capacity cost above $200/kW-year in 2040. The NYISO market monitor's 2-hour battery Net CONE is also $200/kW-year.
+- **Load the plan assumes:** 0.7% a year of CECONY peak growth (10-K; the forecast Con Edison uses for capital planning). The model grows peak 1.26% a year (2026–2030), mainly through electrification, so the load link scales plan-year growth capex by 1.82.
 
 ## Utility-specific vs borrowed
 

@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share |
 |---|---:|---:|---:|---:|---:|---:|
-| ConEd | 30 | 28 | 60 | 27 | 145 | 41% |
-| RGE | 15 | 20 | 72 | 27 | 134 | 54% |
-| DomVA | 40 | 25 | 57 | 27 | 149 | 38% |
-| PepcoMD | 23 | 29 | 61 | 27 | 140 | 44% |
+| ConEd | 31 | 28 | 60 | 28 | 147 | 41% |
+| RGE | 15 | 19 | 74 | 28 | 136 | 54% |
+| DomVA | 40 | 25 | 58 | 28 | 151 | 38% |
+| PepcoMD | 24 | 29 | 61 | 28 | 142 | 43% |
 
 ## Status counts by layer
 
@@ -23,7 +23,7 @@ All four utilities together.
 |---|---:|---:|---:|---:|---:|
 | starting_bill | 55 | 9 | 13 | 0 | 77 |
 | projection | 4 | 0 | 12 | 0 | 16 |
-| system_needs | 4 | 16 | 8 | 0 | 28 |
+| system_needs | 4 | 15 | 9 | 0 | 28 |
 | programs | 19 | 20 | 129 | 8 | 176 |
 | deferral | 0 | 0 | 4 | 0 | 4 |
 | load_enabled | 0 | 0 | 12 | 12 | 24 |
@@ -34,7 +34,7 @@ All four utilities together.
 | mechanism | 0 | 4 | 0 | 4 | 8 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
-| bau_plan | 7 | 6 | 4 | 32 | 49 |
+| bau_plan | 9 | 6 | 6 | 36 | 57 |
 | capacity_carve_out | 0 | 0 | 3 | 0 | 3 |
 | starting_adjustments | 1 | 0 | 0 | 0 | 1 |
 
@@ -46,7 +46,7 @@ _VERIFY / total status-tagged inputs.
 |---|---:|---:|---:|---:|
 | starting_bill | 1 / 25 | 6 / 12 | 1 / 25 | 5 / 15 |
 | projection | 3 / 4 | 3 / 4 | 3 / 4 | 3 / 4 |
-| system_needs | 2 / 7 | 2 / 7 | 2 / 7 | 2 / 7 |
+| system_needs | 2 / 7 | 3 / 7 | 2 / 7 | 2 / 7 |
 | programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 |
 | deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
 | load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
@@ -57,7 +57,7 @@ _VERIFY / total status-tagged inputs.
 | mechanism | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
-| bau_plan | 0 / 11 | 2 / 12 | 1 / 13 | 1 / 13 |
+| bau_plan | 0 / 13 | 3 / 14 | 2 / 15 | 1 / 15 |
 | capacity_carve_out | – | 1 / 1 | 1 / 1 | 1 / 1 |
 | starting_adjustments | – | – | – | 0 / 1 |
 
@@ -212,6 +212,8 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
 | bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
 | bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-01 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.007 |  |  |  | per year (system peak) | sourced | 2026-11-01 | Con Edison 2025 Form 10-K, Electric Peak Demand: CECONY forecasts an average annual increase in peak demand at design conditions of about 0… |
 
 **ConEd: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
 
@@ -261,7 +263,7 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | system_needs | baseline_energy_growth |  | 0.0 | 0.005 | 0.01 | per year | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 BASELINE_LOAD_GROWTH (central); +/-0.5 pt |
 | system_needs | electrification_growth |  | 0.0048 | 0.0096 | 0.0144 | per year, share of 2026 non-DC sales | derived | 2026-10-31 | Derived: mean of notebooks/GridDividend_NewYork.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 = 0.0096 (total electrification, EVs and bui… |
 | system_needs | ev_share_of_electrification | 0.8 |  |  |  | share of electrification energy | sourced | 2026-10-31 | NREL Electrification Futures Study: transportation is 1,424 of 1,782 TWh (80%) of the 2050 increase in the High scenario and 810 of 932 TWh… |
-| system_needs | dc_growth |  | 0.0 | 0.05 | 0.1 | per year | derived | 2026-10-31 | utility JSON dc_load_growth_rate (central); low none, high double |
+| system_needs | dc_growth |  | 0.0 | {"2026":0,"2027":0,"2028":86.2,"2029":160.8,"2030":229.8} | 0.05 | per year, or {year: MW added since 2026} | _VERIFY | 2026-11-01 | NYISO 2026 Load & Capacity Data Report (Gold Book), Table I-14 Large Load Forecast, Zone B summer peak: 11 MW (2026), 11 (2027), 161 (2028)… |
 | system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-10-31 | Assumption for data-centre energy from MW |
 | system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-10-31 | Assumption: v1.0 grows peak with load one-for-one (central) |
 | system_needs | dist_upgrade_cost_per_mw |  | 0.8 | 1.5 | 3.0 | $M per MW of new peak | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 notes: overhead reinforcement $0.5-1.5M/MW, substations $1.5-3.0M/MW |
@@ -375,6 +377,8 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-10-31 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
 | bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-10-31 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
 | bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-01 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.0303 |  |  |  | per year (zone summer coincident peak) | _VERIFY | 2026-11-01 | NYISO 2026 Load & Capacity Data Report (Gold Book), Table I-3a: Zone B summer coincident peak 1,828 MW (2026) to 2,122 MW (2031) = 3.03% a… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"supply_charge","share":1.0}],"price_us… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | NYISO Rest of State (RG&E is in Load Zone B) monthly spot capacity prices, 2026: May $8.00, Jul $4.14, Sep $5.97/kW-month (Modo Energy NYIS… |
 
 **RGE: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
@@ -554,6 +558,8 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
 | bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029,2030] |  |  |  | years | sourced | 2026-10-31 | Years of the published transmission rate base path. |
 | bau_plan | transmission_plan_rate_base_m | [13500,15400,17300,19400,21600,23700] |  |  |  | $M (end of year) | sourced | 2026-10-31 | Dominion Energy Q4 2025 earnings call slides (23 Feb 2026), Dominion Energy Virginia illustrative rate base ($B): Electric transmission rid… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-01 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.054 |  |  |  | per year (zone summer peak) | _VERIFY | 2026-11-01 | PJM 2026 Long-Term Load Forecast (14 Jan 2026): Dominion (DOM) zone summer peak growth of 5.4% a year over 10 years (4.9% over 15, 4.1% ove… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"generation_kwh","share":0.915},{"line"… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | Price: DOM zone 2026/27 BRA $329.17/MW-day. Peak: Dominion_VA.json. Residential share and customers: EIA-861 2024 (VA + NC). Scaling: PJM F… |
 
 **DomVA: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
@@ -731,6 +737,8 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-10-31 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
 | bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029] |  |  |  | years | derived | 2026-10-31 | Years of the published transmission rate base path. |
 | bau_plan | transmission_plan_rate_base_m | [1932.0,2189.4,2512.8,2824.8,3125.9] |  |  |  | $M (end of year) | derived | 2026-10-31 | Derived from Exelon Q4 2025 8-K (Ex. 99.2, 12 Feb 2026), Pepco slide: 2025 rate base $8.4B, 23% transmission = $1,932M; transmission capex… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-01 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.0033 |  |  |  | per year (summer peak) | sourced | 2026-11-01 | Maryland PSC Ten-Year Plan (2025-2034), Pepco Maryland forecast: summer peak growing 0.33% a year to 2034 (net sales 0.04% a year); the uti… |
 | capacity_carve_out | capacity_carve_out | {"parents":[{"line":"sos_generation","share":1.0}],"price_u… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-10-31 | Price: PEPCO zone 2026/27 BRA $329.17/MW-day (MD PSC Ten-Year Plan Table 14). Peak: Pepco_MD.json peak_demand_mw. Residential share and cus… |
 | starting_adjustments | order_92607_increase | 3.94 |  |  |  | $/month | sourced | 2026-08-28 | MD PSC Order No. 92607 (Case 9820), Table 1: Commission-authorised residential bill impact +$3.94/month |
 

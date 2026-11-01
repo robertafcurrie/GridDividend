@@ -57,6 +57,8 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
   - the final order and the Exhibit IPCC-6R annual profile;
   - the layered data-centre growth (5% a year central), which the NYISO 2026 Gold Book does not support for Zone B (its peak falls 47 MW);
   - a Rest of State long-run capacity value.
+- **Load the plan assumes:** 3.0% a year, the NYISO 2026 Gold Book Zone B summer peak growth for 2026–2031 (proxy, `_VERIFY`; RG&E's own forecast was not found). The load link scales plan-year growth capex by 0.34–2.06 (1.69 in 2031).
+- **Data centres** (layered model): the Gold Book Zone B large-load forecast (+400 MW by 2030, then flat) x RG&E's share of the zone peak (57%) = +230 MW by 2030 on the 300 MW starting estimate. It replaces the unsourced 5% a year, which is kept as the high case. The full-zone figure is an upper bound.
 
 ## Utility-specific vs borrowed
 

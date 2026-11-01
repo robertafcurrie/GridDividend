@@ -1699,6 +1699,20 @@
           "source": "Dominion Energy Q4 2025 earnings call slides (23 Feb 2026), Dominion Energy Virginia illustrative rate base ($B): Electric transmission rider 13.5 (2025), 15.4, 17.3, 19.4, 21.6, 23.7 (2030), inclusive of non-jurisdictional and CWIP. The transmission bill line follows this rate base per MW of system peak (network service rates = revenue over zonal peak).",
           "as_of": "2026-10-31",
           "status": "sourced"
+        },
+        "link_growth_to_load": {
+          "value": true,
+          "unit": "true | false",
+          "source": "Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative system peak growth since 2026 relative to the load growth the plan assumes (plan_load_growth). False: plan capex fixed regardless of load. Replacement, grid modernisation and other categories stay on plan either way.",
+          "as_of": "2026-11-01",
+          "status": "setting"
+        },
+        "plan_load_growth": {
+          "value": 0.054,
+          "unit": "per year (zone summer peak)",
+          "source": "PJM 2026 Long-Term Load Forecast (14 Jan 2026): Dominion (DOM) zone summer peak growth of 5.4% a year over 10 years (4.9% over 15, 4.1% over 20), as reported by Utility Dive ('PJM trims near-term load forecast', Jan 2026). Proxy for the load growth behind Dominion's 2026-2030 distribution plan: PJM's zonal forecast includes transmission-connected data centres.",
+          "as_of": "2026-11-01",
+          "status": "_VERIFY"
         }
       }
     },

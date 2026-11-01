@@ -262,7 +262,9 @@ NEW_LAYERS_OFF = {'wholesale_energy': False, 'transmission': False, 'losses': Fa
 MODEL_BAU = {('bau_plan', 'basis'): 'model'}          # the BAU basis before published-plan BAU
 # Data changed after 7c9b6e6: Con Edison's layered data-centre growth (central 0%, was 6%); the
 # pinned-output tests run the current JSON with the earlier value so they still reproduce exactly
-DATA_SINCE_7C9B = {'ConEd': {('system_needs', 'dc_growth'): 0.06}}
+# and RG&E's (central = NYISO Gold Book Zone B large loads, was 5%) after 94992aa
+DATA_SINCE_7C9B = {'ConEd': {('system_needs', 'dc_growth'): 0.06}, 'RGE': {('system_needs', 'dc_growth'): 0.05}}
+PLAN_FIXED = {('bau_plan', 'link_growth_to_load'): False}   # plan capex fixed regardless of load
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
 
@@ -628,10 +630,10 @@ def test_published_plan_capex_and_beyond_paths(key, nb):
     uj, p = _utility(key, nb)
     bp = uj['forward_assumptions']['bau_plan']['params']
     yrs, plan = bp['plan_years']['value'], bp['plan_dist_capex_m']['value']
-    b = LY.project_layers(uj, p)['bau'].set_index('year')
+    b = LY.project_layers(uj, p, overrides=PLAN_FIXED)['bau'].set_index('year')
     np.testing.assert_allclose(b.loc[yrs, 'capex_m'].values, plan, rtol=1e-12)
     np.testing.assert_allclose(b.loc[yrs, 'plan_capex_m'].values, plan, rtol=1e-12)
-    runs = {path: LY.project_layers(uj, p, overrides={('bau_plan', 'beyond_path'): path})['bau'].set_index('year')
+    runs = {path: LY.project_layers(uj, p, overrides={**PLAN_FIXED, ('bau_plan', 'beyond_path'): path})['bau'].set_index('year')
             for path in LY.BEYOND_PATHS}
     g_plan = (bp['plan_cagr_override']['value'] if 'plan_cagr_override' in bp
               else (plan[-1] / plan[0]) ** (1 / (len(plan) - 1)) - 1)
@@ -641,11 +643,11 @@ def test_published_plan_capex_and_beyond_paths(key, nb):
     infl = uj['forward_assumptions']['projection']['inflation_rate']['value']
     tp, dn = runs['taper'], b['network_demand_mw']
     ty = bp['taper_year']['central']
-    sysdf = LY.project_layers(uj, p)['system'].set_index('year')['net_peak_mw']
+    sysdf = LY.project_layers(uj, p, overrides=PLAN_FIXED)['system'].set_index('year')['net_peak_mw']
     for y in (ty + 1, 2050):
         assert tp.loc[y, 'capex_m'] / tp.loc[y - 1, 'capex_m'] == pytest.approx(sysdf.loc[y] / sysdf.loc[y - 1] * (1 + infl), rel=1e-9)
     # policy: from the first year after the plan, nominal network peak growth with electrification at high
-    run = LY.project_layers(uj, p)
+    run = LY.project_layers(uj, p, overrides=PLAN_FIXED)
     a_hi = {**run['assumptions'], 'system_needs': {**run['assumptions']['system_needs'],
             'electrification_growth': uj['forward_assumptions']['layers']['system_needs']['params']['electrification_growth']['high']}}
     hi = LY.system_path(p, a_hi, True).set_index('year')['net_peak_mw']
@@ -663,14 +665,14 @@ def test_plan_capex_avoidance_by_category(key, nb):
     uj, p = _utility(key, nb)
     r = LY.project_layers(uj, p)
     b, s, a = r['bau'].set_index('year'), r['ss'].set_index('year'), r['assumptions']['bau_plan']
-    sh = dict(zip(LY.PLAN_CATEGORIES, a['category_shares']))
     av = b['capex_m'] - s['capex_m']
+    np.testing.assert_allclose(b['capex_m'].values, b[[f'plan_{c}_capex_m' for c in LY.PLAN_CATEGORIES]].sum(axis=1).values, rtol=1e-12)
     parts = s[['capex_avoided_growth_m', 'capex_avoided_replacement_m', 'capex_avoided_gridmod_m', 'capex_avoided_other_m']].sum(axis=1)
     np.testing.assert_allclose(av.values, parts.values, rtol=1e-9, atol=1e-9)
-    assert (s['capex_avoided_growth_m'] <= b['capex_m'] * sh['growth'] * a['addressable_growth'] + 1e-9).all()
+    assert (s['capex_avoided_growth_m'] <= b['plan_growth_capex_m'] * a['addressable_growth'] + 1e-9).all()
     full = 2028 + int(a['addressable_ramp_years'])
     np.testing.assert_allclose(s.loc[full:, 'capex_avoided_replacement_m'],
-                               b.loc[full:, 'capex_m'] * sh['replacement'] * a['addressable_replacement'], rtol=1e-9)
+                               b.loc[full:, 'plan_replacement_capex_m'] * a['addressable_replacement'], rtol=1e-9)
     assert (s.loc[:2027, ['capex_avoided_growth_m', 'capex_avoided_replacement_m']].values == 0).all()
     off = LY.project_layers(uj, p, enabled={'deferral': False})
     np.testing.assert_allclose(off['ss']['capex_m'].values, off['bau']['capex_m'].values, rtol=1e-12)
@@ -724,3 +726,41 @@ def test_rge_plan_from_rate_case():
     assert bp['plan_years']['value'] == list(range(2026, 2032))
     hydro, common = 14735 / 336163, 471.6 * 0.7139
     assert sum(bp['plan_dist_capex_m']['value']) == pytest.approx(5060 * (1 - hydro) + common, abs=0.5)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_plan_growth_capex_linked_to_load(key, nb):
+    """Linked: plan-year growth capex = plan x growth share x cumulative model growth / cumulative plan growth; other categories on plan."""
+    uj, p = _utility(key, nb)
+    bp = uj['forward_assumptions']['bau_plan']['params']
+    assert bp['link_growth_to_load']['value'] is True
+    yrs, plan, g = bp['plan_years']['value'], bp['plan_dist_capex_m']['value'], bp['plan_load_growth']['value']
+    sh = dict(zip(LY.PLAN_CATEGORIES, bp['category_shares']['value']))
+    r = LY.project_layers(uj, p)
+    b, pk = r['bau'].set_index('year'), r['system'].set_index('year')['peak_mw']
+    for y, cp in zip(yrs, plan):
+        t = y - 2026
+        sc = 1.0 if t == 0 else max(0.0, (pk[y] / pk[2026] - 1) / ((1 + g) ** t - 1))
+        assert b.loc[y, 'plan_growth_capex_m'] == pytest.approx(cp * sh['growth'] * sc, rel=1e-9)
+        for c in ('replacement', 'gridmod', 'other'):
+            assert b.loc[y, f'plan_{c}_capex_m'] == pytest.approx(cp * sh[c], rel=1e-12)
+    fixed = LY.project_layers(uj, p, overrides=PLAN_FIXED)['bau'].set_index('year')
+    np.testing.assert_allclose(fixed.loc[yrs, 'capex_m'].values, plan, rtol=1e-12)
+    # more model load growth than the plan assumes -> more growth capex, and vice versa
+    if pk[yrs[-1]] / pk[2026] - 1 > (1 + g) ** (yrs[-1] - 2026) - 1:
+        assert b.loc[yrs[-1], 'capex_m'] > fixed.loc[yrs[-1], 'capex_m']
+    else:
+        assert b.loc[yrs[-1], 'capex_m'] <= fixed.loc[yrs[-1], 'capex_m']
+
+
+def test_rge_data_centres_follow_gold_book_zone_b():
+    """RG&E central data-centre load = 300 MW + Gold Book Zone B large-load MW added since 2026 x RG&E share of Zone B; high 5%/yr."""
+    uj, p = _utility('RGE', 'GridDividend_NewYork.ipynb')
+    sy = LY.project_layers(uj, p)['system'].set_index('year')['dc_mw']
+    sh = 1050 / 1828                                  # RG&E share of the Zone B peak
+    added = {2026: 0, 2027: 0, 2028: round(150 * sh, 1), 2029: round(280 * sh, 1), 2030: round(400 * sh, 1),
+             2040: round(400 * sh, 1), 2050: round(400 * sh, 1)}
+    for y, mw in added.items():
+        assert sy[y] == pytest.approx(p['dc_load_mw_start'] + mw)
+    hi = LY.project_layers(uj, p, overrides={('system_needs', 'dc_growth'): 'high'})['system'].set_index('year')['dc_mw']
+    assert hi[2050] == pytest.approx(p['dc_load_mw_start'] * 1.05 ** 24)
