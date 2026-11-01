@@ -1523,7 +1523,7 @@
             3125.9
           ],
           "unit": "$M (end of year)",
-          "source": "Derived from Exelon Q4 2025 8-K (Ex. 99.2, 12 Feb 2026), Pepco slide: 2025 rate base $8.4B, 23% transmission = $1,932M; transmission capex $325M (2026), $400M (2027-2029); rolled forward at the model's 3.5%/yr rate-base decay (Pepco publishes no transmission rate base path). Pepco DC + MD: the PEPCO zone network service rate is set on Pepco's whole transmission revenue requirement.",
+          "source": "Derived from Exelon Q4 2025 8-K (Ex. 99.2, 12 Feb 2026), Pepco slide: 2025 rate base $8.4B, 23% transmission = $1,932M; transmission capex $325M (2026), $400M (2027-2029); rolled forward at the model's 3.5%/yr rate-base decay (Pepco publishes no transmission rate base path). Pepco DC + MD: the PEPCO zone network service rate is set on Pepco's whole transmission revenue requirement. Exelon publishes transmission rate base for the whole company only ($12.7B 2025, $13.3B, $15.0B, $18.6B, $22.3B 2029; +15.3%/yr), not for Pepco, and PJM RTEP lists projects, not a rate base path. Range: at Exelon-wide growth Pepco's transmission rate base would reach $3,392M in 2029 (vs $3,126M here); at the 2.5% projection growth (no plan) the line would grow with inflation only.",
           "as_of": "2026-10-31",
           "status": "derived"
         }

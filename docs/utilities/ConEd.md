@@ -45,6 +45,13 @@ The published check is Con Edison's 2025 average 600 kWh NYC bill, $218.55/month
 - **Network cost and losses:** marginal transmission cost $40.67/kW-year and average losses 4.24%, both from the Con Edison BCA handbook.
 - **Upgrade cost:** $3.0 / 4.0 / 7.1M per MW (notebook Section 1; Idlewild $7.1M/MW).
 
+## Data-centre growth (layered model)
+
+The layered model's central data-centre growth is **0%** (low 0% / high 6%, the earlier assumption). It was 6% a year from 1,500 MW, unsourced.
+- **Con Edison:** forecasts CECONY peak demand growth of about 0.7% a year (2026–2030, design conditions, 12,690 MW in 2026) and cites data centres only for O&R (2025 Form 10-K).
+- **NYISO 2026 Gold Book update:** Zone J is essentially flat (10,847 MW vs 10,824 MW), with large-load growth upstate in Zone D.
+- **Not changed:** the earlier model keeps its 6% (pins) and the 1,500 MW starting estimate, which the layered model also reads. With zero growth, that starting figure only splits today's energy between data-centre and other load.
+
 ## Published-plan BAU
 
 - **Distribution capex plan:** CECONY Electric $4,766M (2026), $4,852M, $5,019M, $6,228M, $6,293M (2030).
@@ -61,7 +68,7 @@ The published check is Con Edison's 2025 average 600 kWh NYC bill, $218.55/month
 
   The mapping to these four categories is the model's.
 - **No separate transmission plan:** transmission has no bill line in New York.
-- **Long-run capacity value** (sensitivity): $200/kW-year UCAP, the NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit.
+- **Long-run capacity value** (sensitivity): $200/kW-year. Brattle for NY DPS and NYSERDA (Jan 2025, via Utility Dive): avoided generation capacity cost above $200/kW-year in 2040. The NYISO market monitor's 2-hour battery Net CONE is also $200/kW-year.
 
 ## Utility-specific vs borrowed
 

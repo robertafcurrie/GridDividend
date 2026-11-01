@@ -149,14 +149,14 @@ Each scenario can also set its own network values. They are empty by default, so
 BAU is what the utility says it will do. By default (`bau_plan.basis: 'published_plan'`) it is built from published sources:
 - **Distribution capex** follows each utility's published capital plan for the plan years:
   - Con Edison: 2025 Form 10-K, 2026–2030;
-  - RG&E: Five-Year Plan, 2026 only;
+  - RG&E: its Case 25-E-0379 proposal, 2026–2031 (the 2028–2031 years are an equal split of the filed total);
   - Dominion: Q4 2025 investor slides, 2026–2030;
   - Pepco: Exelon Q4 2025 slides, 2026–2029, Maryland share.
 - **Beyond the plan,** three selectable paths run to 2050:
   - continue the plan growth rate;
   - **taper** to load growth by a set year (central, 2035);
   - follow policy-driven load growth (high electrification).
-- **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced from each utility's filings where they publish one, and is a proxy otherwise.
+- **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced for Con Edison and RG&E. **Dominion and Pepco use the New York splits as a proxy** (`_VERIFY`); neither publishes one.
 - **Each category has an addressable share:** the part that flexibility, efficiency and better planning could defer, avoid or right-size under shared savings (3.3a).
 - **Transmission** follows its own published plan and stays on its bill line, where it is one (Dominion and Pepco). In New York, transmission is recovered in delivery rates and is part of the plan's electric capex.
 - **The network model no longer generates BAU capex.** It still models capacity, waiting load and the Upgrade Delay, and it estimates how much of the plan's growth-driven spending is deferrable, and where.
@@ -403,7 +403,7 @@ These are all listed in [ASSUMPTIONS.md](ASSUMPTIONS.md); upgrade cost per MW is
 ```
 BAU capex_t        = published plan capex_t                                     (plan years)
                    = BAU capex_t-1 x (1 + g_t)                                  (after the plan)
-  g_t, continue    = plan CAGR (RG&E: a proxy CAGR, one plan year only)
+  g_t, continue    = plan CAGR (RG&E: 0%, its 2028-2031 plan years are flat)
   g_t, taper       = plan CAGR -> nominal network peak growth, linearly, reached by taper_year
   g_t, policy      = nominal network peak growth with electrification at its high level
 nominal peak growth = (network peak_t / network peak_t-1) x (1 + inflation) - 1
@@ -426,8 +426,8 @@ SS capex_t         = BAU capex_t - avoided growth - avoided replacement - avoide
 |---|---:|---:|---:|---:|---|
 | Con Edison | 50.2% | 21.4% | 23.5% | 4.9% | 2026 targets, Q1 2026 capital expenditure report to the NYPSC (derived; mapping is the model's) |
 | RG&E | 25.8% | 53.0% | 8.3% | 12.8% | 2026 Five-Year Plan by category, Q1 2026 capital variance report (derived) |
-| Dominion | 50.0% | 21.4% | 23.7% | 4.9% | Grid transformation share from the Q4 2025 slides; the rest split in Con Edison's proportions (`_VERIFY`) |
-| Pepco MD | 25.8% | 53.0% | 8.3% | 12.8% | RG&E's split as a proxy; Order No. 92607 describes mainly reliability work (`_VERIFY`) |
+| Dominion | 50.0% | 21.4% | 23.7% | 4.9% | **New York proxy:** grid transformation share from the Q4 2025 slides; the rest split in Con Edison's proportions (`_VERIFY`) |
+| Pepco MD | 25.8% | 53.0% | 8.3% | 12.8% | **New York proxy:** RG&E's split; Order No. 92607 describes mainly reliability work (`_VERIFY`) |
 
 **Addressable shares** (settings, low / central / high):
 - growth-driven: 50 / 80 / 100% (central = the earlier model's mature NWS avoidance, Brattle Ontario);
@@ -443,7 +443,10 @@ transmission line_t = transmission line_2026 x (transmission rate base_t / syste
 
 After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inputs:
 - **Dominion:** the transmission rider rate base path from the Q4 2025 slides ($13.5B in 2025 to $23.7B in 2030).
-- **Pepco:** derived from Exelon's transmission capex at the model's 3.5% decay.
+- **Pepco:** derived from Exelon's transmission capex at the model's 3.5% decay. Exelon publishes transmission rate base only company-wide (+15.3% a year, 2025–2029), so the range is shown:
+  - Exelon-wide growth: Pepco's 2050 BAU bill $443/month, saving $25.79;
+  - derived path (central): $419, saving $23.05;
+  - no plan (2.5% growth): $401, saving $20.92.
 
 **Interactions.**
 - BAU bills rise with the plan, so the same percentage of avoided spending is worth more than under the model-derived BAU.
@@ -455,9 +458,9 @@ After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inpu
 - Avoided transmission (3.8) values transmission cost; the distribution plan excludes transmission except in New York. There, the transmission layer's value lowers the delivery bill (3.8), and New York's transmission spend sits in the plan categories (mostly substations and system expansion), so the two can overlap slightly.
 
 **Limitations.**
-- Plans run only 1–5 years; beyond that the path is a choice.
-- RG&E publishes a single year, so it uses Con Edison's CAGR as a proxy.
-- Category splits are mapped by the model, and are proxies for Dominion and Pepco.
+- Plans run 4–6 years; beyond that the path is a choice.
+- RG&E's plan is the company's rate-case proposal; the final order is pending, and Staff recommended $226M and $246M for 2026–27 against $308M and $421M proposed. Its 2028–2031 years are an equal split of the $5.06B 2026–2031 total.
+- Category splits are mapped by the model. **Dominion and Pepco borrow the New York splits.**
 - Addressable shares are settings, not measurements.
 - Pepco's transmission rate base path is derived.
 - Plan capex for Con Edison includes transmission and surcharge-recovered programs, and Dominion's includes North Carolina, consistent with the modelled customer count.
@@ -615,7 +618,7 @@ capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - 
 - Under published-plan BAU, `published_prices` set later years where an auction has cleared: PJM 2027/28 at the $333.44/MW-day cap, from 2027, then `price_growth`.
 - `price_path: 'long_run'` (sensitivity) ramps the price linearly from 2026 to the long-run cost of new entry by `long_run_year` (2040), then grows it with inflation:
   - PJM: Brattle's 2025 CONE study, indicative Net CONE $528/MW-day UCAP = $192.7/kW-year, 2025 $. PJM's own 2027/28 Net CONE for DOM ($178/MW-day) and PEPCO ($292/MW-day) is below today's capped price.
-  - New York: the NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit, $200/kW-year UCAP (2025–2029 reset). RG&E uses it as a proxy.
+  - New York: $200/kW-year. Brattle's study for NY DPS and NYSERDA (Jan 2025, Case 24-E-0165; reported by Utility Dive, 5 Feb 2025) puts avoided generation capacity cost above $200/kW-year on a fully decarbonized grid in 2040, from NREL data. The NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit is also $200/kW-year UCAP (2025–2029 reset). RG&E uses the same value as a proxy.
 
 **Interactions.** Avoided-loss peak MW (3.9) lower the capacity bill line; their value is booked in the losses layer, not here. Capacity cost is in the savings pool.
 
@@ -890,7 +893,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 41%, Dominion 38%, Pepco 44%, RG&E 53%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 41%, Dominion 38%, Pepco 44%, RG&E 54%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.

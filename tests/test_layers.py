@@ -260,6 +260,9 @@ def test_access_zero_with_layers_off(key, nb):
 _FIXTURE_1B09 = os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')
 NEW_LAYERS_OFF = {'wholesale_energy': False, 'transmission': False, 'losses': False, 'roe': False}
 MODEL_BAU = {('bau_plan', 'basis'): 'model'}          # the BAU basis before published-plan BAU
+# Data changed after 7c9b6e6: Con Edison's layered data-centre growth (central 0%, was 6%); the
+# pinned-output tests run the current JSON with the earlier value so they still reproduce exactly
+DATA_SINCE_7C9B = {'ConEd': {('system_needs', 'dc_growth'): 0.06}}
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
 
@@ -282,6 +285,7 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
         ov = dict(TIGHT_NETWORK) if name.endswith('_tight') else {}
         if cur:
             ov.update(MODEL_BAU)
+            ov.update(DATA_SINCE_7C9B.get(key, {}))
         r = LY.project_layers(uj, p, scenario=scn, overrides=ov or None,
                               network={'subband_enabled': False} if cur else None,
                               enabled=NEW_LAYERS_OFF if cur else None)
@@ -611,7 +615,7 @@ def test_model_bau_basis_reproduces_23fec60(key, nb):
     ref = json.load(open(_FIXTURE_23FE))['runs'][key]
     uj, p = _utility(key, nb)
     for sc, cols in ref.items():
-        r = LY.project_layers(uj, p, scenario=sc, overrides=MODEL_BAU)
+        r = LY.project_layers(uj, p, scenario=sc, overrides={**MODEL_BAU, **DATA_SINCE_7C9B.get(key, {})})
         for col, d in cols.items():
             for case in ('bau', 'ss'):
                 exp = np.array([np.nan if v is None else v for v in d[case]], float)
@@ -701,3 +705,22 @@ def test_long_run_capacity_price(key, nb):
     assert r.loc[ly, 'capacity_price_m_per_mw_yr'] == pytest.approx(exp, rel=1e-9)
     today = LY.project_layers(uj, p)['bau'].set_index('year')
     assert r.loc[2050, 'capacity_cost_m'] > today.loc[2050, 'capacity_cost_m']
+
+
+def test_coned_data_centre_growth_matches_forecasts():
+    """Con Edison's central data-centre growth is 0% (CECONY forecast 0.7%/yr peak growth; Zone J flat in the Gold Book)."""
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    sn = uj['forward_assumptions']['layers']['system_needs']['params']['dc_growth']
+    assert sn['central'] == 0.0 and sn['status'] == 'derived'
+    pk = LY.project_layers(uj, p)['system'].set_index('year')['peak_mw']
+    # remaining system peak growth comes from baseline growth and electrification, not data centres
+    assert (pk[2030] / pk[2026]) ** 0.25 - 1 < 0.015
+
+
+def test_rge_plan_from_rate_case():
+    """RG&E's plan covers 2026-2031 (Case 25-E-0379) and sums to the filed electric total, net of hydro, plus common."""
+    uj, _ = _utility('RGE', 'GridDividend_NewYork.ipynb')
+    bp = uj['forward_assumptions']['bau_plan']['params']
+    assert bp['plan_years']['value'] == list(range(2026, 2032))
+    hydro, common = 14735 / 336163, 471.6 * 0.7139
+    assert sum(bp['plan_dist_capex_m']['value']) == pytest.approx(5060 * (1 - hydro) + common, abs=0.5)

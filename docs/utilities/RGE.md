@@ -46,15 +46,17 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 
 ## Published-plan BAU
 
-- **Distribution capex plan:** $385.2M in 2026.
-  - Source: the RG&E Five-Year Plan figure of $402.9M with common costs (NYSEG/RG&E Q1 2026 capital variance report), less the hydro generation share.
-  - Only 2026 is published: RG&E's parent is privately held and files no 10-K. From 2027 the beyond-plan path applies, using Con Edison's 7.2% CAGR as a proxy (`_VERIFY`).
-- **Category split** (2026 plan by category):
-  - growth 25.8% (Customer Focus);
-  - replacement 53.0% (Asset Condition + Reliability);
-  - grid modernisation / resilience 8.3% (Modernization, Resiliency, Innovation, AMI);
-  - other 12.8% (Compliance).
-- **Gaps to close:** RG&E's multi-year capital forecast (the Case 25-E-0379 filing or joint proposal), which would replace the proxy growth rate; and a Rest of State long-run capacity value (the NYISO monitor's $200/kW-year is used as a proxy).
+- **Distribution capex plan:** RG&E's Case 25-E-0379 proposal (final order pending).
+  - Electric capital: $308.4M (2026) and $420.6M (2027), as cited in the Staff Initial Post-Evidentiary Hearing Brief. Staff recommends $226.3M and $246.1M.
+  - 2026–2031 total: $5.06B (Investment Planning and Common Capital Expenditures Panel rebuttal testimony, 5 Dec 2025), so 2028–2031 is an equal split of the remaining $4,331M ($1,082.75M a year). The annual profile is in Exhibit IPCC-6R, which I did not read.
+  - Each year less the hydro generation share (4.4%) plus RG&E common capital ($56.1M a year): **$351.0M, $458.3M, then $1,091.4M a year (2028–2031).**
+  - Beyond 2031 the plan growth rate is taken as 0%, so capex is flat before the taper path brings it to load growth.
+  - This replaces the single 2026 Five-Year Plan year ($385.2M) and the Con Edison 7.2% proxy growth rate.
+- **Category split** (2026 Five-Year Plan by category): growth 25.8% (Customer Focus), replacement 53.0% (Asset Condition + Reliability), grid modernisation / resilience 8.3%, other 12.8% (Compliance). The mix of the later, larger years is not published.
+- **Gaps to close:**
+  - the final order and the Exhibit IPCC-6R annual profile;
+  - the layered data-centre growth (5% a year central), which the NYISO 2026 Gold Book does not support for Zone B (its peak falls 47 MW);
+  - a Rest of State long-run capacity value.
 
 ## Utility-specific vs borrowed
 
@@ -77,7 +79,7 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 
 ## Main `_VERIFY` gaps to close
 
-RG&E has the highest `_VERIFY` share of the four (53%).
+RG&E has the highest `_VERIFY` share of the four (54%).
 
 1. **Final order in Case 25-E-0379:** rate base, revenue, ROE and the delivery rates.
 2. **Current tariff statements:** delivery, transition, SBC and supply rates, and the taxes. Six of the twelve bill lines are `_VERIFY`.

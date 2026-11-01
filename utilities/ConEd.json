@@ -626,10 +626,10 @@
           },
           "dc_growth": {
             "low": 0.0,
-            "central": 0.06,
-            "high": 0.12,
+            "central": 0.0,
+            "high": 0.06,
             "unit": "per year",
-            "source": "utility JSON dc_load_growth_rate (central); low none, high double",
+            "source": "Layered model only (the earlier model's dc_load_growth_rate 0.06 is unchanged). Central 0%: Con Edison forecasts CECONY electric peak demand growth of about 0.7% a year over 2026-2030 at design conditions (12,690 MW in 2026) and cites data centres only for O&R, not CECONY (Con Edison 2025 Form 10-K, Electric Peak Demand); the NYISO 2026 Gold Book load forecast update has the Zone J (New York City) coincident summer peak essentially flat (10,847 MW vs 10,824 MW in the 2025 Fall forecast), with large-load growth in Zone D (+276 MW) (NYSRC ICS meeting #317, 3 Jun 2026). High 6% = the earlier assumption (from 1,500 MW), kept as an upside sensitivity. Was 0 / 6% / 12% (unsourced).",
             "as_of": "2026-10-31",
             "status": "derived"
           },
@@ -1137,7 +1137,7 @@
           "long_run_price_m_per_mw_yr": {
             "value": 0.2,
             "unit": "$M per MW-year (2025 $)",
-            "source": "Potomac Economics (NYISO market monitor), memorandum on the 2025-2029 demand curve reset unit technology (23 Aug 2024): levelized Net CONE of the 2-hour battery reference unit $200/kW-year (UCAP), 2025 to April 2029. The same monitor cites a New York City Net CONE of $314/kW-year under heavy renewable build (comments on the 2024 DCR, Jan 2025).",
+            "source": "Brattle, New York's Grid Flexibility Potential (for NY DPS and NYSERDA, 31 Jan 2025, Case 24-E-0165), as reported by Utility Dive (5 Feb 2025, 'New York grid flexibility'): avoided generation capacity cost greater than $200/kW-year on a fully decarbonized New York grid in 2040, from NREL data with a hydrogen turbine as the marginal generator. Consistent with Potomac Economics (NYISO market monitor), memorandum on the 2025-2029 demand curve reset (23 Aug 2024): levelized Net CONE of the 2-hour battery reference unit $200/kW-year (UCAP); the monitor cites a New York City Net CONE of $314/kW-year under heavy renewable build (Jan 2025).",
             "as_of": "2026-10-31",
             "status": "sourced"
           },

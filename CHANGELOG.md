@@ -6,7 +6,65 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-10-31: Published-plan BAU (this commit)
+## 2026-10-31: Verification of published-plan BAU inputs (this commit)
+
+**What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
+
+1. **Con Edison data-centre growth corrected:** central 0% (low 0%, high 6%), was 6% a year (unsourced).
+   - Con Edison forecasts CECONY peak growth of about 0.7% a year for 2026–2030 and cites data centres only for O&R (2025 Form 10-K).
+   - The NYISO 2026 Gold Book update has Zone J essentially flat (10,847 MW vs 10,824 MW); large-load growth is upstate in Zone D (+276 MW).
+   - The earlier model's 6% and the 1,500 MW starting estimate are unchanged (pins).
+2. **RG&E plan replaced** with its Case 25-E-0379 proposal for 2026–2031:
+   - $308.4M (2026) and $420.6M (2027), as cited by Staff;
+   - $5.06B 2026–2031 total from the rebuttal testimony, with 2028–2031 as an equal split;
+   - net of hydro, plus common capital: $351.0M, $458.3M, then $1,091.4M a year;
+   - plan growth rate beyond 2031: 0%.
+
+   This replaces the single 2026 year and the Con Edison 7.2% proxy. Staff recommended $226.3M and $246.1M for 2026–27; the final order is pending.
+3. **Pepco transmission:** Exelon publishes transmission rate base only company-wide (+15.3% a year, 2025–2029) and PJM RTEP gives projects, not a rate base path. The derived path stays central, with the range documented (below).
+4. **Proxy flag:** README and METHODOLOGY now state that Dominion's and Pepco's capex category splits are New York proxies.
+5. **Long-run capacity source added:** Brattle for NY DPS and NYSERDA (Jan 2025, Case 24-E-0165), as reported by Utility Dive (5 Feb 2025): avoided generation capacity cost above $200/kW-year in 2040 from NREL data. It sits alongside the NYISO market monitor and Brattle PJM CONE sources; the value is unchanged.
+
+**Tests:** two new tests (199 in total). The pinned-output tests run Con Edison at its earlier 6% (`DATA_SINCE_7C9B`), so they still reproduce exactly.
+
+**Effect on results** (published-plan BAU):
+
+| Utility | Scenario | Customer savings $B undiscounted | NPV 3% | 2035 bill lower $/mo | 2050 bill lower $/mo | % of BAU delivery bill 2050 | Shared savings earnings $B | BAU bill 2050 $/mo | BAU capex 2026–2050 $B |
+|---|---|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 11.13 → **10.59** | 6.69 → 6.38 | 4.03 → 4.36 | 16.87 → **21.52** | 4.8% → 4.7% | 2.82 → 2.83 | 500 → 620 | 234.6 → 230.7 |
+| Con Edison | Central | 36.24 → **34.92** | 21.52 → 20.77 | 13.36 → 14.46 | 62.72 → **82.01** | 18.0% → 17.8% | 11.63 → 11.56 | 500 → 620 | 234.6 → 230.7 |
+| Con Edison | Ambitious | 65.94 → **62.33** | 39.21 → 37.14 | 22.99 → 24.50 | 106.23 → **136.44** | 30.5% → 29.7% | 20.46 → 19.89 | 500 → 620 | 234.6 → 230.7 |
+| RG&E | Cautious | 1.20 → **1.97** | 0.73 → 1.19 | 2.53 → 4.18 | 7.13 → **12.48** | 4.0% → 4.3% | 0.27 → 0.60 | 308 → 424 | 18.6 → 35.9 |
+| RG&E | Central | 3.28 → **5.50** | 1.96 → 3.27 | 6.04 → 10.24 | 22.17 → **39.97** | 12.3% → 13.7% | 0.92 → 1.88 | 308 → 424 | 18.6 → 35.9 |
+| RG&E | Ambitious | 5.69 → **8.90** | 3.41 → 5.30 | 10.22 → 16.12 | 36.52 → **62.06** | 20.3% → 21.2% | 1.47 → 2.84 | 308 → 424 | 18.6 → 35.9 |
+
+- **Con Edison's monthly saving rises, while its system-wide savings fall slightly.**
+  - With no data-centre growth, there are fewer kWh to spread the plan's fixed capex over, so the BAU bill per residential customer is higher ($620 vs $500 in 2050) and so is the saving.
+  - Total avoided dollars are a little lower, because there is less load growth to defer after the taper.
+  - On the model basis, Con Edison Central customer savings move from $14.4B to $12.7B.
+- **RG&E's opportunity grows with its much larger filed capital programme:** BAU capex 2026–2050 is $35.9B vs $18.6B.
+
+**Con Edison 2050 saving decomposed (Central, $82.01/month):**
+- **By layer:** deferral −$83.24, capacity −$9.28, transmission −$3.85, losses −$1.27, wholesale −$0.43; offset by programs +$5.44, the mechanism (shared savings earnings) +$10.09 and load enabled +$0.54.
+- **By capex category (2050 avoided capex $3.57B):** growth $2.80B (78%), replacement $0.61B (17%), grid modernisation $0.17B (5%). Cumulative 2026–2050: $32.1B, $9.0B and $2.5B.
+- **Why the 2035 → 2050 jump ($14.46 → $82.01):** three effects compound. The network model's deferrable share of growth capex rises from 18% to 39% as flexible MW build up; plan capex grows from $8.1B to $14.2B a year; and avoided capex stays out of rate base, so the rate-base gap grows from $4.1B to $34.3B and the wires revenue-requirement gap from $0.5B to $4.3B a year.
+- **Why data centres were the top driver in New York City:** at 6% a year from 1,500 MW, data-centre load reached about 6 GW (30% of peak) and a third of sales by 2050. That spread fixed costs and savings over many more kWh, and it lowered the deferrable share. With the corrected 0%, data-centre growth falls to fifth; the top drivers are efficiency ambition, baseline growth, locational match and electrification.
+
+**Pepco transmission range** (BAU bill / saving in 2050, $/month):
+
+| Path | 2050 BAU bill | 2050 saving |
+|---|---:|---:|
+| Exelon-wide growth | 443 | 25.79 |
+| Derived path (central) | 419 | 23.05 |
+| No plan (2.5% growth) | 401 | 20.92 |
+
+**Rate-case context, updated:** Con Edison's 2050 saving is 12.0x its $6.81 increase (2035: 2.1x). RG&E's is 6.3x its approximately $6.38 increase (2035: 1.6x).
+
+**Still to check:** RG&E's layered data-centre growth (5% a year central, unsourced). The 2026 Gold Book has Zone B falling 47 MW, and data-centre growth is RG&E's top tornado driver.
+
+---
+
+## 2026-10-31: `7c9b6e6` Published-plan BAU
 
 **What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
 - **New selectable BAU basis, `bau_plan.basis`.** The default, `'published_plan'`, takes BAU distribution capex from each utility's published plan:

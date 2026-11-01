@@ -596,7 +596,7 @@ def plan_paths(params, a, fa, sysdf, infl):
       network and system peak); infl = inflation rate.
     Distribution capex follows the published plan for the plan years. Beyond the
     plan, `beyond_path`:
-      'continue'  the plan CAGR (or `plan_cagr_override` for a one-year plan);
+      'continue'  the plan CAGR (or `plan_cagr_override` where the endpoint CAGR is not a trend);
       'taper'     the growth rate tapers linearly from the plan CAGR to load growth
                   (network peak growth, nominal) by `taper_year`;
       'policy'    nominal network peak growth with electrification at its high

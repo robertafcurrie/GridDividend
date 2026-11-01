@@ -890,7 +890,7 @@
           "long_run_price_m_per_mw_yr": {
             "value": 0.2,
             "unit": "$M per MW-year (2025 $)",
-            "source": "Proxy: Potomac Economics levelized Net CONE $200/kW-year (UCAP) for the 2-hour battery reference unit (2025-2029 DCR memo, 23 Aug 2024); the monitor notes the Rest of State Net CONE is far below the actual cost of new entry (2025 State of the Market), so the same long-run value is used.",
+            "source": "Brattle, New York's Grid Flexibility Potential (for NY DPS and NYSERDA, 31 Jan 2025, Case 24-E-0165), as reported by Utility Dive (5 Feb 2025, 'New York grid flexibility'): avoided generation capacity cost greater than $200/kW-year on a fully decarbonized New York grid in 2040, from NREL data with a hydrogen turbine as the marginal generator. Consistent with Potomac Economics (NYISO market monitor), memorandum on the 2025-2029 demand curve reset (23 Aug 2024): levelized Net CONE of the 2-hour battery reference unit $200/kW-year (UCAP); the monitor cites a New York City Net CONE of $314/kW-year under heavy renewable build (Jan 2025). Rest of State: the same long-run value is used as a proxy (the monitor notes the Rest of State Net CONE is far below the actual cost of new entry).",
             "as_of": "2026-10-31",
             "status": "_VERIFY"
           },
@@ -1309,26 +1309,36 @@
         },
         "plan_years": {
           "value": [
-            2026
+            2026,
+            2027,
+            2028,
+            2029,
+            2030,
+            2031
           ],
           "unit": "years",
-          "source": "Years covered by the published plan (see plan_dist_capex_m).",
+          "source": "Years covered by the Case 25-E-0379 capital forecast (see plan_dist_capex_m).",
           "as_of": "2026-10-31",
-          "status": "derived"
+          "status": "sourced"
         },
         "plan_dist_capex_m": {
           "value": [
-            385.2
+            351.0,
+            458.3,
+            1091.4,
+            1091.4,
+            1091.4,
+            1091.4
           ],
-          "unit": "$M nominal per year (distribution)",
-          "source": "NYSEG and RG&E, Capital Investment Plan Quarterly Variance Report Q1 2026 (NYPSC, May 2026): RG&E electric investment, Five-Year Plan 2026, $402.9M after allocation of common costs; less the hydro generation share (14,735 / 336,163 = 4.4%) = $385.2M. Only 2026 is published (RG&E's parent is privately held); later years follow beyond_path from 2027. Includes transmission (recovered in delivery rates).",
+          "unit": "$M nominal per year (distribution, incl. transmission recovered in delivery)",
+          "source": "RG&E electric capital as proposed in Case 25-E-0379 (final order pending): $308.4M (2026) and $420.6M (2027) (Staff Initial Post-Evidentiary Hearing Brief, Cases 25-E-0375 et al., citing the Companies' proposal; Staff recommends $226.3M and $246.1M); 2026-2031 total RG&E Electric $5.06B (Investment Planning and Common Capital Expenditures Panel rebuttal testimony, 5 Dec 2025; $5.03B as filed), so 2028-2031 = ($5,060M - $729.0M) / 4 = $1,082.75M a year (equal split: the annual profile is in Exhibit IPCC-6R, not read). Each year less the hydro generation share (14,735 / 336,163 = 4.4%, 2026 Five-Year Plan) plus RG&E common capital ($471.6M 2026-2031, electric allocation 71.39%, = $56.1M a year): $351.0M, $458.3M, then $1091.4M a year. Replaces the single 2026 Five-Year Plan year ($385.2M) and the Con Edison CAGR proxy.",
           "as_of": "2026-10-31",
-          "status": "derived"
+          "status": "_VERIFY"
         },
         "plan_cagr_override": {
-          "value": 0.0719,
+          "value": 0.0,
           "unit": "per year",
-          "source": "Proxy: Con Edison's 2026-2030 electric capex CAGR (($6,293M / $4,766M)^(1/4) - 1, 2025 Form 10-K), the nearest published New York plan; RG&E publishes only 2026. Used as the plan CAGR for the continue and taper paths.",
+          "source": "Growth rate carried beyond 2031 for the continue and taper paths: 0%, because the published total gives 2028-2031 as a flat average (the endpoint CAGR, 25.5% a year 2026-2031, reflects the ramp to the plan's later years, not a trend to extend). Replaces the Con Edison 7.2% proxy.",
           "as_of": "2026-10-31",
           "status": "_VERIFY"
         },

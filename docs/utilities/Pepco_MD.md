@@ -69,7 +69,14 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
   per MW of system peak. Afterwards it tapers to the transmission growth rate by 2035.
 - **Capacity:** the PJM 2027/28 cap price, from 2027.
 - **Long-run capacity value** (sensitivity): Brattle's 2025 CONE study for PJM, as for Dominion. PJM's 2027/28 Net CONE for PEPCO is $292/MW-day.
-- **Gaps to close:** a Maryland-only distribution capital plan by driver, and Pepco's published transmission rate base path.
+- **Transmission range:** Exelon publishes transmission rate base only company-wide ($12.7B in 2025 to $22.3B in 2029, +15.3% a year).
+
+  | Path | 2050 BAU bill, $/month | 2050 saving, $/month |
+  |---|---:|---:|
+  | Exelon-wide growth | 443 | 25.79 |
+  | Derived path (central) | 419 | 23.05 |
+  | No plan (2.5% growth) | 401 | 20.92 |
+- **Gaps to close:** a Maryland-only distribution capital plan by driver, and Pepco's own transmission rate base path.
 
 ## Utility-specific vs borrowed
 
