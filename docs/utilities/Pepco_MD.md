@@ -78,6 +78,7 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
   | No plan (2.5% growth) | 401 | 20.92 |
 - **Gaps to close:** a Maryland-only distribution capital plan by driver, and Pepco's own transmission rate base path.
 - **Load the plan assumes:** 0.33% a year of summer peak growth (Maryland PSC Ten-Year Plan, Pepco's own forecast). The model grows 0.86% a year (electrification), so the load link scales plan-year growth capex by 2.61.
+- **Electrification pace:** central electrification is calibrated to 0.36 of the state-policy rate to match the 0.33% Ten-Year Plan peak growth.
 
 ## Utility-specific vs borrowed
 

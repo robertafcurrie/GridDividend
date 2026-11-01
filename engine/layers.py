@@ -586,6 +586,61 @@ def network_bands(nw, DN0, h):
 
 # ── Published-plan BAU ───────────────────────────────────────────────────────
 
+PACES = ('utility_forecast', 'state_policy')
+
+
+def calibrate_load(params, a):
+    """
+    Electrification pace 'utility_forecast': calibrate the BAU load path to the load
+    forecast behind the utility's published plan (bau_plan.plan_load_growth over the
+    plan years). Electrification growth is scaled by a multiplier m >= 0 (keeping the
+    EV / buildings split) so system peak in the last plan year equals
+    peak_2026 x (1 + plan_load_growth)^n; if even m = 0 overshoots, baseline energy
+    growth is lowered by d (the forecast's efficiency and behind-the-meter solar).
+    'state_policy' keeps the model's electrification assumptions (no calibration).
+    Inputs: params; a = resolve() output. Output: (a with calibrated system_needs,
+    info dict: pace, electrification_multiplier, baseline_adjustment, target and
+    achieved system peak growth per year, plan_end).
+    """
+    bp = a.get('bau_plan', {})
+    pace = bp.get('electrification_pace', 'state_policy')
+    if pace not in PACES:
+        raise ValueError(f'electrification_pace {pace!r} must be one of {PACES}')
+    info = dict(pace=pace, electrification_multiplier=1.0, baseline_adjustment=0.0)
+    g_p = bp.get('plan_load_growth')
+    if pace == 'state_policy' or g_p is None or not bp.get('plan_years'):
+        return a, info
+    end = int(bp['plan_years'][-1]); n = end - YEARS[0]; te = YEARS.index(end)
+    target = (1 + g_p) ** n
+    sn0 = a['system_needs']
+
+    def ratio(m, d):
+        sn = {**sn0, 'electrification_growth': sn0['electrification_growth'] * m,
+              'baseline_energy_growth': sn0['baseline_energy_growth'] + d}
+        P = system_path(params, {**a, 'system_needs': sn}, True)['peak_mw'].values
+        return P[te] / P[0]
+
+    def solve(f, lo, hi):
+        for _ in range(100):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if f(mid) < target else (lo, mid)
+        return (lo + hi) / 2
+
+    m, d = 1.0, 0.0
+    if ratio(0.0, 0.0) > target:                    # even no electrification overshoots
+        m, d = 0.0, solve(lambda x: ratio(0.0, x), -0.2, 0.0)
+    elif ratio(20.0, 0.0) < target:
+        m, d = 20.0, solve(lambda x: ratio(20.0, x), 0.0, 0.2)
+    else:
+        m = solve(lambda x: ratio(x, 0.0), 0.0, 20.0)
+    sn = {**sn0, 'electrification_growth': sn0['electrification_growth'] * m,
+          'baseline_energy_growth': sn0['baseline_energy_growth'] + d}
+    info.update(electrification_multiplier=m, baseline_adjustment=d, plan_end=end,
+                target_peak_growth=g_p, achieved_peak_growth=ratio(m, d) ** (1 / n) - 1,
+                electrification_growth=sn['electrification_growth'], baseline_energy_growth=sn['baseline_energy_growth'])
+    return {**a, 'system_needs': sn}, info
+
+
 PLAN_CATEGORIES = ('growth', 'replacement', 'gridmod', 'other')
 BEYOND_PATHS = ('continue', 'taper', 'policy')
 
@@ -778,6 +833,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                                   a['capacity'], a['mechanism'])
     nw = a['network']
     mode = uplift_mode or le['uplift_mode']
+    load_cal = dict(pace='state_policy', electrification_multiplier=1.0, baseline_adjustment=0.0)
+    if on['system_needs'] and a.get('bau_plan'):
+        a, load_cal = calibrate_load(params, a)
     sysdf = system_path(params, a, on['system_needs'])
     S = sysdf['sales_gwh'].values
     P = sysdf['peak_mw'].values
@@ -1211,7 +1269,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 bands=bands, band_detail={'bau': res['bau_band_df'], 'ss': res['ss_band_df']},
                 program_spend0_m=spend0, program_spend0_parts=spend_parts, starting_lines=lines0,
                 ee_kw_per_mwh=ee_kw_per_mwh, residential_program_allocation=res_alloc, uplift_mode=mode,
-                benchmark_kwh=kwh_b, operating_limit=op_x)
+                benchmark_kwh=kwh_b, operating_limit=op_x, load_calibration=load_cal)
 
 
 # ── Outputs ──────────────────────────────────────────────────────────────────
@@ -1844,3 +1902,38 @@ def layer_contributions(utility_json, params, scenario=None, years=(2035, 2050),
         tot = c.sum()
         out[f'Shared savings earnings attributable ($B, {basis})'] = (c / tot * prev[key]) if abs(tot) > 1e-12 else 0.0
     return out
+
+
+def electrification_pace_table(utility_json, params, scenarios=SCENARIOS):
+    """
+    Each scenario under both electrification paces: 'utility_forecast' (central; BAU
+    load calibrated to the forecast behind the utility's plan) and 'state_policy'
+    (the model's electrification assumptions).
+
+    Output: DataFrame indexed by (scenario, pace): customer savings ($B, undiscounted
+      nominal and NPV 3%), 2035 and 2050 monthly saving ($/month nominal), shared
+      savings earnings ($B), BAU bill 2050 ($/month), and, on the state-policy rows,
+      the additional opportunity if electrification follows state policy (state
+      policy minus utility forecast, customer savings $B undiscounted and 2050 $/month).
+    """
+    rows = []
+    for sc in scenarios:
+        res = {}
+        for pace in PACES:
+            r = project_layers(utility_json, params, scenario=sc, overrides={('bau_plan', 'electrification_pace'): pace})
+            sm = system_summary(r)
+            b, s = r['bau'].set_index('year'), r['ss'].set_index('year')
+            res[pace] = {'scenario': sc, 'pace': pace,
+                         'Customer savings ($B, undiscounted nominal)': sm['Customer savings ($B, undiscounted nominal)'],
+                         'Customer savings ($B, NPV 3%, 2026 $)': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+                         'Monthly saving 2035 ($, nominal)': b.loc[2035, 'avg_bill_total'] - s.loc[2035, 'avg_bill_total'],
+                         'Monthly saving 2050 ($, nominal)': b.loc[2050, 'avg_bill_total'] - s.loc[2050, 'avg_bill_total'],
+                         'Shared savings earnings ($B, undiscounted nominal)': sm['Shared savings earnings ($B, undiscounted nominal)'],
+                         'BAU bill 2050 ($/month, nominal)': b.loc[2050, 'avg_bill_total']}
+        u, sp = res['utility_forecast'], res['state_policy']
+        sp['Additional opportunity, customer savings ($B, undiscounted nominal)'] = (
+            sp['Customer savings ($B, undiscounted nominal)'] - u['Customer savings ($B, undiscounted nominal)'])
+        sp['Additional opportunity, 2050 monthly saving ($, nominal)'] = (
+            sp['Monthly saving 2050 ($, nominal)'] - u['Monthly saving 2050 ($, nominal)'])
+        rows += [u, sp]
+    return pd.DataFrame(rows).set_index(['scenario', 'pace'])

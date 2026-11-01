@@ -1540,6 +1540,13 @@
           "source": "Maryland PSC Ten-Year Plan (2025-2034), Pepco Maryland forecast: summer peak growing 0.33% a year to 2034 (net sales 0.04% a year); the utility's own forecast behind its plan.",
           "as_of": "2026-11-01",
           "status": "sourced"
+        },
+        "electrification_pace": {
+          "value": "utility_forecast",
+          "unit": "'utility_forecast' | 'state_policy'",
+          "source": "Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published plan (plan_load_growth over the plan years) by scaling electrification growth (kept >= 0) and, if needed, lowering baseline growth; the growth-capex scale factor is then 1.0 in the last plan year. 'state_policy': the model's electrification assumptions (notebook ELECTRIFICATION_RAMP, state policy pace), which grow load faster than most utility forecasts.",
+          "as_of": "2026-11-01",
+          "status": "setting"
         }
       }
     },

@@ -58,30 +58,39 @@ Each layer has its own switch and low / central / high inputs, each with a sourc
 
 ## The opportunity
 
-Figures are Central, with the Cautious–Ambitious range in brackets, on **published-plan BAU** (each utility's published capital plan, with its growth-driven part scaled to the model's load growth, then capex growth tapering to load growth by 2035). All $ are nominal. Dominion's and Pepco's capex category splits are New York proxies (see Caveats).
+Figures are Central, with the Cautious–Ambitious range in brackets, on **published-plan BAU**: each utility's published capital plan, with BAU load following the utility's own forecast behind that plan, then capex growth tapering to load growth by 2035. All $ are nominal. Dominion's and Pepco's capex category splits are New York proxies (see Caveats).
 
 | | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| **Customer savings 2026–2050, $B undiscounted** | **49.5** (14.3–86.1) | **16.4** (5.1–42.8) | **5.0** (2.6–7.2) | **6.1** (2.1–9.6) |
-| Customer savings, $B NPV 3% (2026 $) | 29.1 (8.5–50.7) | 10.1 (3.2–26.3) | 3.1 (1.6–4.4) | 3.6 (1.2–5.7) |
-| Average residential bill, $/month lower in 2035 | 17.75 (5.17–29.88) | 6.19 (2.64–14.70) | 11.09 (6.54–14.71) | 10.14 (4.06–16.95) |
-| Average residential bill, $/month lower in 2050 | 125.09 (31.63–209.07) | 12.59 (4.61–30.45) | 27.26 (12.67–39.80) | 61.09 (17.00–86.92) |
-| 2050 saving as % of the BAU delivery bill | 20% (5%–34%) | 12% (4%–28%) | 16% (7%–23%) | 14% (4%–20%) |
+| **Customer savings 2026–2050, $B undiscounted** | **37.8** (11.8–56.8) | **19.3** (6.0–47.1) | **4.4** (2.3–6.1) | **3.8** (1.5–6.2) |
+| Customer savings, $B NPV 3% (2026 $) | 22.4 (7.1–33.9) | 11.8 (3.7–28.7) | 2.7 (1.5–3.8) | 2.3 (0.9–3.8) |
+| Average residential bill, $/month lower in 2035 | 16.13 (4.75–24.52) | 6.64 (2.77–15.54) | 11.01 (6.65–14.55) | 10.88 (4.46–16.54) |
+| Average residential bill, $/month lower in 2050 | 105.69 (27.74–139.53) | 15.79 (5.60–36.69) | 24.31 (11.75–33.15) | 37.56 (14.17–55.13) |
+| 2050 saving as % of the BAU delivery bill | 21% (6%–28%) | 13% (4%–29%) | 15% (7%–21%) | 8% (3%–12%) |
 | New flexible MW by 2050 | 3,576 (466–3,729) | 2,547 (181–7,014) | 327 (169–660) | 545 (7–545) |
 | Upgrade Delay avoided, MW-years (MW waiting in BAU) | 178 (31–215) of 141 MW | 482 (32–637) of 373 MW | 36 (11–49) of 23 MW | 24 (1–26) of 17 MW |
-| Shared savings earnings, $B undiscounted | 17.79 (4.42–30.09) | 2.68 (0.06–9.10) | 0.64 (0.09–1.26) | 2.15 (0.65–3.15) |
+| Shared savings earnings, $B undiscounted | 13.01 (3.46–17.92) | 4.12 (0.38–11.35) | 0.43 (0.03–0.90) | 1.23 (0.46–1.85) |
 
 **Published-plan vs model-derived BAU (Central).** The published plans call for more distribution spending than the network model generated, so there is more to defer and right-size. The model-derived BAU remains selectable (`bau_plan.basis: 'model'`).
 
 | Central | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| BAU average bill 2050, $/month: model → plan | 468 → 783 | 295 → 317 | 403 → 443 | 274 → 561 |
-| BAU distribution capex 2026–2050, $B: model → plan | 147 → 324 | 49 → 62 | 8 → 11 | 8 → 40 |
-| Customer savings, $B undiscounted: model → plan | 12.8 → 49.5 | 13.4 → 16.4 | 4.0 → 5.0 | 1.1 → 6.1 |
-| 2050 bill $/month lower: model → plan | 19.10 → 125.09 | 9.89 → 12.59 | 15.88 → 27.26 | 3.57 → 61.09 |
-| Shared savings earnings, $B: model → plan | 2.06 → 17.79 | 1.39 → 2.68 | 0.18 → 0.64 | 0.00 → 2.15 |
+| BAU average bill 2050, $/month: model → plan | 512 → 653 | 299 → 334 | 424 → 432 | 337 → 580 |
+| BAU distribution capex 2026–2050, $B: model → plan | 150 → 220 | 50 → 80 | 9 → 8 | 8 → 28 |
+| Customer savings, $B undiscounted: model → plan | 11.4 → 37.8 | 12.3 → 19.3 | 3.6 → 4.4 | 0.7 → 3.8 |
+| 2050 bill $/month lower: model → plan | 17.48 → 105.69 | 9.64 → 15.79 | 15.65 → 24.31 | -0.21 → 37.56 |
+| Shared savings earnings, $B: model → plan | 1.68 → 13.01 | 1.13 → 4.12 | 0.12 → 0.43 | 0.00 → 1.23 |
 
-**In context.** The 2050 monthly saving (Central) is about 18 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 10 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 7 times Pepco's ($3.94/month, Order No. 92607) and 1.1 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
+**Additional opportunity if electrification follows state policy.** Central BAU load follows each utility's own forecast. If electrification instead follows state policy (the model's earlier assumptions), load grows faster, the plans' growth-driven spending scales up, and there is more to defer. Customer savings, $B undiscounted:
+
+| | Con Edison | Dominion VA | Pepco MD | RG&E |
+|---|---|---|---|---|
+| Cautious: utility forecast → state policy (additional) | 11.8 → 14.3 (+2.5) | 6.0 → 6.3 (+0.3) | 2.3 → 2.6 (+0.3) | 1.5 → 2.1 (+0.5) |
+| Central: utility forecast → state policy (additional) | 37.8 → 49.5 (+11.6) | 19.3 → 20.3 (+1.0) | 4.4 → 5.0 (+0.7) | 3.8 → 6.1 (+2.3) |
+| Ambitious: utility forecast → state policy (additional) | 56.8 → 86.1 (+29.3) | 47.1 → 52.8 (+5.7) | 6.1 → 7.2 (+1.1) | 6.2 → 9.6 (+3.4) |
+| Central 2050 saving, $/month: utility forecast → state policy | 105.69 → 125.09 | 15.79 → 15.53 | 24.31 → 27.26 | 37.56 → 61.09 |
+
+**In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 6 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.4 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
 
 **What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
 - The energy efficiency saves, valued at today's residential supply rate.
@@ -105,15 +114,15 @@ The notebooks and reports also show:
 
 ## What drives the range
 
-Under published-plan BAU, the largest drivers are a policy choice (how much energy efficiency becomes core utility business), where flexibility is sited (locational match), and network inputs such as the reinforcement lead time. Because growth-driven plan capex now follows the model's load relative to the load the plan assumes, more load growth means more spending to defer, which offsets the thinner spread of fixed costs over more kWh. Data-centre and baseline growth have dropped down the tornado, except for Dominion, where data-centre growth is still second.
+Under published-plan BAU, the largest drivers are a policy choice (how much energy efficiency becomes core utility business), where flexibility is sited (locational match), network inputs such as the reinforcement lead time, and the pace of electrification. Central load follows each utility's forecast; state-policy electrification adds to the opportunity (table above). In Con Edison's tornado, the 6%-a-year data-centre high case comes top: in the plan years the calibration offsets it with less electrification, but after 2030 the extra data-centre growth carries on.
 
 | Policy levers | External drivers |
 |---|---|
-| Efficiency ambition (savings rate): top driver for Con Edison, Dominion and Pepco | Load growth relative to the plan's own forecast (Con Edison 0.7%/yr, Dominion's PJM zone 5.4%/yr, Pepco 0.33%/yr, RG&E's Gold Book zone 3.0%/yr) |
+| Efficiency ambition (savings rate): a top driver for Con Edison, Dominion and Pepco | Electrification pace: utility forecast (central) vs state policy; load growth beyond the utilities' forecasts (Con Edison 0.7%/yr, Dominion 1.88%/yr, Pepco 0.33%/yr, RG&E's Gold Book zone 3.0%/yr) |
 | Flexible MW targets by resource type, and the ramp to reach them | Capacity, energy and transmission price growth |
 | Locational targeting of flexibility and flexible connections | Network upgrade cost per MW |
 | Utility share of savings; addressable shares of the plan (asset-replacement right-sizing is RG&E's second driver) | Efficiency and flexibility costs; the utility's capital plan and its path after the plan horizon |
-| ROE lever: ±60 bp moves Con Edison's 2050 saving by about ±$10.77/month | Existing network headroom and upgrade delays (see the headroom sweep) |
+| ROE lever: ±60 bp moves Con Edison's 2050 saving by about ±$8.28/month | Existing network headroom and upgrade delays (see the headroom sweep) |
 
 ---
 
@@ -156,10 +165,10 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel
   - After the plan, the central path tapers capex growth to load growth by 2035; continuing the plan's growth rate or following high electrification are the alternatives.
   - The split of plan capex into growth, replacement, grid modernisation and other is sourced for Con Edison and RG&E. **Dominion and Pepco use these New York splits as a proxy**: Dominion takes Con Edison's proportions for everything outside grid transformation, and Pepco takes RG&E's.
   - RG&E's plan is the company's Case 25-E-0379 proposal for 2026–2031 (final order pending; Staff recommended less for 2026–27), with 2028–2031 as an equal split of the filed total.
-  - **Growth-driven plan capex is scaled to load:** by the model's cumulative peak growth relative to the plan's assumed load growth (`link_growth_to_load`; turn it off to keep plan capex fixed).
-    - The model grows load faster than Con Edison's own 0.7% forecast (electrification), which raises its BAU capex.
-    - It grows load slower than PJM's 5.4% for Dominion's zone, which lowers Dominion's.
-    - Dominion's and RG&E's assumed load growth are zone forecasts used as proxies.
+  - **Central BAU load is calibrated to each utility's own forecast** behind its plan, by scaling electrification (and, for RG&E, lowering baseline growth), so the load link's growth-capex scale is 1.0 at plan end.
+    - RG&E's scale varies within the plan (0 to 1.36), because the Gold Book's large loads arrive in steps.
+    - **Dominion's forecast is its own LSE forecast (1.88%/yr) and includes Dominion-served data centres;** no distribution-level forecast excluding transmission-connected loads was found.
+    - RG&E's is the Gold Book zone (proxy). Matching it with RG&E's 57% share of the zone's large loads needs RG&E's other load to fall 1.7%/yr.
   - **RG&E's data centres** follow the NYISO 2026 Gold Book Zone B large-load forecast, allocated by RG&E's share of the zone's peak (57%).
   - The addressable shares (how much shared savings can defer or right-size) are settings.
 - **Two-fifths to a half of the inputs are still `_VERIFY`.** By utility: Con Edison 41%, Dominion 38%, Pepco 43%, RG&E 54% of the status-tagged inputs in `starting_bill` and `forward_assumptions` (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.

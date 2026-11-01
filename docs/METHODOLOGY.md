@@ -157,9 +157,16 @@ BAU is what the utility says it will do. By default (`bau_plan.basis: 'published
   - **taper** to load growth by a set year (central, 2035);
   - follow policy-driven load growth (high electrification).
 - **Growth-driven capex follows load** (`link_growth_to_load`, central on).
-  - Each plan records the load growth it assumes: Con Edison 0.7% a year (its 10-K forecast); Pepco 0.33% (its Maryland Ten-Year Plan); Dominion 5.4% (PJM's 2026 DOM zone forecast, proxy); RG&E 3.0% (Gold Book Zone B, proxy).
+  - Each plan records the load growth it assumes:
+    - Con Edison 0.7% a year (its 10-K forecast);
+    - Pepco 0.33% (its Maryland Ten-Year Plan);
+    - Dominion 1.88% (its own 2025 Company Load Forecast for the DOM LSE, which includes Dominion-served data centres);
+    - RG&E 3.0% (Gold Book Zone B, proxy).
   - In the plan years, the growth category is scaled by the model's load growth relative to that assumption. Replacement, grid modernisation and other stay on plan.
   - Plan capex fixed regardless of load remains a setting.
+- **Electrification pace** (`electrification_pace`, central `utility_forecast`).
+  - Central BAU load is calibrated to the forecast behind each utility's plan, so the load link's scale factor is 1.0 at plan end.
+  - `state_policy` keeps the model's electrification assumptions (state policy pace). The difference is reported as the additional opportunity if electrification follows state policy (`electrification_pace_table()`).
 - **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced for Con Edison and RG&E. **Dominion and Pepco use the New York splits as a proxy** (`_VERIFY`); neither publishes one.
 - **Each category has an addressable share:** the part that flexibility, efficiency and better planning could defer, avoid or right-size under shared savings (3.3a).
 - **Transmission** follows its own published plan and stays on its bill line, where it is one (Dominion and Pepco). In New York, transmission is recovered in delivery rates and is part of the plan's electric capex.
@@ -437,16 +444,21 @@ SS capex_t         = BAU capex_t - avoided growth - avoided replacement - avoide
 | Dominion | 50.0% | 21.4% | 23.7% | 4.9% | **New York proxy:** grid transformation share from the Q4 2025 slides; the rest split in Con Edison's proportions (`_VERIFY`) |
 | Pepco MD | 25.8% | 53.0% | 8.3% | 12.8% | **New York proxy:** RG&E's split; Order No. 92607 describes mainly reliability work (`_VERIFY`) |
 
-**Load link** (central on). Scale factors in the plan years and the load growth behind them:
+**Load calibration (utility-forecast pace, central).**
+- `calibrate_load()` scales electrification growth by a multiplier m ≥ 0 (keeping the EV / buildings split) so that system peak in the last plan year equals peak_2026 × (1 + plan_load_growth)^n.
+- If even m = 0 overshoots, baseline growth is lowered by d instead. This stands for the forecast's efficiency and behind-the-meter solar.
+- The calibrated rates continue after the plan.
 
-| Utility | Load growth the plan assumes | Model system peak growth | Growth-capex scale, last plan year |
-|---|---|---|---|
-| Con Edison | 0.7%/yr (10-K) | 1.26%/yr | 1.82 |
-| RG&E | 3.0%/yr (Gold Book Zone B, proxy) | 4.92%/yr | 1.69 |
-| Dominion | 5.4%/yr (PJM 2026 DOM zone, proxy) | 2.47%/yr | 0.44 |
-| Pepco MD | 0.33%/yr (Ten-Year Plan) | 0.86%/yr | 2.61 |
+| Utility | Plan's forecast | Calibration | Scale factor in the plan years | State-policy pace: model growth / scale at plan end |
+|---|---|---|---|---|
+| Con Edison | 0.7%/yr (10-K) | electrification × 0.32 | 1.00 | 1.26%/yr / 1.82 |
+| RG&E | 3.0%/yr (Gold Book Zone B, proxy) | electrification 0; baseline −2.2 pt (to −1.7%/yr) | 0–1.36 (1.00 at 2031) | 4.92%/yr / 1.69 |
+| Dominion | 1.88%/yr (DOM LSE Company Load Forecast) | electrification × 0.47 | 0.99–1.00 | 2.47%/yr / 1.32 |
+| Pepco MD | 0.33%/yr (Ten-Year Plan) | electrification × 0.36 | 1.00 | 0.86%/yr / 2.61 |
 
-Using cumulative growth since 2026, rather than single-year growth, avoids dividing by year-to-year swings. The factor equals 1 when the model's load path matches the plan's. Where the model's load grows faster than the utility's own forecast (Con Edison and Pepco, mainly through electrification), BAU spends more on growth; Dominion's zone forecast includes transmission-connected data centres the distribution model does not carry, so its BAU spends less.
+The scale factor compares cumulative growth since 2026, rather than single-year growth, to avoid dividing by year-to-year swings, and it equals 1 when the model's load path matches the plan's.
+- **RG&E** varies within its plan because the Gold Book's large loads arrive in steps (none in 2027, then +86/161/230 MW), while the plan assumption is a constant rate. Matching the zone total with RG&E's 57% share of those loads needs its other load to fall 1.7% a year.
+- **Dominion:** no distribution-level forecast excluding transmission-connected loads was found. Its own LSE forecast includes the data centres it serves and is compared with the model's system peak, which also includes them. It replaces PJM's 5.4% zone forecast, which includes co-operative load growing 7.4% a year.
 
 **Addressable shares** (settings, low / central / high):
 - growth-driven: 50 / 80 / 100% (central = the earlier model's mature NWS avoidance, Brattle Ontario);
@@ -478,7 +490,9 @@ After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inpu
 
 **Limitations.**
 - Plans run 4–6 years; beyond that the path is a choice.
-- The load link compares the model's system peak with each plan's assumed peak growth. For Dominion and RG&E that assumption is a zone forecast used as a proxy. The scale factor carries the model's load assumptions (notably electrification) into BAU capex.
+- Central load is calibrated to utility forecasts that run only to the plan horizon; the calibrated rates are extended to 2050.
+- RG&E's forecast is a zone proxy. Dominion's includes the data centres it serves.
+- Under state-policy pace, the scale factor carries the model's electrification into BAU capex.
 - RG&E's plan is the company's rate-case proposal; the final order is pending, and Staff recommended $226M and $246M for 2026–27 against $308M and $421M proposed. Its 2028–2031 years are an equal split of the $5.06B 2026–2031 total.
 - Category splits are mapped by the model. **Dominion and Pepco borrow the New York splits.**
 - Addressable shares are settings, not measurements.
@@ -1008,6 +1022,8 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_long_run_capacity_price` | The long-run price path reaches the inflated cost of new entry by `long_run_year` |
 | `test_coned_data_centre_growth_matches_forecasts`, `test_rge_plan_from_rate_case` | Con Edison's data-centre growth is 0%; RG&E's plan sums to the filed total |
 | `test_plan_growth_capex_linked_to_load` | Linked growth capex = plan × share × cumulative model / plan load growth; other categories on plan; link off = fixed plan |
+| `test_utility_forecast_pace_calibrates_load` | Central pace: system peak growth over the plan years equals the plan's forecast; scale factor 1.0 at plan end; state policy uncalibrated |
+| `test_electrification_pace_table` | Both paces for every scenario; additional opportunity = state policy − utility forecast |
 | `test_rge_data_centres_follow_gold_book_zone_b` | RG&E's data-centre load = 300 MW + Gold Book Zone B increments × its zone share; high = 5%/yr |
 
 `tests/test_assumptions_register.py` checks two things:
@@ -1127,6 +1143,7 @@ These need a decision before they are changed:
 | **Published-plan BAU** | BAU distribution capex from the utility's published capital plan, extended to 2050 by a beyond-plan path |
 | **Addressable share** | The part of a plan capex category that shared savings could defer, avoid or right-size |
 | **Deferrable share** | The network model's cumulative reinforcement avoided as a share of BAU reinforcement; caps growth-driven avoidance with the addressable share |
+| **Electrification pace** | Utility forecast (central: BAU load calibrated to the utility's own forecast) or state policy (the model's electrification assumptions) |
 | **Load link** | Scaling of the plan's growth-driven capex by the model's load growth relative to the plan's assumed load growth |
 | **Taper year** | Year by which BAU capex growth reaches load growth on the taper path |
 | **Savings pool contribution** | The change in the cumulative pool when a layer is added in waterfall order |

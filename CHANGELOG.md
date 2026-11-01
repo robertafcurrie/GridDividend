@@ -6,7 +6,74 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: RG&E data centres from the Gold Book; plan growth capex linked to load (this commit)
+## 2026-11-01: Central BAU load follows each utility's forecast; electrification pace (this commit)
+
+**What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
+
+1. **Central BAU load is calibrated to the forecast behind each plan.** New setting `bau_plan.electrification_pace`:
+   - **`utility_forecast` (central):** electrification growth is scaled by a multiplier of 0 or more (and, if needed, baseline growth is lowered) so that the model's system peak over the plan years equals the plan's forecast (`engine.layers.calibrate_load`).
+     - Con Edison 0.7%/yr: electrification × 0.32.
+     - Pepco 0.33%/yr: × 0.36.
+     - Dominion 1.88%/yr: × 0.47.
+     - RG&E 3.03%/yr: electrification 0, baseline −1.7%/yr.
+   - **`state_policy`:** the model's earlier electrification assumptions.
+2. **Dominion's forecast** is now its own 2025 Company Load Forecast for the DOM LSE (2025 IRP Update, Figure 2.1.9): 18,470 MW (2026) to 19,898 MW (2030), 1.88%/yr.
+   - It excludes the co-operative Residual DOM Zone (7.4%/yr), which inflates PJM's 5.4% zone forecast.
+   - **Flag:** no distribution-level forecast excluding transmission-connected large loads was found (the grid utilization filing reports current loading only). The LSE forecast includes Dominion-served data centres, so it is compared with the model's system peak, which also includes all data-centre load.
+3. **Scale factors.** Before (state-policy load): Con Edison 1.82, RG&E 1.69, Dominion 0.44 (against 5.4%), Pepco 2.61 at plan end. Now:
+   - Con Edison and Pepco: 1.00 throughout the plan years.
+   - Dominion: 0.99–1.00.
+   - RG&E: 0–1.36 within the plan and 1.00 at 2031. The Gold Book large loads arrive in steps, while the plan assumption is a constant rate.
+4. **New: `electrification_pace_table()`** runs every scenario under both paces and reports the additional opportunity if electrification follows state policy.
+5. **Tests:** two new tests (209 in total). The BAU-queue mechanism test runs at state-policy pace; the pinned-output tests use the state-policy pace.
+6. **Updated:** METHODOLOGY (2.5, 3.3a, 8, 10, glossary), README (headline table and the electrification-pace table), the assumptions register, utility notes, CLAUDE.md, notebooks and reports.
+
+**Effect on results** (central = utility-forecast pace, before = 17894ab):
+
+| Utility | Scenario | BAU bill 2035 / 2050, $/month | Customer savings $B undiscounted | 2035 saving $/month | 2050 saving $/month | Shared savings earnings $B |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 406 / 783 → 358 / 653 | 14.30 → **11.81** | 5.17 → 4.75 | 31.63 → **27.74** | 4.42 → 3.46 |
+| Con Edison | Central | 406 / 783 → 358 / 653 | 49.46 → **37.85** | 17.75 → 16.13 | 125.09 → **105.69** | 17.79 → 13.01 |
+| Con Edison | Ambitious | 406 / 783 → 358 / 653 | 86.12 → **56.78** | 29.88 → 24.52 | 209.07 → **139.53** | 30.09 → 17.92 |
+| Dominion | Cautious | 232 / 317 → 241 / 334 | 5.13 → **6.04** | 2.64 → 2.77 | 4.61 → **5.60** | 0.06 → 0.38 |
+| Dominion | Central | 232 / 317 → 241 / 334 | 16.40 → **19.31** | 6.19 → 6.64 | 12.59 → **15.79** | 2.68 → 4.12 |
+| Dominion | Ambitious | 232 / 317 → 241 / 334 | 42.81 → **47.07** | 14.70 → 15.54 | 30.45 → **36.69** | 9.10 → 11.35 |
+| Pepco | Cautious | 308 / 443 → 303 / 432 | 2.62 → **2.29** | 6.54 → 6.65 | 12.67 → **11.75** | 0.09 → 0.03 |
+| Pepco | Central | 308 / 443 → 303 / 432 | 5.04 → **4.35** | 11.09 → 11.01 | 27.26 → **24.31** | 0.64 → 0.43 |
+| Pepco | Ambitious | 308 / 443 → 303 / 432 | 7.16 → **6.07** | 14.71 → 14.55 | 39.80 → **33.15** | 1.26 → 0.90 |
+| RG&E | Cautious | 287 / 561 → 292 / 580 | 2.07 → **1.53** | 4.06 → 4.46 | 17.00 → **14.17** | 0.65 → 0.46 |
+| RG&E | Central | 287 / 561 → 292 / 580 | 6.12 → **3.80** | 10.14 → 10.88 | 61.09 → **37.56** | 2.15 → 1.23 |
+| RG&E | Ambitious | 287 / 561 → 292 / 580 | 9.57 → **6.17** | 16.95 → 16.54 | 86.92 → **55.13** | 3.15 → 1.85 |
+
+- **The opportunity on utilities' own forecasts:** Central customer savings $37.8B (Con Edison), $19.3B (Dominion), $4.4B (Pepco), $3.8B (RG&E).
+- **Dominion rises,** because its own LSE forecast (1.88%) replaced PJM's zone forecast (5.4%) as the plan's assumption, so its growth capex is no longer scaled down.
+- **The others fall from the state-policy figures,** because their own forecasts grow load more slowly.
+
+**Additional opportunity if electrification follows state policy:**
+
+| Utility | Scenario | Customer savings $B: utility forecast / state policy (additional) | NPV 3% $B | 2035 saving $/month | 2050 saving $/month | Shared savings earnings $B |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 11.81 / 14.30 (**+2.48**) | 7.08 / 8.51 | 4.75 / 5.17 | 27.74 / 31.63 | 3.46 / 4.42 |
+| Con Edison | Central | 37.85 / 49.46 (**+11.61**) | 22.40 / 29.10 | 16.13 / 17.75 | 105.69 / 125.09 | 13.01 / 17.79 |
+| Con Edison | Ambitious | 56.78 / 86.12 (**+29.34**) | 33.94 / 50.73 | 24.52 / 29.88 | 139.53 / 209.07 | 17.92 / 30.09 |
+| Dominion | Cautious | 6.04 / 6.34 (**+0.29**) | 3.74 / 3.91 | 2.77 / 2.71 | 5.60 / 5.46 | 0.38 / 0.41 |
+| Dominion | Central | 19.31 / 20.26 (**+0.95**) | 11.76 / 12.31 | 6.64 / 6.49 | 15.79 / 15.53 | 4.12 / 4.33 |
+| Dominion | Ambitious | 47.07 / 52.76 (**+5.69**) | 28.74 / 32.01 | 15.54 / 15.46 | 36.69 / 38.35 | 11.35 / 13.37 |
+| Pepco | Cautious | 2.29 / 2.62 (**+0.33**) | 1.46 / 1.65 | 6.65 / 6.54 | 11.75 / 12.67 | 0.03 / 0.09 |
+| Pepco | Central | 4.35 / 5.04 (**+0.69**) | 2.73 / 3.13 | 11.01 / 11.09 | 24.31 / 27.26 | 0.43 / 0.64 |
+| Pepco | Ambitious | 6.07 / 7.16 (**+1.08**) | 3.80 / 4.42 | 14.55 / 14.71 | 33.15 / 39.80 | 0.90 / 1.26 |
+| RG&E | Cautious | 1.53 / 2.07 (**+0.53**) | 0.95 / 1.25 | 4.46 / 4.06 | 14.17 / 17.00 | 0.46 / 0.65 |
+| RG&E | Central | 3.80 / 6.12 (**+2.32**) | 2.33 / 3.63 | 10.88 / 10.14 | 37.56 / 61.09 | 1.23 / 2.15 |
+| RG&E | Ambitious | 6.17 / 9.57 (**+3.40**) | 3.80 / 5.72 | 16.54 / 16.95 | 55.13 / 86.92 | 1.85 / 3.15 |
+
+- **Con Edison has the most to gain:** +$11.6B at Central, +$29.3B at Ambitious.
+- **Dominion's 2050 per-customer saving is slightly lower at state-policy pace** ($15.53 vs $15.79), even though total savings rise (+$1.0B): the extra load spreads costs over more kWh.
+
+**Tornado note.** Under the calibrated pace, Con Edison's data-centre high case (6%/yr) tops the tornado (swing $50/month in 2050). In the plan years the calibration offsets it with zero electrification and lower baseline growth, but after 2030 the extra data-centre growth carries on on top of the reduced rates. Read it as "data centres grow while the utility forecast holds".
+
+---
+
+## 2026-11-01: `17894ab` RG&E data centres from the Gold Book; plan growth capex linked to load
 
 **What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
 

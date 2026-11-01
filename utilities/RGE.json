@@ -1430,6 +1430,13 @@
           "source": "NYISO 2026 Load & Capacity Data Report (Gold Book), Table I-3a: Zone B summer coincident peak 1,828 MW (2026) to 2,122 MW (2031) = 3.03% a year, including Table I-14 large loads (Zone B 11 MW to 411 MW by 2030). Proxy: RG&E's own forecast behind its Case 25-E-0379 capital plan was not found; Zone B also includes National Grid's Genesee territory.",
           "as_of": "2026-11-01",
           "status": "_VERIFY"
+        },
+        "electrification_pace": {
+          "value": "utility_forecast",
+          "unit": "'utility_forecast' | 'state_policy'",
+          "source": "Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published plan (plan_load_growth over the plan years) by scaling electrification growth (kept >= 0) and, if needed, lowering baseline growth; the growth-capex scale factor is then 1.0 in the last plan year. 'state_policy': the model's electrification assumptions (notebook ELECTRIFICATION_RAMP, state policy pace), which grow load faster than most utility forecasts.",
+          "as_of": "2026-11-01",
+          "status": "setting"
         }
       }
     },

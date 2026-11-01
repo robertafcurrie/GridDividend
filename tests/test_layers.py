@@ -259,7 +259,8 @@ def test_access_zero_with_layers_off(key, nb):
 
 _FIXTURE_1B09 = os.path.join(ROOT, 'tests', 'fixtures', 'layers_1b09e20.json')
 NEW_LAYERS_OFF = {'wholesale_energy': False, 'transmission': False, 'losses': False, 'roe': False}
-MODEL_BAU = {('bau_plan', 'basis'): 'model'}          # the BAU basis before published-plan BAU
+MODEL_BAU = {('bau_plan', 'basis'): 'model',          # the BAU basis before published-plan BAU,
+             ('bau_plan', 'electrification_pace'): 'state_policy'}   # with uncalibrated load
 # Data changed after 7c9b6e6: Con Edison's layered data-centre growth (central 0%, was 6%); the
 # pinned-output tests run the current JSON with the earlier value so they still reproduce exactly
 # and RG&E's (central = NYISO Gold Book Zone B large loads, was 5%) after 94992aa
@@ -327,11 +328,13 @@ def test_served_never_exceeds_operating_limit(key, nb):
 
 
 def test_full_utilisation_long_lead_gives_bau_queue():
+    # network mechanism under state-policy load growth (the calibrated utility-forecast load is slower)
     uj, p = _utility('DomVA', 'GridDividend_Virginia.ipynb')
-    base = LY.project_layers(uj, p, network={'subband_enabled': False})
+    sp = {('bau_plan', 'electrification_pace'): 'state_policy'}
+    base = LY.project_layers(uj, p, network={'subband_enabled': False}, overrides=sp)
     assert base['bau']['upgrade_wait_mw'].max() == 0
     r = LY.project_layers(uj, p, network={'subband_enabled': False, 'mean_utilisation': 1.0,
-                                          'reinforcement_lead_years': 'high'})
+                                          'reinforcement_lead_years': 'high'}, overrides=sp)
     assert r['bau']['upgrade_wait_mw'].max() > 0
     assert all(b['loading0'] == pytest.approx(1.0) for b in r['bands'])
 
@@ -764,3 +767,30 @@ def test_rge_data_centres_follow_gold_book_zone_b():
         assert sy[y] == pytest.approx(p['dc_load_mw_start'] + mw)
     hi = LY.project_layers(uj, p, overrides={('system_needs', 'dc_growth'): 'high'})['system'].set_index('year')['dc_mw']
     assert hi[2050] == pytest.approx(p['dc_load_mw_start'] * 1.05 ** 24)
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_utility_forecast_pace_calibrates_load(key, nb):
+    """Central pace: system peak growth over the plan years equals the plan's forecast, so the scale factor is 1.0 at plan end."""
+    uj, p = _utility(key, nb)
+    bp = uj['forward_assumptions']['bau_plan']['params']
+    assert bp['electrification_pace']['value'] == 'utility_forecast'
+    end, g = bp['plan_years']['value'][-1], bp['plan_load_growth']['value']
+    r = LY.project_layers(uj, p)
+    pk = r['system'].set_index('year')['peak_mw']
+    assert (pk[end] / pk[2026]) ** (1 / (end - 2026)) - 1 == pytest.approx(g, abs=1e-9)
+    assert r['bau'].set_index('year').loc[end, 'plan_growth_scale'] == pytest.approx(1.0, abs=1e-6)
+    c = r['load_calibration']
+    assert c['electrification_multiplier'] >= 0
+    sp = LY.project_layers(uj, p, overrides={('bau_plan', 'electrification_pace'): 'state_policy'})
+    assert sp['load_calibration']['electrification_multiplier'] == 1.0
+
+
+def test_electrification_pace_table():
+    uj, p = _utility('PepcoMD', 'GridDividend_Maryland.ipynb')
+    t = LY.electrification_pace_table(uj, p)
+    assert len(t) == 6
+    for sc in LY.SCENARIOS:
+        u, s = t.loc[(sc, 'utility_forecast')], t.loc[(sc, 'state_policy')]
+        assert s['Additional opportunity, customer savings ($B, undiscounted nominal)'] == pytest.approx(
+            s['Customer savings ($B, undiscounted nominal)'] - u['Customer savings ($B, undiscounted nominal)'])

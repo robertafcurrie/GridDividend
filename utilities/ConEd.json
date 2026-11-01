@@ -1662,6 +1662,13 @@
           "source": "Con Edison 2025 Form 10-K, Electric Peak Demand: CECONY forecasts an average annual increase in peak demand at design conditions of about 0.7% a year over the next five years (2026-2030), and states the five-year forecast is used for capital expenditure planning.",
           "as_of": "2026-11-01",
           "status": "sourced"
+        },
+        "electrification_pace": {
+          "value": "utility_forecast",
+          "unit": "'utility_forecast' | 'state_policy'",
+          "source": "Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published plan (plan_load_growth over the plan years) by scaling electrification growth (kept >= 0) and, if needed, lowering baseline growth; the growth-capex scale factor is then 1.0 in the last plan year. 'state_policy': the model's electrification assumptions (notebook ELECTRIFICATION_RAMP, state policy pace), which grow load faster than most utility forecasts.",
+          "as_of": "2026-11-01",
+          "status": "setting"
         }
       }
     }

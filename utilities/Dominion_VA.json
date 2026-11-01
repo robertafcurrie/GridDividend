@@ -1708,11 +1708,18 @@
           "status": "setting"
         },
         "plan_load_growth": {
-          "value": 0.054,
-          "unit": "per year (zone summer peak)",
-          "source": "PJM 2026 Long-Term Load Forecast (14 Jan 2026): Dominion (DOM) zone summer peak growth of 5.4% a year over 10 years (4.9% over 15, 4.1% over 20), as reported by Utility Dive ('PJM trims near-term load forecast', Jan 2026). Proxy for the load growth behind Dominion's 2026-2030 distribution plan: PJM's zonal forecast includes transmission-connected data centres.",
+          "value": 0.0188,
+          "unit": "per year (DOM LSE summer non-coincident peak)",
+          "source": "Dominion Energy Virginia, 2025 IRP Update, Figure 2.1.9, 2025 Company Load Forecast for the DOM LSE (Dominion's own load, excluding the co-operative 'Residual DOM Zone' that grows 7.4% a year): summer NCP 18,470 MW (2026) to 19,898 MW (2030) = 1.88% a year (2.3% a year 2025-2045). No distribution-level forecast excluding transmission-connected large loads was found (the grid utilization filing, PUR-2026-00164, reports current loading); the LSE forecast includes Dominion-served data centres, and is compared with the model's system peak, which also includes all data-centre load. Replaces PJM's 5.4% DOM zone forecast, which includes the co-operative residual zone.",
           "as_of": "2026-11-01",
           "status": "_VERIFY"
+        },
+        "electrification_pace": {
+          "value": "utility_forecast",
+          "unit": "'utility_forecast' | 'state_policy'",
+          "source": "Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published plan (plan_load_growth over the plan years) by scaling electrification growth (kept >= 0) and, if needed, lowering baseline growth; the growth-capex scale factor is then 1.0 in the last plan year. 'state_policy': the model's electrification assumptions (notebook ELECTRIFICATION_RAMP, state policy pace), which grow load faster than most utility forecasts.",
+          "as_of": "2026-11-01",
+          "status": "setting"
         }
       }
     },
