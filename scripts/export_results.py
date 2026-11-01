@@ -16,7 +16,8 @@ from the layered model as it stands (no model changes here):
     other input fixed (customer savings, earnings, 2035 / 2050 monthly saving,
     and yearly customer savings, earnings and pool);
   - objective_sweep per scenario and pace: additional savings objective 0 / 2.5 /
-    5 / 10%, same fields;
+    5 / 10%, same fields, plus the full chart data for each level under 'run'
+    (yearly, waterfall_usd_month, value_flows_m);
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
   - metadata: source commit, date, dollar basis, pool setting.
 
@@ -80,6 +81,15 @@ def load_utility(key):
         _NS[nb_name] = ns
     ns = _NS[nb_name]
     return ns['UTILITIES'][key], ns['utility_data'][key]
+
+
+def with_objective(utility_json, pct):
+    """Copy of utility_json with the additional savings objective set to pct at every level (waterfall sees it too)."""
+    uj = copy.deepcopy(utility_json)
+    spec = uj['forward_assumptions']['layers']['objective']['params']['objective_pct']
+    for lev in LY.LEVELS:
+        spec[lev] = pct
+    return uj
 
 
 def with_pace(utility_json, pace):
@@ -188,19 +198,26 @@ def share_sweep(uj, params, scenario, shares=SHARE_SWEEP):
 
 
 def objective_sweep(uj, params, scenario, levels=OBJECTIVE_SWEEP):
-    """The scenario re-run at each additional savings objective (share of its base), every other input fixed."""
-    return _sweep(uj, params, scenario, ('objective', 'objective_pct'), levels, 'objective_pct', '{:.3f}')
+    """
+    The scenario re-run at each additional savings objective (share of its base),
+    every other input fixed. Each entry also carries the full chart data for that
+    level under 'run' (yearly, waterfall_usd_month, value_flows_m), built exactly as
+    the top-level run block, so the explorer can redraw every chart at each level.
+    """
+    out = _sweep(uj, params, scenario, ('objective', 'objective_pct'), levels, 'objective_pct', '{:.3f}')
+    for pct in levels:
+        out[f'{pct:.3f}']['run'] = run_block(with_objective(uj, pct), params, scenario)
+    return out
 
 
-def run_export(uj, params, scenario):
-    run = LY.project_layers(uj, params, scenario=scenario)
+def run_block(uj, params, scenario, run=None):
+    """The chart data for one run: yearly series, waterfalls and Sankey value flows."""
+    run = run or LY.project_layers(uj, params, scenario=scenario)
     b, s = run['bau'], run['ss']
     flows = value_flows(run, params)
-    sm = LY.system_summary(run)
     bills = {case: {c: _r(d[f'avg_bill_{c}']) for c in LY.CATEGORIES} | {'total': _r(d['avg_bill_total'])}
              for case, d in (('bau', b), ('shared_savings', s))}
     wf = LY.waterfall(uj, params, years=WATERFALL_YEARS, scenario=scenario)
-    by = b.set_index('year'); sy = s.set_index('year')
     return {
         'yearly': {'year': YEARS, 'avg_residential_bill_usd_month': bills,
                    'customer_savings_m': _r(flows['customers']),
@@ -211,7 +228,16 @@ def run_export(uj, params, scenario):
                    'earnings_per_rate_base': {'bau': _r(b['utility_earnings_m'] / b['rate_base_m'], 6),
                                               'shared_savings': _r(s['utility_earnings_m'] / s['rate_base_m'], 6)}},
         'waterfall_usd_month': {str(y): {k: round(float(v), 4) for k, v in wf.loc[y].items()} for y in WATERFALL_YEARS},
-        'value_flows_m': sankey(flows),
+        'value_flows_m': sankey(flows)}
+
+
+def run_export(uj, params, scenario):
+    run = LY.project_layers(uj, params, scenario=scenario)
+    b, s = run['bau'], run['ss']
+    sm = LY.system_summary(run)
+    by = b.set_index('year'); sy = s.set_index('year')
+    return {
+        **run_block(uj, params, scenario, run),
         'headline': {'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
                      'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
                      'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
@@ -261,6 +287,7 @@ def build_export(key):
                         'flows_note': 'Customer savings split residential / business by the residential share of sales (EIA-861, 2024).',
                         'share_sweep_note': 'Each scenario and pace re-run at utility_share 0.20 / 0.30 / 0.40 with every other input fixed (default 0.30). Value creation is held constant across shares: the share moves value between customers and the utility; it does not change what flexibility delivers.',
                         'objective_sweep_note': 'Each scenario and pace re-run with an additional savings objective of 0 / 2.5 / 5 / 10% of its base (default 0%, base dist_revenue_requirement, net of 20% cost to achieve), every other input fixed. The objective is additional to the other layers by assumption.',
+                        'objective_sweep_run_note': 'Each objective_sweep level carries its full chart data under run (yearly, waterfall_usd_month, value_flows_m), built exactly as the top-level run block.',
                         'earnings_note': 'earnings_total_m = equity return on rate base + shared savings earnings; earnings_per_rate_base = earnings_total_m / rate base (wires + program regulatory asset).',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
