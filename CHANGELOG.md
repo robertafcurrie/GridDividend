@@ -6,7 +6,49 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Full run block for each savings-objective level (`6a5dbd7` script; exports in this commit)
+## 2026-11-01: Mechanism options: fast start and customer dividend advance (`a66c089` engine, inputs, script, docs; exports in this commit)
+
+**What changed** (both off by default; every output unchanged with the defaults, tested; v1.0, CORRECTED and the three pins unchanged):
+- **Fast start** (`mechanism.fast_start`): the first savings year becomes 2027 instead of the transition year (2028). Separate near-term ramps (2026–2030) can be set independently: `near_term_ramp_capacity`, `near_term_ramp_programs_mw` and `near_term_ramp_addressable`.
+- **Customer dividend advance** (`mechanism.advance_*`):
+  - a level annual bill credit from 2027, sized at a fraction (default 1.0) of the NPV of customer savings in Cautious (or Central);
+  - paid over `advance_credit_years` (5, the model's choice);
+  - financed at the after-tax WACC as a utility regulatory asset (return reported separately as `advance_return_m`), or securitised at 4%;
+  - recovered from the positive pool before sharing, on a schedule that follows the sizing scenario's pool;
+  - an annual true-up pauses the next credit when the balance is behind schedule;
+  - a cap keeps customers' net saving non-negative in any year.
+- **Export:**
+  - `advance` per scenario and pace: yearly bills, earnings (including the advance return) and pool, with credit, recovery, financing and balance, plus a summary with the worst year against BAU, the smallest saving, and customer savings less the unrecovered balance;
+  - `advance_stress` per pace: sized on Central, realised Cautious.
+- **Register:** 12 new settings, and a new column giving the `_VERIFY` share of measured inputs, excluding settings: Con Edison 50%, Dominion 47%, Pepco 54%, RG&E 69%. The all-input share is now diluted to 36 / 34 / 38 / 48% by the settings each feature adds.
+- **Docs:** METHODOLOGY 3.10a, README and CLAUDE.md.
+- **Tests:** 273 in total (+25).
+  - Defaults are identical to a JSON without the new inputs.
+  - Fast start makes 2027 the first savings year, and each ramp acts on its own.
+  - Credits + financing − recoveries = the 2050 balance, and at the financing rate the PV of credits equals the PV of recoveries plus that balance.
+  - Size and PV of the credits; the cap; the true-up.
+  - Export identities and the stress case.
+- **Exports regenerated:** every existing field is identical.
+
+**What the advance shows** (Cautious sized and realised; stress sized on Central, realised Cautious):
+
+| Utility (utility-forecast pace) | Advance size $M (PV 3%) | Credits paid $M | Recovered $M | Balance 2050 $M | Customer savings $B / less balance | Stress: size $M | Stress: balance 2050 $M | Stress: smallest monthly saving $ (year) |
+|---|---:|---:|---:|---:|---|---:|---:|---|
+| Con Edison | 7,081 | 6,184 | 10,312 | 11,865 | 10.78 / -1.09 | 22,404 | 68,421 | 0.57 (2029) |
+| Dominion | 3,738 | 3,265 | 1,184 | 12,535 | 8.48 / -4.05 | 11,762 | 43,727 | 0.64 (2029) |
+| Pepco | 1,455 | 1,271 | 90 | 5,258 | 3.50 / -1.76 | 2,728 | 10,243 | 1.56 (2029) |
+| RG&E | 945 | 826 | 1,378 | 1,542 | 1.39 / -0.15 | 2,335 | 7,011 | 0.54 (2029) |
+
+- **At the requested default sizing, the advance cannot be repaid from the pool alone,** even when the sizing scenario comes true. The schedule needs 1.7 to 21 times the expected positive pool. Two reasons:
+  - Customer savings include efficiency energy savings that customers keep outside the pool.
+  - The balance accrues at the WACC (about 7%) against a 3% sizing NPV.
+- **Result:** a balance remains in 2050. Net of that balance, customer savings are negative at every utility, and the stress case is several times worse.
+- **The cap holds:** no year's residential bill exceeds BAU. The smallest saving comes in 2029, when the true-up pauses the credit.
+- **Securitisation at 4%** roughly halves the unrecovered balance. A viable advance needs a smaller sizing fraction, sizing on the pool, cheaper financing or longer recovery.
+
+---
+
+## 2026-11-01: Full run block for each savings-objective level (`6a5dbd7` script; exports in `250325f`)
 
 **What changed** (no model changes; default objective 0%; every existing export field unchanged, checked field by field):
 - **New `run` key** in each `objective_sweep` entry (0 / 2.5 / 5 / 10%), with `yearly`, `waterfall_usd_month` and `value_flows_m` for that level.

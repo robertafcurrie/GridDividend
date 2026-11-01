@@ -165,3 +165,27 @@ def test_export_objective_run_blocks(key):
                     assert w['Shared savings'] - w['BAU'] == pytest.approx(steps, abs=1e-3)
                     if e['objective_pct'] > 0:
                         assert w['objective'] < 0                 # the objective lowers the bill
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_advance(key):
+    """Advance blocks: identities hold, worst year is consistent with the yearly bills, stress = Central-sized, Cautious-realized."""
+    ex = _export(key)
+    blocks = [(ex['runs'][pace][sc]['advance'], sc, 'Cautious') for pace in LY.PACES for sc in LY.SCENARIOS]
+    blocks += [(ex['advance_stress'][pace], 'Cautious', 'Central') for pace in LY.PACES]
+    for blk, realized, sizing in blocks:
+        sm, y = blk['summary'], blk['yearly']
+        assert sm['realized_scenario'] == realized and sm['sizing_scenario'] == sizing
+        assert sm['credits_paid_m'] + sm['financing_cost_m'] - sm['recoveries_m'] == pytest.approx(sm['balance_2050_m'], abs=1e-3)
+        assert sum(y['advance_credit_m']) == pytest.approx(sm['credits_paid_m'], abs=1e-2)
+        gap = [s - b for s, b in zip(y['avg_residential_bill_usd_month']['shared_savings'], y['avg_residential_bill_usd_month']['bau'])]
+        w = sm['worst_year_vs_bau']
+        assert w['shared_savings_minus_bau_usd_month'] == pytest.approx(max(gap), abs=1e-3)
+        assert w['exceeds_bau'] is False                  # the cap keeps every year at or below BAU
+        assert sm['customer_savings_less_unrecovered_balance_b'] == pytest.approx(
+            sm['customer_savings_b_undiscounted'] - sm['balance_2050_m'] / 1e3, rel=1e-9)
+    # the default model is untouched: the advance blocks do not change the headline
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            assert ex['runs'][pace][sc]['share_sweep']['0.30']['customer_savings_b_undiscounted'] == \
+                ex['runs'][pace][sc]['headline']['customer_savings_b_undiscounted']
