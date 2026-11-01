@@ -51,9 +51,11 @@ notebooks/
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
 scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
+scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; tornado; metadata)
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
+tests/test_export.py       exports balance and match the headline figures (regenerate exports after any model or JSON change)
 tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json, layers_23fec60_model_bau.json (pinned layer outputs)
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
@@ -62,6 +64,7 @@ docs/ASSUMPTIONS.md, docs/assumptions_register.csv   generated assumptions regis
 docs/utilities/*.md        per-utility data notes (starting point, sources, proxies, _VERIFY gaps)
 docs/*.png                 legacy chart images
 CHANGELOG.md               dated entry per commit and its effect on results
+exports/                   generated JSON for the web explorer (do not edit by hand)
 ```
 
 ## Running and testing
@@ -69,6 +72,7 @@ CHANGELOG.md               dated entry per commit and its effect on results
 ```bash
 python -m pytest tests/                       # full suite (209 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
+python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \
   --ExecutePreprocessor.kernel_name=python3 --ExecutePreprocessor.timeout=1800 GridDividend_Virginia.ipynb
 ```

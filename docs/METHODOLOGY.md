@@ -897,6 +897,13 @@ Faster connections benefit the customers being connected, so they are reported s
   - data-centre flexibility at Ambitious (flexible-connection share and curtailment at their high levels);
   - the three beyond-plan paths.
 
+- **Results export** (`scripts/export_results.py`, `exports/<utility>.json`): every scenario × electrification pace. The Sankey value flows decompose customer savings exactly as `system_summary()` adds them up:
+  - **Gross value:** deferral (BAU − SS wires revenue requirement), capacity, transmission, losses, wholesale and efficiency energy.
+  - **Program costs:** a deduction (BAU surcharges − SS program revenue requirement).
+  - **Split of the net value:** residential customers and business customers (by the residential share of sales, EIA-861), and shared savings earnings.
+
+  `tests/test_export.py` checks that the flows balance and match the headline figures.
+
 The notebooks also show the waterfall, MW tables, the MW path vs ramp limit, the band and constrained tables, and the Upgrade Delay table by request year.
 
 ---
