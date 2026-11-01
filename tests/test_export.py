@@ -189,3 +189,16 @@ def test_export_advance(key):
         for sc in LY.SCENARIOS:
             assert ex['runs'][pace][sc]['share_sweep']['0.30']['customer_savings_b_undiscounted'] == \
                 ex['runs'][pace][sc]['headline']['customer_savings_b_undiscounted']
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_advance_defaults(key):
+    """Enabled defaults: bill-savings recovery, recoverable sizing, securitized 4%; Cautious sized and realized clears."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        sm = ex['runs'][pace]['Cautious']['advance']['summary']
+        assert (sm['recovery_source'], sm['sizing_basis'], sm['financing'], sm['financing_rate']) == \
+            ('bill_savings', 'recoverable', 'securitized', 0.04)
+        assert abs(sm['balance_2050_m']) < 1e-3
+        mc = sm['monthly_credit_2027_2031_usd']
+        assert set(mc) == {str(y) for y in range(2027, 2032)} and mc['2027'] > 0

@@ -6,7 +6,96 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Mechanism options: fast start and customer dividend advance (`a66c089` engine, inputs, script, docs; exports in this commit)
+## 2026-11-01: Fast-start results; dividend advance revised (`e7feb73`, `ea8ef0f` engine, inputs, script, docs; exports in this commit)
+
+**Fast-start results** (utility-forecast pace).
+- **"Fast start (all)":** 2027 is the first savings year.
+- **"Only X":** fast start, with that component brought forward to 2027 and the other two held at their normal 2028 timing. Capacity and programs MW are held at 0 in 2027; the addressable shares follow the 2028-start ramp.
+- **Common to every fast-start variant:** the core-business transfer and efficiency start in 2027.
+
+| Utility | Scenario | Variant | Monthly residential saving 2027 / 2028 / 2029 / 2030 / 2031 ($) | Customer savings $B undiscounted (NPV 3%) |
+|---|---|---|---|---|
+| Con Edison | Central | off | 0.00 / 1.12 / 2.06 / 3.21 / 4.86 | 37.85 (22.40) |
+| Con Edison | Central | fast start (all) | 0.73 / 1.62 / 2.74 / 4.34 / 6.51 | 39.67 (23.68) |
+| Con Edison | Central | fast start: capacity only | 0.25 / 1.38 / 2.35 / 3.63 / 5.59 | 38.97 (23.19) |
+| Con Edison | Central | fast start: programs MW only | 0.28 / 1.38 / 2.34 / 3.77 / 5.91 | 39.32 (23.43) |
+| Con Edison | Central | fast start: addressable only | 0.28 / 1.63 / 2.75 / 4.21 / 6.20 | 39.30 (23.42) |
+| Con Edison | Cautious | off | 0.00 / 0.27 / 0.57 / 0.94 / 1.45 | 11.81 (7.08) |
+| Con Edison | Cautious | fast start (all) | 0.22 / 0.50 / 0.86 / 1.36 / 2.01 | 12.43 (7.52) |
+| Con Edison | Cautious | fast start: capacity only | 0.13 / 0.40 / 0.70 / 1.12 / 1.75 | 12.30 (7.42) |
+| Con Edison | Cautious | fast start: programs MW only | 0.11 / 0.40 / 0.70 / 1.13 / 1.77 | 12.30 (7.42) |
+| Con Edison | Cautious | fast start: addressable only | 0.14 / 0.49 / 0.86 / 1.35 / 1.99 | 12.42 (7.51) |
+| Dominion | Central | off | 0.00 / 0.75 / 1.45 / 2.19 / 3.00 | 19.31 (11.76) |
+| Dominion | Central | fast start (all) | 0.63 / 1.30 / 2.03 / 2.82 / 3.66 | 19.98 (12.27) |
+| Dominion | Central | fast start: capacity only | 0.51 / 1.27 / 1.97 / 2.73 / 3.56 | 19.82 (12.16) |
+| Dominion | Central | fast start: programs MW only | 0.48 / 1.27 / 1.96 / 2.73 / 3.57 | 19.82 (12.16) |
+| Dominion | Central | fast start: addressable only | 0.50 / 1.31 / 2.04 / 2.82 / 3.66 | 19.96 (12.25) |
+| Dominion | Cautious | off | 0.00 / 0.32 / 0.64 / 0.98 / 1.32 | 6.04 (3.74) |
+| Dominion | Cautious | fast start (all) | 0.30 / 0.61 / 0.94 / 1.28 / 1.63 | 6.29 (3.92) |
+| Dominion | Cautious | fast start: capacity only | 0.29 / 0.60 / 0.91 / 1.24 / 1.59 | 6.23 (3.88) |
+| Dominion | Cautious | fast start: programs MW only | 0.27 / 0.60 / 0.91 / 1.24 / 1.59 | 6.23 (3.88) |
+| Dominion | Cautious | fast start: addressable only | 0.28 / 0.62 / 0.94 / 1.28 / 1.63 | 6.28 (3.92) |
+| Pepco | Central | off | 0.00 / 1.12 / 2.29 / 3.56 / 4.94 | 4.35 (2.73) |
+| Pepco | Central | fast start (all) | 1.02 / 2.16 / 3.40 / 4.76 / 6.23 | 4.57 (2.90) |
+| Pepco | Central | fast start: capacity only | 0.95 / 2.08 / 3.27 / 4.58 / 6.03 | 4.52 (2.86) |
+| Pepco | Central | fast start: programs MW only | 0.84 / 2.10 / 3.26 / 4.58 / 6.04 | 4.54 (2.87) |
+| Pepco | Central | fast start: addressable only | 0.93 / 2.17 / 3.41 / 4.76 / 6.22 | 4.56 (2.89) |
+| Pepco | Cautious | off | 0.00 / 0.76 / 1.56 / 2.38 / 3.23 | 2.29 (1.46) |
+| Pepco | Cautious | fast start (all) | 0.73 / 1.49 / 2.29 / 3.12 / 3.98 | 2.38 (1.53) |
+| Pepco | Cautious | fast start: capacity only | 0.69 / 1.44 / 2.21 / 3.02 / 3.88 | 2.36 (1.52) |
+| Pepco | Cautious | fast start: programs MW only | 0.65 / 1.45 / 2.22 / 3.03 / 3.89 | 2.36 (1.52) |
+| Pepco | Cautious | fast start: addressable only | 0.68 / 1.48 / 2.28 / 3.11 / 3.97 | 2.38 (1.53) |
+| RG&E | Central | off | 0.00 / 0.45 / 1.11 / 1.98 / 3.27 | 3.80 (2.33) |
+| RG&E | Central | fast start (all) | 0.32 / 0.98 / 1.89 / 3.05 / 4.67 | 4.10 (2.54) |
+| RG&E | Central | fast start: capacity only | 0.19 / 0.62 / 1.26 / 2.19 / 3.75 | 3.97 (2.44) |
+| RG&E | Central | fast start: programs MW only | 0.07 / 0.66 / 1.28 / 2.22 / 3.79 | 3.99 (2.46) |
+| RG&E | Central | fast start: addressable only | 0.28 / 0.97 / 1.87 / 3.02 / 4.63 | 4.08 (2.53) |
+| RG&E | Cautious | off | 0.00 / 0.22 / 0.54 / 0.94 / 1.48 | 1.53 (0.95) |
+| RG&E | Cautious | fast start (all) | 0.16 / 0.47 / 0.91 / 1.44 / 2.12 | 1.67 (1.04) |
+| RG&E | Cautious | fast start: capacity only | 0.11 / 0.31 / 0.61 / 1.05 / 1.70 | 1.62 (1.00) |
+| RG&E | Cautious | fast start: programs MW only | 0.10 / 0.31 / 0.61 / 1.05 / 1.70 | 1.62 (1.00) |
+| RG&E | Cautious | fast start: addressable only | 0.15 / 0.47 / 0.91 / 1.44 / 2.12 | 1.67 (1.04) |
+
+- **Gains:** fast start adds $0.1–0.6B of customer savings, and its main effect is the 2027 saving ($0.2–1.0/month instead of zero).
+- **Which component matters most:** the addressable-share ramp delivers nearly all of the gain on its own. Capacity and programs MW add less, because flexible MW build up slowly in 2027 anyway.
+
+**Dividend advance, revised** (still off by default; every current output unchanged; every non-advance export field identical):
+- **`advance_recovery_source`:** `bill_savings` (default when enabled) recovers through a rider that withholds part of each year's total customer saving vs BAU; shared savings earnings are unaffected. `pool` keeps the earlier behaviour.
+- **`advance_sizing_basis`:** `recoverable` (default) sizes the advance at the fraction (default 0.5) × the PV, at the financing rate, of the sizing scenario's recoverable savings. `customer_savings` keeps the earlier sizing.
+- **Financing:** securitised at 4% by default; the regulatory asset (WACC, return reported separately) remains an option.
+- **Bug fixed: the recovery schedule did not track paused credits.** Con Edison's pool-based run recovered nothing in 2029–2037 while the pool was positive.
+  - A $7M shortfall in 2028 (the pool was $8M) paused the 2029 credit.
+  - The scheduled balance still assumed that credit, so the actual balance sat below schedule and the "return to schedule" target was zero, until interest closed the gap in 2038.
+  - It was neither the cap nor carry-forward. The schedule now tracks credits actually paid (k0 × the recoverable base).
+- **Cap tightened:** the cap now also binds on the average residential bill, so no year's residential bill exceeds BAU. Before, with bill-savings recovery, the all-customer cap could hold while the residential bill rose above BAU in the stress case.
+- **New output columns:** the monthly residential value of the credit and of the recovery.
+- **Tests:** 297 in total (+24). Cautious sized and realised leaves no 2050 balance, for both sources and both financing options. The NPV identity, cap and true-up tests are kept, with residential-bill and schedule checks.
+- **Updated:** METHODOLOGY 3.10a, the register (two new settings, and the fraction and financing defaults), README and CLAUDE.md.
+
+**Advance results** (utility-forecast pace; enabled defaults):
+
+| Utility | Case | Advance $M (PV 4%) | Credits paid $M | Recovered $M | Unrecovered 2050 $M | Customer savings $B: with advance, net of balance / without | Monthly credit 2027–2031 ($) |
+|---|---|---:|---:|---:|---:|---|---|
+| Con Edison | Cautious sized and realized | 3,010 | 3,381 | 5,907 | 0 | 9.29 / 11.81 | 6.40 / 6.36 / 6.32 / 6.27 / 6.23 |
+| Con Edison | Stress: Central sized, Cautious realized | 9,483 | 4,260 | 7,020 | 0 | 9.05 / 11.81 | 20.16 / 20.03 / 0.00 / 0.00 / 0.00 |
+| Dominion | Cautious sized and realized | 1,607 | 1,805 | 3,022 | 0 | 4.83 / 6.04 | 4.06 / 3.97 / 3.88 / 3.79 / 3.71 |
+| Dominion | Stress: Central sized, Cautious realized | 5,030 | 2,260 | 3,499 | 0 | 4.81 / 6.04 | 12.70 / 12.42 / 0.00 / 0.00 / 0.00 |
+| Pepco | Cautious sized and realized | 631 | 709 | 1,144 | 0 | 1.85 / 2.29 | 12.88 / 12.83 / 12.79 / 12.74 / 12.70 |
+| Pepco | Stress: Central sized, Cautious realized | 1,178 | 1,323 | 1,967 | 249 | 1.40 / 2.29 | 24.02 / 23.93 / 23.85 / 23.76 / 23.68 |
+| RG&E | Cautious sized and realized | 406 | 456 | 766 | 0 | 1.22 / 1.53 | 10.06 / 9.20 / 8.57 / 8.07 / 8.14 |
+| RG&E | Stress: Central sized, Cautious realized | 1,001 | 450 | 663 | 0 | 1.32 / 1.53 | 24.79 / 22.67 / 0.00 / 0.00 / 0.00 |
+
+- **Sized on Cautious and realised Cautious, the advance clears by 2050** at every utility. Central realised gives the same credits and recoveries, because recovery follows the Cautious schedule.
+- **Credits and recovery:** credits are $4–13/month a year for 2027–2031. Recovery withholds half of Cautious's recoverable savings.
+- **Cost to customers:** receiving savings earlier costs customers the 4% financing. Undiscounted customer savings fall, for example Con Edison $11.81B → $9.29B; at NPV 3% the fall is smaller ($7.08B → $6.64B).
+- **Stress case:**
+  - The true-up pauses the credits after two years for Con Edison, Dominion and RG&E, and their balances clear.
+  - Pepco's credits all pay out, and $249M is left in 2050 because the residential cap holds its bill at BAU in later years.
+  - No residential bill exceeds BAU in any case.
+
+---
+
+## 2026-11-01: Mechanism options: fast start and customer dividend advance (`a66c089` engine, inputs, script, docs; exports in `7a2ade7`)
 
 **What changed** (both off by default; every output unchanged with the defaults, tested; v1.0, CORRECTED and the three pins unchanged):
 - **Fast start** (`mechanism.fast_start`): the first savings year becomes 2027 instead of the transition year (2028). Separate near-term ramps (2026–2030) can be set independently: `near_term_ramp_capacity`, `near_term_ramp_programs_mw` and `near_term_ramp_addressable`.
