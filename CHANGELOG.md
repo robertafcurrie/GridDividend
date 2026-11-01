@@ -6,7 +6,26 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-01: Central BAU load follows each utility's forecast; electrification pace (this commit)
+## 2026-11-01: Results export for the web explorer (`dc2480a` script; exports in this commit)
+
+**What changed** (no model changes; all existing tests unchanged):
+- **`scripts/export_results.py`** writes `exports/<utility>.json` for Con Edison, RG&E, Dominion and Pepco. Each file covers every scenario (Cautious / Central / Ambitious) × electrification pace (utility forecast / state policy):
+  - **Yearly, 2026–2050:** BAU and shared-savings average residential bill by category ($/month nominal); customer savings ($M); rate base, BAU and shared savings; equity return; shared savings earnings.
+  - **Waterfall by layer,** 2035 and 2050 ($/month).
+  - **Sankey value flows,** cumulative 2026–2050, $M undiscounted and NPV 3% (2026 $):
+    - gross value by source: deferral, capacity, transmission, losses, wholesale, efficiency energy;
+    - program costs as a deduction;
+    - the split to residential customers, business customers (by the residential share of sales, EIA-861) and shared savings earnings.
+  - **Tornado rows per pace** at Central: driver, policy or external type, low and high change in the 2035 and 2050 saving.
+  - **Metadata:** source commit (`dc2480a`), date, dollar basis, pool setting, BAU basis.
+- **`tests/test_export.py`** (8 tests, 217 in total) checks that the flows balance and that customer savings, NPV, earnings and the 2035 / 2050 savings match `system_summary()` and the bill differences.
+- **Docs:** README, METHODOLOGY 4.6 and CLAUDE.md describe the export. Regenerate it after any model or JSON change.
+
+**Effect on results:** none.
+
+---
+
+## 2026-11-01: `993f9ba` Central BAU load follows each utility's forecast; electrification pace
 
 **What changed** (layered model only; v1.0, CORRECTED and the three pins unchanged):
 
