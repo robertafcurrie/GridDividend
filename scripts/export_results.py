@@ -15,6 +15,8 @@ from the layered model as it stands (no model changes here):
   - share_sweep per scenario and pace: utility_share 0.20 / 0.30 / 0.40, every
     other input fixed (customer savings, earnings, 2035 / 2050 monthly saving,
     and yearly customer savings, earnings and pool);
+  - objective_sweep per scenario and pace: additional savings objective 0 / 2.5 /
+    5 / 10%, same fields;
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
   - metadata: source commit, date, dollar basis, pool setting.
 
@@ -50,11 +52,13 @@ SETUP = ('# ============================================================\n# SECT
 YEARS = LY.YEARS
 WATERFALL_YEARS = (2035, 2050)
 SHARE_SWEEP = (0.20, 0.30, 0.40)                 # utility share of the savings pool (default 0.30)
+OBJECTIVE_SWEEP = (0.0, 0.025, 0.05, 0.10)       # additional savings objective (default 0%)
 # Tornado driver type: a choice regulators or utilities make (policy) or a condition they do not control (external)
-POLICY_LAYERS = {'programs', 'deferral', 'load_enabled', 'mechanism', 'roe'}
+POLICY_LAYERS = {'programs', 'deferral', 'load_enabled', 'mechanism', 'roe', 'objective'}
 POLICY_PARAMS = {('bau_plan', 'addressable_growth'), ('bau_plan', 'addressable_replacement'),
                  ('bau_plan', 'addressable_gridmod'), ('network', 'flex_targeting_share')}
-FLOW_SOURCES = ('deferral', 'capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy')
+FLOW_SOURCES = ('deferral', 'capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy',
+                'additional_objective')
 _NS = {}
 
 
@@ -94,7 +98,10 @@ def value_flows(run, params):
     Customer savings decomposed by source, $M nominal per year (arrays), exactly as
     system_summary() adds them up:
       deferral          = BAU - SS wires revenue requirement (deferral, load enabled,
-                          connection capex, any ROE change on wires)
+                          connection capex, any ROE change on wires), less the
+                          additional objective's share
+      additional_objective = the objective's net reduction in the wires revenue
+                          requirement (objective_saving_m)
       capacity          = BAU - SS capacity cost
       transmission, losses, wholesale = the value-stream layers
       efficiency_energy = efficiency GWh x today's residential supply rate, grown
@@ -107,7 +114,9 @@ def value_flows(run, params):
     t = np.arange(len(YEARS))
     g = run['assumptions']['projection']['supply_energy_growth']
     col = lambda d, c: d[c].values if c in d.columns else np.zeros(len(d))
-    f = {'deferral': (b['rr_dist_m'] - s['rr_dist_m']).values,
+    obj = col(s, 'objective_saving_m')
+    f = {'deferral': (b['rr_dist_m'] - s['rr_dist_m']).values - obj,
+         'additional_objective': obj,
          'capacity': (b['capacity_cost_m'] - s['capacity_cost_m']).values,
          'transmission': col(s, 'transmission_avoided_m'),
          'losses': col(s, 'losses_energy_value_m') + col(s, 'losses_peak_value_m'),
@@ -146,21 +155,16 @@ def _r(v, n=4):
     return [round(float(x), n) for x in v]
 
 
-def share_sweep(uj, params, scenario, shares=SHARE_SWEEP):
-    """
-    The scenario re-run at each utility share of the savings pool, every other input
-    fixed. The pool (value created) does not depend on the share, so customer savings
-    + shared savings earnings is the same at every share; the share only moves value
-    between them (see METHODOLOGY 3.10).
-    """
+def _sweep(uj, params, scenario, key, values, label, fmt):
+    """The scenario re-run at each value of one input, every other input fixed."""
     out = {}
-    for sh in shares:
-        run = LY.project_layers(uj, params, scenario=scenario, overrides={('mechanism', 'utility_share'): sh})
+    for sh in values:
+        run = LY.project_layers(uj, params, scenario=scenario, overrides={key: sh})
         sm = LY.system_summary(run)
         b, s = run['bau'].set_index('year'), run['ss'].set_index('year')
         flows = value_flows(run, params)
-        out[f'{sh:.2f}'] = {
-            'utility_share': sh,
+        out[fmt.format(sh)] = {
+            label: sh,
             'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
             'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
             'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
@@ -171,6 +175,21 @@ def share_sweep(uj, params, scenario, shares=SHARE_SWEEP):
                        'shared_savings_earnings_m': _r(run['ss']['shared_savings_earnings_m']),
                        'savings_pool_m': _r(np.nan_to_num(run['ss']['savings_pool_m'].values))}}
     return out
+
+
+def share_sweep(uj, params, scenario, shares=SHARE_SWEEP):
+    """
+    The scenario re-run at each utility share of the savings pool, every other input
+    fixed. The pool (value created) does not depend on the share, so customer savings
+    + shared savings earnings is the same at every share; the share only moves value
+    between them (see METHODOLOGY 3.10).
+    """
+    return _sweep(uj, params, scenario, ('mechanism', 'utility_share'), shares, 'utility_share', '{:.2f}')
+
+
+def objective_sweep(uj, params, scenario, levels=OBJECTIVE_SWEEP):
+    """The scenario re-run at each additional savings objective (share of its base), every other input fixed."""
+    return _sweep(uj, params, scenario, ('objective', 'objective_pct'), levels, 'objective_pct', '{:.3f}')
 
 
 def run_export(uj, params, scenario):
@@ -187,7 +206,10 @@ def run_export(uj, params, scenario):
                    'customer_savings_m': _r(flows['customers']),
                    'rate_base_m': {'bau': _r(b['rate_base_m'], 1), 'shared_savings': _r(s['rate_base_m'], 1)},
                    'equity_return_m': {'bau': _r(b['equity_return_m'], 2), 'shared_savings': _r(s['equity_return_m'], 2)},
-                   'shared_savings_earnings_m': _r(s['shared_savings_earnings_m'], 3)},
+                   'shared_savings_earnings_m': _r(s['shared_savings_earnings_m'], 3),
+                   'earnings_total_m': {'bau': _r(b['utility_earnings_m'], 2), 'shared_savings': _r(s['utility_earnings_m'], 2)},
+                   'earnings_per_rate_base': {'bau': _r(b['utility_earnings_m'] / b['rate_base_m'], 6),
+                                              'shared_savings': _r(s['utility_earnings_m'] / s['rate_base_m'], 6)}},
         'waterfall_usd_month': {str(y): {k: round(float(v), 4) for k, v in wf.loc[y].items()} for y in WATERFALL_YEARS},
         'value_flows_m': sankey(flows),
         'headline': {'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
@@ -198,6 +220,7 @@ def run_export(uj, params, scenario):
                      'bau_bill_2050': float(by.loc[2050, 'avg_bill_total'])},
         'load_calibration': {k: (float(v) if isinstance(v, (int, float)) else v) for k, v in run['load_calibration'].items()},
         'share_sweep': share_sweep(uj, params, scenario),
+        'objective_sweep': objective_sweep(uj, params, scenario),
     }
 
 
@@ -237,6 +260,8 @@ def build_export(key):
                         'residential_sales_share': params['residential_sales_share'],
                         'flows_note': 'Customer savings split residential / business by the residential share of sales (EIA-861, 2024).',
                         'share_sweep_note': 'Each scenario and pace re-run at utility_share 0.20 / 0.30 / 0.40 with every other input fixed (default 0.30). Value creation is held constant across shares: the share moves value between customers and the utility; it does not change what flexibility delivers.',
+                        'objective_sweep_note': 'Each scenario and pace re-run with an additional savings objective of 0 / 2.5 / 5 / 10% of its base (default 0%, base dist_revenue_requirement, net of 20% cost to achieve), every other input fixed. The objective is additional to the other layers by assumption.',
+                        'earnings_note': 'earnings_total_m = equity return on rate base + shared savings earnings; earnings_per_rate_base = earnings_total_m / rate base (wires + program regulatory asset).',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}

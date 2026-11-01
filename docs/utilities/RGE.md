@@ -82,7 +82,7 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 
 ## Main `_VERIFY` gaps to close
 
-RG&E has the highest `_VERIFY` share of the four (54%).
+RG&E has the highest `_VERIFY` share of the four (52%).
 
 1. **Final order in Case 25-E-0379:** rate base, revenue, ROE and the delivery rates.
 2. **Current tariff statements:** delivery, transition, SBC and supply rates, and the taxes. Six of the twelve bill lines are `_VERIFY`.

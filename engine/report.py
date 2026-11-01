@@ -928,6 +928,7 @@ def render_layered_section(utility_key, utility_json, utility_params):
               'capacity': 'Capacity',
               'wholesale_energy': 'Wholesale energy: flexible load shifted to off-peak hours',
               'transmission': 'Avoided transmission', 'losses': 'Avoided distribution losses',
+              'objective': 'Additional savings objective (unspecified means, net of cost to achieve)',
               'mechanism': 'Shared savings earnings', 'roe': 'ROE lever (allowed ROE vs BAU)',
               'Shared savings': 'Shared-savings bill'}
     wf_rows = [(labels[k], (_fmt(v, 2) if k in ('BAU', 'Shared savings') else f"{v:+.2f}")) for k, v in wf.items()]

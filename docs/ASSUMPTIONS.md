@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share |
 |---|---:|---:|---:|---:|---:|---:|
-| ConEd | 31 | 28 | 60 | 29 | 148 | 41% |
-| RGE | 15 | 19 | 74 | 29 | 137 | 54% |
-| DomVA | 40 | 25 | 58 | 29 | 152 | 38% |
-| PepcoMD | 24 | 29 | 61 | 29 | 143 | 43% |
+| ConEd | 31 | 28 | 60 | 35 | 154 | 39% |
+| RGE | 15 | 19 | 74 | 35 | 143 | 52% |
+| DomVA | 40 | 25 | 58 | 35 | 158 | 37% |
+| PepcoMD | 24 | 29 | 61 | 35 | 149 | 41% |
 
 ## Status counts by layer
 
@@ -31,6 +31,7 @@ All four utilities together.
 | wholesale_energy | 4 | 6 | 18 | 4 | 32 |
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
+| objective | 0 | 0 | 0 | 24 | 24 |
 | mechanism | 0 | 4 | 0 | 4 | 8 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
@@ -54,6 +55,7 @@ _VERIFY / total status-tagged inputs.
 | wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
+| objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
 | mechanism | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
@@ -176,6 +178,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-01 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-01 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-01 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
@@ -341,6 +349,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-01 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-01 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-01 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_NewYork.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
@@ -522,6 +536,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-01 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-01 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-01 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Virginia.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
@@ -702,6 +722,12 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-01 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-01 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-01 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-01 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-01 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
 | mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-10-31 | notebooks/GridDividend_Maryland.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share) |
 | mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-10-31 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |

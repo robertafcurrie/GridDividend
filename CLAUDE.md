@@ -51,7 +51,7 @@ notebooks/
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
 scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
-scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; tornado; metadata)
+scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; savings-objective sweep 0/2.5/5/10%; earnings per rate base; tornado; metadata)
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
@@ -70,7 +70,7 @@ exports/                   generated JSON for the web explorer (do not edit by h
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (209 tests)
+python -m pytest tests/                       # full suite (233 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \
@@ -172,6 +172,7 @@ Layers (each `enabled`, values low / central / high with `source`, `as_of`, `sta
 - `transmission`: firm flexible + efficiency peak MW x `cost_kw_yr` x `avoidable_share`: Con Edison and RG&E marginal transmission cost (BCA handbooks), Dominion and Pepco PJM NITS rates (June 2026; average embedded, so the avoidable share is 0 / 0.5 / 1.0, `_VERIFY`). `bill_basis` 'delivery' (New York: transmission is recovered in delivery rates) or 'transmission_lines'.
 - `losses`: `avg_loss_pct` (Dominion 3.9% PUR-2026-00164; Con Edison 4.24% and RG&E 6.93% from their BCA handbooks; Pepco 4.92% EIA-861) x marginal multipliers (RAP 2011: energy 1.5, peak 3.0). The energy value counts only the part above the average losses already in retail rates (efficiency GWh x average loss x (multiplier - 1) at the supply rate). The peak value is MW x average loss x peak multiplier at the capacity price, which lowers the capacity line.
 - Value layers have `in_pool` (setting, default true): their savings enter the shared-savings pool, like capacity.
+- `objective` (off by default, `objective_pct` 0): additional savings objective, a share of the BAU distribution RR (default), other O&M or plan capex, ramped from `objective_start_year` over `objective_ramp_years`, persistent or fading, net of `objective_cost_to_achieve_pct` (20%); the capex base flows through rate base. Additional by assumption (no overlap test). Output columns `objective_*`; export source `additional_objective` and `objective_sweep`.
 - `mechanism`: utility share of the pool = shared savings earnings. One pool basis, `'revenue_requirement'` (the `'capex'` basis was removed; any other value raises an error).
 - `roe`: allowed ROE in shared savings = BAU ROE + `roe_delta` from the transition year (low / central / high -60 / 0 / +60 basis points; Illinois CEJA performance metrics +/- 20 to 60 bp; Ameren Illinois +/- 24 bp). Changes the wires and program regulatory-asset return, the bill and `equity_return_m`. It stays outside the pool (`roe_in_pool` false), so shared savings earnings are unchanged. A separate lever.
 - Older forward_assumptions carry `wholesale_energy` and `roe` as placeholders (`hook: true`); enabling those raises an error, and missing layers are off.
@@ -314,7 +315,7 @@ The self-contained v1.0 notebook (36 cells). Cell indices are 0-based (matching 
 ## What to be careful about
 
 - **Not a forecast.** Direction and order of magnitude only.
-- **About half the layered inputs are `_VERIFY`** (Con Edison 41%, Dominion 38%, Pepco 43%, RG&E 54% of status-tagged inputs; `docs/ASSUMPTIONS.md` has the counts). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
+- **About half the layered inputs are `_VERIFY`** (Con Edison 39%, Dominion 37%, Pepco 41%, RG&E 52% of status-tagged inputs; `docs/ASSUMPTIONS.md` has the counts). Network loading, upgrade delays for ordinary load and most MW paths use proxies for the utilities without their own data.
 - **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited. Prefer published grid-utilization data wherever it exists (`_grid_utilization_VERIFY`).
 - **Avoided transmission is a range** (PJM NITS is an average embedded cost), and **ROE is a separate lever** outside the pool.
 - **RG&E data is provisional** until the final order in Case 25-E-0379. **Property tax rates are estimates.**

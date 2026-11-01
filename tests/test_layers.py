@@ -794,3 +794,53 @@ def test_electrification_pace_table():
         u, s = t.loc[(sc, 'utility_forecast')], t.loc[(sc, 'state_policy')]
         assert s['Additional opportunity, customer savings ($B, undiscounted nominal)'] == pytest.approx(
             s['Customer savings ($B, undiscounted nominal)'] - u['Customer savings ($B, undiscounted nominal)'])
+
+
+# ── Additional savings objective ──────────────────────────────────────────────
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_objective_zero_is_a_no_op(key, nb):
+    """At the default 0% every output equals the run with the objective layer switched off."""
+    uj, p = _utility(key, nb)
+    assert uj['forward_assumptions']['layers']['objective']['params']['objective_pct']['central'] == 0.0
+    a = LY.project_layers(uj, p)
+    b = LY.project_layers(uj, p, enabled={'objective': False})
+    for case in ('bau', 'ss'):
+        for col in b[case].columns:
+            np.testing.assert_array_equal(a[case][col].values, b[case][col].values, err_msg=f'{case} {col}')
+    assert (a['ss']['objective_saving_m'] == 0).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('base', LY.OBJECTIVE_BASES)
+def test_objective_savings_rise_with_level(key, nb, base):
+    uj, p = _utility(key, nb)
+    cs, earn = [], []
+    for pct in (0.0, 0.025, 0.05, 0.10):
+        r = LY.project_layers(uj, p, overrides={('objective', 'objective_pct'): pct, ('objective', 'objective_base'): base})
+        sm = LY.system_summary(r)
+        cs.append(sm['Customer savings ($B, undiscounted nominal)'])
+        earn.append(sm['Shared savings earnings ($B, undiscounted nominal)'])
+        assert (r['bau']['objective_saving_m'] == 0).all()           # BAU is untouched
+    assert all(x < y for x, y in zip(cs, cs[1:])), cs
+    assert all(x <= y for x, y in zip(earn, earn[1:])), earn
+
+
+def test_objective_capex_base_flows_through_rate_base():
+    uj, p = _utility('ConEd', 'GridDividend_NewYork.ipynb')
+    ov = {('objective', 'objective_pct'): 0.05, ('objective', 'objective_base'): 'capex_plan'}
+    r, c = LY.project_layers(uj, p, overrides=ov), LY.project_layers(uj, p)
+    s, s0 = r['ss'].set_index('year'), c['ss'].set_index('year')
+    assert s.loc[2026, 'objective_level'] == 0 and s.loc[2027, 'objective_level'] == pytest.approx(0.05 / 3)
+    assert s.loc[2029, 'objective_level'] == pytest.approx(0.05)
+    # capex falls by the objective, rate base by its accumulation; the RR saving equals the RR difference
+    np.testing.assert_allclose((s0['capex_m'] - s['capex_m']).values, s['objective_gross_m'].values, rtol=1e-9, atol=1e-9)
+    assert s.loc[2050, 'wires_rate_base_m'] < s0.loc[2050, 'wires_rate_base_m']
+    np.testing.assert_allclose((s0['rr_dist_m'] - s['rr_dist_m']).values, s['objective_saving_m'].values, rtol=1e-7, atol=1e-6)
+
+
+def test_objective_persistence_fades():
+    uj, p = _utility('PepcoMD', 'GridDividend_Maryland.ipynb')
+    r = LY.project_layers(uj, p, overrides={('objective', 'objective_pct'): 0.05, ('objective', 'objective_persistence'): 5})
+    lv = r['ss'].set_index('year')['objective_level']
+    assert lv[2029] == pytest.approx(0.05) and lv[2031] == pytest.approx(0.03) and lv[2034] == 0

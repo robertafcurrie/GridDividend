@@ -200,6 +200,7 @@ Each layer has its own switch (`enabled`). The waterfall adds them in this order
 | 6 | Wholesale energy | Flexible load shifted from on-peak to off-peak hours |
 | 7 | Avoided transmission | Transmission cost avoided by peak reduction |
 | 8 | Avoided distribution losses | Marginal losses avoided |
+| 8a | Additional savings objective | Savings the utility commits to find by unspecified means (default 0%) |
 | 9 | Shared savings mechanism | The utility's share of the pool |
 | 10 | ROE lever | Allowed ROE vs BAU, outside the pool |
 
@@ -740,6 +741,38 @@ loss peak value_t   = loss peak MW x capacity price_t                           
 
 **Limitations.** One average loss rate and fixed multipliers.
 
+### 3.9a Additional savings objective (layer 8a)
+
+**What it represents.** A savings commitment by the utility, a share of a stated base, found by means the model does not specify. Examples are procurement, work practices, operations, or planning beyond what the network model captures. A regulator might write it into a performance mechanism. It is off by default (`objective_pct` 0%), so every other result is unchanged.
+
+**Calculation** (shared savings only, against this run's BAU, by default the published-plan BAU):
+
+```
+level_t    = objective_pct x min(1, (year - start + 1) / ramp_years) x fade_t      (from objective_start_year)
+fade_t     = 1 if persistent; else 1 - (years since the ramp ended) / persistence, floored at 0
+gross_t    = level_t x base_t
+  base     = BAU distribution revenue requirement (default) | BAU other O&M (dist_opex) | BAU plan capex (capex_plan)
+cost_t     = objective_cost_to_achieve_pct x gross_t
+dist_revenue_requirement, dist_opex:  SS distribution RR falls by gross_t - cost_t that year
+capex_plan:  SS capex falls by gross_t (rate base, depreciation, property tax and return follow, as for
+             deferral); cost_t is expensed; the RR saving is tracked exactly on the rate base kept out
+```
+
+The net saving lowers what customers pay, so it enters the savings pool through the usual BAU − SS comparison. Earnings attributable to it are proportional to its pool contribution, as for the other layers. It appears as its own waterfall step and as the `additional_objective` source in the export's value flows (carved out of deferral). It is a policy driver in the tornado (low 0%, high 10%), and the export's `objective_sweep` re-runs each scenario at 0 / 2.5 / 5 / 10%.
+
+**Inputs** (all settings): `objective_pct` (low 0 / central 0 / high 10%), `objective_base`, `objective_start_year` (2027), `objective_ramp_years` (3), `objective_persistence` ('persistent' or years), `objective_cost_to_achieve_pct` (20%). Scenarios may set the level through `levels` ('objective.objective_pct').
+
+**Additional by assumption.** The objective is added on top of every other layer. The model cannot test whether it overlaps with them, because it does not say how the savings are found. A utility could meet part of an objective framed on capex with the same deferral the network model already counts, or part of one framed on O&M with work the programs layer already pays for. If so, adding the objective double counts.
+- The objective is therefore a statement of what a commitment would be worth if it is genuinely additional, not evidence that it is.
+- In regulation, it would need to be measured against the same BAU, with the utility showing that the savings come from something other than the measured layers.
+
+**Why cost to achieve is netted off.** Savings found by unspecified means are not free. They take programmes, systems, staff and change management, and cost-saving commitments in rate plans typically come with costs to achieve. Netting them off before the savings reach the pool keeps the objective on the same footing as the other layers, which are all net of their costs. It also stops the utility earning a share of savings that customers paid to create. The 20% default is a setting, not a measurement.
+
+**Limitations.**
+- No behavioural or cost basis for the level.
+- No interaction with the other layers (by assumption).
+- The fade option is linear.
+
 ### 3.10 Shared savings mechanism and the pool (layer 9)
 
 **What it represents.** The savings pool is the year's net saving to customers from the reform. The utility earns `utility_share` of it (30% at Central) as **shared savings earnings**. Customers keep the rest.
@@ -902,7 +935,7 @@ Faster connections benefit the customers being connected, so they are reported s
   - the three beyond-plan paths.
 
 - **Results export** (`scripts/export_results.py`, `exports/<utility>.json`): every scenario × electrification pace. The Sankey value flows decompose customer savings exactly as `system_summary()` adds them up:
-  - **Gross value:** deferral (BAU − SS wires revenue requirement), capacity, transmission, losses, wholesale and efficiency energy.
+  - **Gross value:** deferral (BAU − SS wires revenue requirement, less the objective's share), capacity, transmission, losses, wholesale, efficiency energy and the additional savings objective (3.9a).
   - **Program costs:** a deduction (BAU surcharges − SS program revenue requirement).
   - **Split of the net value:** residential customers and business customers (by the residential share of sales, EIA-861), and shared savings earnings.
 
@@ -938,7 +971,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 41%, Dominion 38%, Pepco 43%, RG&E 54%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+About two-fifths to a half of the status-tagged inputs are `_VERIFY`: Con Edison 39%, Dominion 37%, Pepco 41%, RG&E 52%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.
@@ -1035,6 +1068,9 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_plan_growth_capex_linked_to_load` | Linked growth capex = plan × share × cumulative model / plan load growth; other categories on plan; link off = fixed plan |
 | `test_utility_forecast_pace_calibrates_load` | Central pace: system peak growth over the plan years equals the plan's forecast; scale factor 1.0 at plan end; state policy uncalibrated |
 | `test_electrification_pace_table` | Both paces for every scenario; additional opportunity = state policy − utility forecast |
+| `test_objective_zero_is_a_no_op` | At the default 0%, every output equals the run with the objective layer off |
+| `test_objective_savings_rise_with_level` | For each base, customer savings rise steadily with the objective (0 / 2.5 / 5 / 10%); BAU is untouched |
+| `test_objective_capex_base_flows_through_rate_base`, `test_objective_persistence_fades` | The capex base lowers capex and rate base, with the RR saving equal to the RR difference; the fade option works |
 | `test_rge_data_centres_follow_gold_book_zone_b` | RG&E's data-centre load = 300 MW + Gold Book Zone B increments × its zone share; high = 5%/yr |
 
 `tests/test_assumptions_register.py` checks two things:
@@ -1155,6 +1191,7 @@ These need a decision before they are changed:
 | **Addressable share** | The part of a plan capex category that shared savings could defer, avoid or right-size |
 | **Deferrable share** | The network model's cumulative reinforcement avoided as a share of BAU reinforcement; caps growth-driven avoidance with the addressable share |
 | **Electrification pace** | Utility forecast (central: BAU load calibrated to the utility's own forecast) or state policy (the model's electrification assumptions) |
+| **Additional savings objective** | Savings the utility commits to find by unspecified means, as a share of a base, net of cost to achieve; additional to the other layers by assumption |
 | **Load link** | Scaling of the plan's growth-driven capex by the model's load growth relative to the plan's assumed load growth |
 | **Taper year** | Year by which BAU capex growth reaches load growth on the taper path |
 | **Savings pool contribution** | The change in the cumulative pool when a layer is added in waterfall order |

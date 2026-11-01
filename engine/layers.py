@@ -56,7 +56,8 @@ from .model import RATE_BASE_DECAY, delivery_rr_reconciliation
 
 YEARS = list(range(2026, 2051))
 LAYERS = ('system_needs', 'programs', 'deferral', 'load_enabled', 'capacity', 'wholesale_energy', 'transmission',
-          'losses', 'mechanism', 'roe')
+          'losses', 'objective', 'mechanism', 'roe')
+OBJECTIVE_BASES = ('dist_opex', 'capex_plan', 'dist_revenue_requirement')
 VALUE_LAYERS = ('wholesale_energy', 'transmission', 'losses')     # value streams added in the shared-savings pool
 SAVINGS_LAYERS = LAYERS[1:]                    # layers that separate shared savings from BAU
 LEVELS = ('low', 'central', 'high')
@@ -871,6 +872,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     price0 = cap['price_m_per_mw_yr']
     # Value-stream layers (absent in older forward_assumptions = off)
     we, tx, lo, ro = (a.get(k, {}) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
+    ob = a.get('objective', {})
+    if ob.get('objective_base', 'dist_revenue_requirement') not in OBJECTIVE_BASES:
+        raise ValueError(f"objective_base {ob['objective_base']!r} must be one of {OBJECTIVE_BASES}")
     sup0_kwh = sum(d['month'] for d in lines0 if d['category'] == 'supply_energy') / kwh_b
     tx_on_lines = tx.get('bill_basis', 'transmission_lines') == 'transmission_lines'
     tx_plan = plan['tx_index'] if plan_on else None
@@ -921,6 +925,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         Lc = ss and on['capacity']
         Lm = ss and on['mechanism']
         Lw, Lt, Ll, Lr = (ss and on.get(k, False) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
+        Lo = ss and on.get('objective', False) and (ob.get('objective_pct', 0.0) or 0.0) != 0.0
+        rb_obj = 0.0                                 # rate base the objective keeps out (capex_plan base)
         rb = params['rate_base_start_m']
         reg_vint, reg_asset = [], 0.0
         carry = 0.0
@@ -1105,6 +1111,23 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             S_case = S[t] - (ee_gwh if active else 0.0) - served_gwh_loss - fc_gwh
             inc_om = (max(0.0, enabled_mw) * 8.76 * lf_new * le['incremental_om_mwh'] * _infl(infl, t) / 1000
                       if Le else 0.0)
+            # ── Additional savings objective (shared savings): savings the utility
+            # commits to find by unspecified means, measured against this run's BAU,
+            # net of cost to achieve; additional to the other layers by assumption ─
+            obj_level = obj_gross = obj_cta = obj_red = 0.0
+            if Lo and y >= int(ob['objective_start_year']):
+                k = y - int(ob['objective_start_year'])
+                ramp_o = min(1.0, (k + 1) / max(1.0, float(ob['objective_ramp_years'])))
+                pers = ob.get('objective_persistence', 'persistent')
+                fade = 1.0
+                if pers != 'persistent':
+                    full = int(np.ceil(float(ob['objective_ramp_years']))) - 1
+                    fade = max(0.0, 1.0 - max(0, k - full) / float(pers)) if float(pers) > 0 else 0.0
+                obj_level = ob['objective_pct'] * ramp_o * fade
+                if ob['objective_base'] == 'capex_plan':
+                    obj_red = min(capex, obj_level * res['bau']['capex_m'].iloc[t])
+                    capex -= obj_red
+                    obj_gross = obj_red
             # ── Revenue requirement ──────────────────────────────────────────
             rb_open = rb
             rb = rb * (1 - RATE_BASE_DECAY) + capex + conn_capex
@@ -1112,10 +1135,29 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             ptax = rb * ptr * (1 + infl * 0.5) ** t
             dep = RATE_BASE_DECAY * rb_open
             om = om0 * _infl(infl, t) + inc_om
+            if obj_level:
+                c_ta = ob.get('objective_cost_to_achieve_pct', 0.0) or 0.0
+                if ob['objective_base'] == 'dist_opex':
+                    obj_gross = obj_level * om0 * _infl(infl, t)
+                elif ob['objective_base'] == 'dist_revenue_requirement':
+                    obj_gross = obj_level * res['bau']['rr_dist_m'].iloc[t]
+                obj_cta = c_ta * obj_gross
+                if ob['objective_base'] == 'capex_plan':
+                    om += obj_cta                        # cost to achieve expensed
+                else:
+                    om -= obj_gross - obj_cta            # net reduction in the distribution revenue requirement
             # ROE layer: allowed ROE in shared savings = BAU ROE + roe_delta from the transition year
             roe_d = ro['roe_delta'] if (Lr and y >= trans_year) else 0.0
             wacc_c = wacc + params['equity_ratio'] * roe_d if roe_d else wacc
             rr_dist = rb * wacc_c + ptax + dep + om
+            # Revenue-requirement reduction attributable to the objective (exact: RR is linear in rate base)
+            if ob.get('objective_base') == 'capex_plan' and (Lo or rb_obj):
+                rb_obj_open = rb_obj
+                rb_obj = rb_obj * (1 - RATE_BASE_DECAY) + obj_red
+                obj_saving = (rb_obj * wacc_c + rb_obj * ptr * (1 + infl * 0.5) ** t
+                              + RATE_BASE_DECAY * rb_obj_open - obj_cta)
+            else:
+                obj_saving = obj_gross - obj_cta
             prog_rr = prog_opex + prog_amort + reg_asset * wacc_c
             roe_cost = rb_earning * params['equity_ratio'] * roe_d
             rr_core = rr_dist + prog_rr
@@ -1240,6 +1282,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 savings_pool_m=pool, shared_savings_earnings_m=earnings,
                 wholesale_value_m=whl, transmission_avoided_m=tx_av, losses_energy_value_m=loss_e,
                 losses_peak_value_m=loss_p, roe_delta=roe_d, roe_cost_m=roe_cost,
+                objective_level=obj_level, objective_gross_m=obj_gross, objective_cost_to_achieve_m=obj_cta,
+                objective_saving_m=obj_saving,
                 equity_return_m=rb_earning * eq_roe + roe_cost,
                 utility_earnings_m=rb_earning * eq_roe + roe_cost + earnings))
             if ss:

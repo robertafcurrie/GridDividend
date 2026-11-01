@@ -1065,6 +1065,57 @@
           }
         }
       },
+      "objective": {
+        "enabled": true,
+        "label": "Additional savings objective",
+        "_note": "Savings the utility commits to find by means the model does not specify, measured against this run's BAU (published-plan by default), net of cost to achieve. Additional to the other layers by assumption: the model cannot test for overlap. Default 0%, so results are unchanged. engine.layers.project_layers().",
+        "params": {
+          "objective_pct": {
+            "low": 0.0,
+            "central": 0.0,
+            "high": 0.1,
+            "unit": "share of the objective base",
+            "source": "Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set it through levels ('objective.objective_pct').",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "objective_base": {
+            "value": "dist_revenue_requirement",
+            "unit": "'dist_opex' | 'capex_plan' | 'dist_revenue_requirement'",
+            "source": "Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution revenue requirement (other O&M) directly; 'capex_plan' reduces shared-savings distribution capex, so the reduction flows through rate base, depreciation, property tax and return, as deferral does.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "objective_start_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Setting: first year the objective applies.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "objective_ramp_years": {
+            "value": 3,
+            "unit": "years",
+            "source": "Setting: years over which the objective ramps linearly to its full level.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "objective_persistence": {
+            "value": "persistent",
+            "unit": "'persistent' or years",
+            "source": "Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "objective_cost_to_achieve_pct": {
+            "value": 0.2,
+            "unit": "share of gross savings",
+            "source": "Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the savings reach the pool; expensed when the base is capex_plan.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          }
+        }
+      },
       "mechanism": {
         "enabled": true,
         "label": "Shared savings mechanism and earnings opportunity",
