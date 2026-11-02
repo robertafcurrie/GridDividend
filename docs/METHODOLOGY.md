@@ -1,6 +1,6 @@
 # GridDividend methodology
 
-*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 31 October 2026: published-plan BAU (2.5, 3.3a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
+*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 2 November 2026: published-plan BAU (2.5, 3.3a), avoided-obligation capacity (3.6a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
 
 This document explains how GridDividend works. It is written for a policy reader who is comfortable with numbers but is not a modeller. Sections marked **Technical detail** give the equations and code-level behaviour; they can be skipped without losing the thread.
 
@@ -66,6 +66,7 @@ The range shows how much the outcome depends on choices regulators and utilities
 - It does not site individual projects: the network is represented by loading bands, not feeders.
 - It does not model customer behaviour beyond the stated program paths.
 - It is not a cost-benefit test from any single regulatory perspective.
+- GridDividend measures bill impacts, not total resource cost: customer-side DER and efficiency costs beyond the utility incentives recovered through rates are outside the model.
 
 ---
 
@@ -631,6 +632,8 @@ incremental O&M_t      = MW connected sooner x 8.76 x load factor x incremental_
 
 ### 3.6 Capacity (layer 5)
 
+*Since 2 November 2026 the default is the avoided-obligation formulation (3.6a). This section describes the earlier formulation, still available as `capacity.formulation: 'embedded'`.*
+
 **What it represents.** Lower peak demand lowers the utility's capacity obligation in the wholesale capacity market. The zones are NYISO NYC, NYISO Rest of State, PJM DOM and PJM PEPCO.
 
 **Calculation.**
@@ -662,9 +665,9 @@ capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - 
 - Dominion's layer price ($0.12M per MW-year) is the same 2026/27 BRA price as its carve-out, rounded in `PJM.json` (0.1% lower than $329.17/MW-day x 365).
 - RG&E uses NYISO Rest of State in the layered model.
 
-### 3.6a Capacity: avoided-obligation formulation (alternative, off by default)
+### 3.6a Capacity: avoided-obligation formulation (default)
 
-**What it represents.** An alternative way to value the capacity layer, built the way avoided-cost studies value capacity. It is selected with `capacity.formulation = 'avoided_obligation'`. The default stays `'embedded'` (3.6), so no headline result changes until the formulation is switched. The BAU capacity line is the same in both; only the value credited in shared savings changes.
+**What it represents.** The capacity layer valued the way avoided-cost studies value capacity. It has been the default in every utility and scenario since 2 November 2026 (`capacity.formulation = 'avoided_obligation'`). The earlier formulation (3.6) remains available as `'embedded'`. The BAU capacity line is the same in both; only the value credited in shared savings changes. The CHANGELOG records each headline's change when the default switched.
 
 **Calculation** (shared savings, capacity layer on).
 
@@ -694,6 +697,7 @@ The six elements:
 - **(c) Coincidence.** Distribution peak shaving is not automatically credited at system peak.
   - `system_coincidence` is the utility's zone peak at the RTO / NYCA coincident peak per MW of its own peak: Con Edison 0.976 (Zone J NCP/CP 1.0245), RG&E 0.968 (Zone B 1.0336), Dominion 0.975 (DOM 24,569 / 25,193 MW), Pepco 0.963 (PEPCO 5,778 / 6,003 MW).
   - The share of flexible MW dispatched for local relief (the deferral layer's `locational_match`) also carries `local_coincidence` (0.5 / 0.75 / 1.0, `_VERIFY`; low from the ~50% cross-use credit in Brattle's New York study).
+  - `local_coincidence` is an external driver in the tornado, from 0.5 (low) to 1.0 (high). The other capacity inputs with a range also enter the tornado as external drivers: the CHPE-out / CHPE-in New York levels and PJM's auction lag. They enter only while the formulation is `'avoided_obligation'`.
   - Efficiency's peak kW are measured on the summer peak-period basis, so efficiency takes accreditation only.
 - **(d) Auction lag.** The obligation falls `auction_lag_years` after the load does.
   - PJM: 3 (the BRA runs about three years ahead; high level 1, the year after a lower Peak Load Contribution).
@@ -709,36 +713,36 @@ The six elements:
   - NYISO elasticity = 1 / (zero-crossing point - 1): NYC 5.56 (118%), NYCA 8.33 (112%).
   - PJM 16.7 (`_VERIFY`): the slope of PJM's proposed RTO VRR curve, 0.5 x cap between 101.5% and 104.5% of the requirement. It starts in 2030, after the auctions that cleared at the cap.
 
-**Results** (utility-forecast pace; 2026–2050; customer savings and the capacity layer are $B undiscounted nominal, with NPV 3% in 2026 $ in brackets; monthly savings are the average residential bill, $/month nominal). The capacity layer is the capacity cost avoided: firm MW x price in the current formulation, and the avoided obligation in the alternative. `engine.layers.capacity_formulation_table()` produces it.
+**Results** (utility-forecast pace; 2026–2050; customer savings and the capacity layer are $B undiscounted nominal, with NPV 3% in 2026 $ in brackets; monthly savings are the average residential bill, $/month nominal). The capacity layer is the capacity cost avoided: firm MW x price in the embedded formulation, and the avoided obligation in the default. `engine.layers.capacity_formulation_table()` produces it.
 
 | Utility | Scenario | Formulation | Capacity layer $B (NPV 3%) | Customer savings $B (NPV 3%) | Monthly saving 2035 ($) | Monthly saving 2050 ($) |
 |---|---|---|---|---|---|---|
-| Con Edison | Cautious | current | 1.38 (0.86) | 11.81 (7.08) | 4.75 | 27.74 |
-| Con Edison | Cautious | avoided obligation | 2.29 (1.40) | 12.45 (7.46) | 5.05 | 29.02 |
-| Con Edison | Central | current | 6.82 (4.23) | 37.85 (22.40) | 16.13 | 105.69 |
-| Con Edison | Central | avoided obligation | 10.45 (6.37) | 40.39 (23.90) | 17.28 | 111.10 |
-| Con Edison | Ambitious | current | 9.79 (6.16) | 56.78 (33.94) | 24.52 | 139.53 |
-| Con Edison | Ambitious | avoided obligation | 14.61 (9.01) | 60.16 (35.93) | 26.09 | 146.21 |
-| RG&E | Cautious | current | 0.04 (0.03) | 1.53 (0.95) | 4.46 | 14.17 |
-| RG&E | Cautious | avoided obligation | 0.13 (0.08) | 1.59 (0.98) | 4.58 | 14.60 |
-| RG&E | Central | current | 0.60 (0.37) | 3.80 (2.33) | 10.88 | 37.56 |
-| RG&E | Central | avoided obligation | 1.68 (1.02) | 4.56 (2.78) | 12.17 | 43.88 |
-| RG&E | Ambitious | current | 0.73 (0.46) | 6.17 (3.80) | 16.54 | 55.13 |
-| RG&E | Ambitious | avoided obligation | 1.98 (1.20) | 7.04 (4.32) | 18.05 | 62.22 |
-| Dominion | Cautious | current | 1.27 (0.79) | 6.04 (3.74) | 2.77 | 5.60 |
-| Dominion | Cautious | avoided obligation | 1.67 (1.00) | 6.32 (3.88) | 2.75 | 5.78 |
-| Dominion | Central | current | 6.30 (3.95) | 19.31 (11.76) | 6.64 | 15.79 |
-| Dominion | Central | avoided obligation | 7.25 (4.37) | 19.97 (12.06) | 6.44 | 16.32 |
-| Dominion | Ambitious | current | 18.66 (11.74) | 47.07 (28.74) | 15.54 | 36.69 |
-| Dominion | Ambitious | avoided obligation | 20.47 (12.36) | 48.34 (29.18) | 14.82 | 37.94 |
-| Pepco MD | Cautious | current | 0.59 (0.37) | 2.29 (1.46) | 6.65 | 11.75 |
-| Pepco MD | Cautious | avoided obligation | 0.85 (0.51) | 2.48 (1.56) | 6.63 | 12.45 |
-| Pepco MD | Central | current | 1.09 (0.69) | 4.35 (2.73) | 11.01 | 24.31 |
-| Pepco MD | Central | avoided obligation | 1.29 (0.78) | 4.49 (2.79) | 10.80 | 25.10 |
-| Pepco MD | Ambitious | current | 1.86 (1.18) | 6.07 (3.80) | 14.55 | 33.15 |
-| Pepco MD | Ambitious | avoided obligation | 2.10 (1.28) | 6.24 (3.87) | 14.09 | 34.26 |
+| Con Edison | Cautious | embedded | 1.38 (0.86) | 11.81 (7.08) | 4.75 | 27.74 |
+| Con Edison | Cautious | avoided obligation (default) | 2.29 (1.40) | 12.45 (7.46) | 5.05 | 29.02 |
+| Con Edison | Central | embedded | 6.82 (4.23) | 37.85 (22.40) | 16.13 | 105.69 |
+| Con Edison | Central | avoided obligation (default) | 10.45 (6.37) | 40.39 (23.90) | 17.28 | 111.10 |
+| Con Edison | Ambitious | embedded | 9.79 (6.16) | 56.78 (33.94) | 24.52 | 139.53 |
+| Con Edison | Ambitious | avoided obligation (default) | 14.61 (9.01) | 60.16 (35.93) | 26.09 | 146.21 |
+| RG&E | Cautious | embedded | 0.04 (0.03) | 1.53 (0.95) | 4.46 | 14.17 |
+| RG&E | Cautious | avoided obligation (default) | 0.13 (0.08) | 1.59 (0.98) | 4.58 | 14.60 |
+| RG&E | Central | embedded | 0.60 (0.37) | 3.80 (2.33) | 10.88 | 37.56 |
+| RG&E | Central | avoided obligation (default) | 1.68 (1.02) | 4.56 (2.78) | 12.17 | 43.88 |
+| RG&E | Ambitious | embedded | 0.73 (0.46) | 6.17 (3.80) | 16.54 | 55.13 |
+| RG&E | Ambitious | avoided obligation (default) | 1.98 (1.20) | 7.04 (4.32) | 18.05 | 62.22 |
+| Dominion | Cautious | embedded | 1.27 (0.79) | 6.04 (3.74) | 2.77 | 5.60 |
+| Dominion | Cautious | avoided obligation (default) | 1.67 (1.00) | 6.32 (3.88) | 2.75 | 5.78 |
+| Dominion | Central | embedded | 6.30 (3.95) | 19.31 (11.76) | 6.64 | 15.79 |
+| Dominion | Central | avoided obligation (default) | 7.25 (4.37) | 19.97 (12.06) | 6.44 | 16.32 |
+| Dominion | Ambitious | embedded | 18.66 (11.74) | 47.07 (28.74) | 15.54 | 36.69 |
+| Dominion | Ambitious | avoided obligation (default) | 20.47 (12.36) | 48.34 (29.18) | 14.82 | 37.94 |
+| Pepco MD | Cautious | embedded | 0.59 (0.37) | 2.29 (1.46) | 6.65 | 11.75 |
+| Pepco MD | Cautious | avoided obligation (default) | 0.85 (0.51) | 2.48 (1.56) | 6.63 | 12.45 |
+| Pepco MD | Central | embedded | 1.09 (0.69) | 4.35 (2.73) | 11.01 | 24.31 |
+| Pepco MD | Central | avoided obligation (default) | 1.29 (0.78) | 4.49 (2.79) | 10.80 | 25.10 |
+| Pepco MD | Ambitious | embedded | 1.86 (1.18) | 6.07 (3.80) | 14.55 | 33.15 |
+| Pepco MD | Ambitious | avoided obligation (default) | 2.10 (1.28) | 6.24 (3.87) | 14.09 | 34.26 |
 
-- **The earnings opportunity grows with the avoided capacity.** The new formulation raises customer savings in every utility and scenario:
+- **The earnings opportunity grows with the avoided capacity.** The avoided-obligation formulation raises customer savings in every utility and scenario:
   - Con Edison Central: +$2.5B, from $37.8B to $40.4B.
   - RG&E Central: +$0.8B.
   - Dominion Central: +$0.7B.
@@ -768,8 +772,8 @@ The six elements:
   - Brattle's potential is 21% (Con Edison) and 24% (RG&E) of each utility's NYISO-coincident summer peak (p.46).
   - In 2040, Central's accredited obligation is 12.4% of Con Edison's peak and 20.5% of RG&E's (18.3% / 24.9% Ambitious).
   - Combined, Con Edison and RG&E carry 44% of the 2026 NYCA coincident peak, so a pro-rata share of Brattle's $2,029M would be $892M. The model gives $400M Central and $575M Ambitious (45% and 64%).
-- Under the current formulation the same 2040 figure is $232M Central, at $114/kW-yr (Con Edison) and $69/kW-yr (RG&E): today's price grown with inflation, without the reserve margin.
-- The new formulation therefore moves the New York capacity value per kW to Brattle's level. The remaining gap is the MW of flexibility the scenarios assume, not the price.
+- Under the embedded formulation the same 2040 figure is $232M Central, at $114/kW-yr (Con Edison) and $69/kW-yr (RG&E): today's price grown with inflation, without the reserve margin.
+- The avoided-obligation formulation therefore moves the New York capacity value per kW to Brattle's level. The remaining gap is the MW of flexibility the scenarios assume, not the price.
 
 *Brattle, An Assessment of Electrification Impacts on the Pepco DC Distribution System (Nov 2025):*
 - The study is distribution-only. It "does not assess value to the bulk system", so it offers no calibration point for the capacity layer.
@@ -1208,7 +1212,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_bands_sum_to_network_totals` | Bands sum to network load and capacity |
 | `test_ramp_limit_respected` | MW growth never exceeds the ramp limit |
 | `test_access_zero_with_layers_off` | No access benefits without layers |
-| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off: BAU exactly; shared savings exactly except the columns the code fixes change, and except where this commit's data changes apply (Dominion's demand-response path, Pepco's capacity price) |
+| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off and the embedded capacity formulation: BAU exactly; shared savings exactly except the columns the code fixes change, and except where this commit's data changes apply (Dominion's demand-response path, Pepco's capacity price) |
 | `test_full_utilisation_long_lead_gives_bau_queue` | A tight network produces waiting load in BAU |
 | `test_subband_gives_bau_queue_and_keeps_totals` | The sub-band creates waiting load and keeps totals |
 | `test_mean_utilisation_shift` | The mean shift hits its target |
@@ -1223,7 +1227,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_losses_energy_value_only_above_average` | Loss energy value is zero at a multiplier of 1 |
 | `test_roe_lever` | ROE moves the bill and equity return, not shared savings earnings; neutral at 0 |
 | `test_transmission_bill_basis` | Avoided transmission lowers delivery in New York and the transmission lines in PJM |
-| `test_efficiency_counted_once_in_capacity` | Capacity MW = peak − waiting − firm flexible MW − EE MW with the layer on, peak − waiting with it off |
+| `test_efficiency_counted_once_in_capacity` | Embedded: capacity MW = peak − waiting − firm flexible MW − EE MW with the layer on, peak − waiting with it off. Avoided obligation: each EE MW enters the obligation once, and capacity MW = peak − waiting with the layer off |
 | `test_dominion_demand_response_excludes_efficiency` | Dominion's DR inputs equal the IRP DSM MW less EE at `ee_kw_per_mwh` |
 | `test_flexible_connections_counted_once` | Connection cost avoided credits only MW connected sooner; zero with deferral and load enabled off, even with flexible connections |
 | `test_earnings_attributed_in_proportion_to_pool` | Attributable earnings are proportional to pool contributions and sum to total earnings |
@@ -1231,7 +1235,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_capex_pool_basis_removed` | The `pool_basis` argument and the `'capex'` basis are gone |
 | `test_settings_are_labelled_setting` | Every input whose source says it is a setting has status `setting` |
 | `test_pepco_capacity_prices_aligned` | Pepco's carve-out and capacity layer use the same year-zero price |
-| `test_model_bau_basis_reproduces_23fec60` | With `basis: 'model'`, the current JSON reproduces the layered outputs at 23fec60 exactly |
+| `test_model_bau_basis_reproduces_23fec60` | With `basis: 'model'` (and the embedded capacity formulation), the current JSON reproduces the layered outputs at 23fec60 exactly |
 | `test_published_plan_capex_and_beyond_paths` | BAU capex equals the published plan in plan years; continue, taper and policy paths follow their formulas |
 | `test_plan_capex_avoidance_by_category` | SS capex = plan − avoided by category; growth avoidance capped; replacement at its share after the ramp; no avoidance with deferral off |
 | `test_transmission_follows_its_own_plan` | The PJM transmission line follows the plan's rate base per MW of peak; New York has no line |
@@ -1249,10 +1253,18 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_advance_sizing_cap_and_true_up` | Both recovery sources: size = 0.5 × PV of the recoverable base at 4%; PV of planned credits = size; customers' net saving never negative in a recovery year; no residential bill above BAU; credits paused exactly when behind schedule |
 | `test_advance_cautious_sized_and_realized_clears` | Sized and realised Cautious, both sources and both financing options: no balance left in 2050 |
 | `test_rge_data_centres_follow_gold_book_zone_b` | RG&E's data-centre load = 300 MW + Gold Book Zone B increments × its zone share; high = 5%/yr |
+| `test_capacity_formulation_default_avoided_obligation` | The default is `'avoided_obligation'` with suppression off; every capacity input has a status; `local_coincidence` (0.5 to 1.0) is in the tornado, and obligation-only inputs leave it under `'embedded'` |
+| `test_capacity_formulations_reproduce_212efce` | The default reproduces 212efce's avoided-obligation runs exactly, and `'embedded'` reproduces that commit's default runs exactly (fixture `layers_212efce_capacity.json`) |
+| `test_capacity_obligation_neutral_settings_reproduce_embedded` | With accreditation = the programs derates, coincidence 1, obligation 1, no lag and the bill-line price, the avoided-obligation results equal the embedded ones |
+| `test_capacity_obligation_identities` | BAU unchanged; credit = lagged obligation x obligation factor x long-run avoided price; the long-run price is reached by `long_run_year`; a longer lag or lower coincidence never raises the layer |
+| `test_capacity_price_suppression_sensitivity` | Suppression is zero before its start year and from `long_run_year`, never negative, adds savings only when on, and is ignored under `'embedded'` |
+| `test_capacity_formulation_table` | Both formulations for every scenario; the default row matches `system_summary()` |
 
 `tests/test_assumptions_register.py` checks two things:
 - The assumptions register matches the JSON.
 - Every layered input has a valid status.
+
+`tests/test_export.py` checks that the exports balance and match direct runs. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
 
 `tests/test_regression.py` pins the earlier model: the v1.0 BASE results for Con Edison, Dominion and Pepco, plus the correction-flag checks.
 

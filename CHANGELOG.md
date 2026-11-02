@@ -6,6 +6,76 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Avoided-obligation capacity is the default (this commit)
+
+**Changed.**
+- `capacity.formulation` is now `'avoided_obligation'` in every utility and scenario (METHODOLOGY 3.6a). `'embedded'`, the earlier formulation, remains an option.
+- The BAU is unchanged: BAU bills, capex and the BAU capacity line are identical. Only the capacity value credited in shared savings changes, along with the pool, earnings and bills that follow from it.
+
+**Tornado.** `capacity.local_coincidence` is an external driver from 0.5 (low) to 1.0 (high). Its 2050 swing is $2.57/month for Con Edison, $1.88 for RG&E, $0.37 for Pepco and $0.32 for Dominion. The other capacity inputs with a range also enter as external drivers, each with a smaller swing:
+- New York: the CHPE-out / CHPE-in obligation and accreditation levels.
+- PJM: the auction lag.
+
+The top drivers are unchanged.
+
+**Fixtures.**
+- `tests/fixtures/layers_212efce_capacity.json` (new) pins both formulations at 212efce. The default reproduces its avoided-obligation runs exactly, and `'embedded'` reproduces that commit's default runs exactly.
+- The 1b09e20 and 23fec60 fixture tests run the earlier formulation (`EMBEDDED` in `tests/test_layers.py`), the way they already turn off other later changes. They still reproduce exactly. The ebb0c04 fixture carries its own JSON and is unaffected.
+- v1.0, CORRECTED and the three pinned tests are unchanged.
+
+**New test.** `test_program_costs_enter_once`, run for every utility, pace and scenario. It sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is identical. 333 tests in total.
+
+**Notebooks.** Section 13 adds the capacity formulation table (3c). All three state notebooks were re-run without errors.
+
+**Docs.**
+- METHODOLOGY now states that GridDividend measures bill impacts, not total resource cost. Customer-side DER and efficiency costs beyond the utility incentives recovered through rates are outside the model.
+- The README results tables are regenerated.
+
+**Effect on results: every headline changed.** Old = embedded, new = avoided obligation. $B are undiscounted nominal unless marked NPV 3% (2026 $); monthly savings are the average residential bill, $/month nominal. The BAU bill in 2050 is unchanged.
+
+*Headlines, utility-forecast pace (central); old → new:*
+
+| Utility | Scenario | Customer savings $B undiscounted | Customer savings $B NPV 3% | Shared savings earnings $B | Monthly saving 2035 $ | Monthly saving 2050 $ |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 11.81 → 12.45 | 7.08 → 7.46 | 3.46 → 3.73 | 4.75 → 5.05 | 27.74 → 29.02 |
+| Con Edison | Central | 37.85 → 40.39 | 22.40 → 23.90 | 13.01 → 14.10 | 16.13 → 17.28 | 105.69 → 111.10 |
+| Con Edison | Ambitious | 56.78 → 60.16 | 33.94 → 35.93 | 17.92 → 19.36 | 24.52 → 26.09 | 139.53 → 146.21 |
+| RG&E | Cautious | 1.53 → 1.59 | 0.95 → 0.98 | 0.46 → 0.48 | 4.46 → 4.58 | 14.17 → 14.60 |
+| RG&E | Central | 3.80 → 4.56 | 2.33 → 2.78 | 1.23 → 1.56 | 10.88 → 12.17 | 37.56 → 43.88 |
+| RG&E | Ambitious | 6.17 → 7.04 | 3.80 → 4.32 | 1.85 → 2.22 | 16.54 → 18.05 | 55.13 → 62.22 |
+| Dominion | Cautious | 6.04 → 6.32 | 3.74 → 3.88 | 0.38 → 0.50 | 2.77 → 2.75 | 5.60 → 5.78 |
+| Dominion | Central | 19.31 → 19.97 | 11.76 → 12.06 | 4.12 → 4.41 | 6.64 → 6.44 | 15.79 → 16.32 |
+| Dominion | Ambitious | 47.07 → 48.34 | 28.74 → 29.18 | 11.35 → 11.89 | 15.54 → 14.82 | 36.69 → 37.94 |
+| Pepco MD | Cautious | 2.29 → 2.48 | 1.46 → 1.56 | 0.03 → 0.09 | 6.65 → 6.63 | 11.75 → 12.45 |
+| Pepco MD | Central | 4.35 → 4.49 | 2.73 → 2.79 | 0.43 → 0.49 | 11.01 → 10.80 | 24.31 → 25.10 |
+| Pepco MD | Ambitious | 6.07 → 6.24 | 3.80 → 3.87 | 0.90 → 0.97 | 14.55 → 14.09 | 33.15 → 34.26 |
+
+*Headlines, state-policy pace; old → new:*
+
+| Utility | Scenario | Customer savings $B undiscounted | Customer savings $B NPV 3% | Shared savings earnings $B | Monthly saving 2035 $ | Monthly saving 2050 $ |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 14.30 → 14.95 | 8.51 → 8.90 | 4.42 → 4.70 | 5.17 → 5.47 | 31.63 → 32.81 |
+| Con Edison | Central | 49.46 → 52.04 | 29.10 → 30.62 | 17.79 → 18.89 | 17.75 → 18.86 | 125.09 → 130.00 |
+| Con Edison | Ambitious | 86.12 → 89.58 | 50.73 → 52.77 | 30.09 → 31.57 | 29.88 → 31.39 | 209.07 → 215.22 |
+| RG&E | Cautious | 2.07 → 2.14 | 1.25 → 1.29 | 0.65 → 0.68 | 4.06 → 4.17 | 17.00 → 17.37 |
+| RG&E | Central | 6.12 → 6.89 | 3.63 → 4.09 | 2.15 → 2.48 | 10.14 → 11.27 | 61.09 → 65.67 |
+| RG&E | Ambitious | 9.57 → 10.48 | 5.72 → 6.27 | 3.15 → 3.55 | 16.95 → 18.30 | 86.92 → 92.22 |
+| Dominion | Cautious | 6.34 → 6.62 | 3.91 → 4.06 | 0.41 → 0.53 | 2.71 → 2.70 | 5.46 → 5.63 |
+| Dominion | Central | 20.26 → 20.93 | 12.31 → 12.60 | 4.33 → 4.62 | 6.49 → 6.30 | 15.53 → 16.03 |
+| Dominion | Ambitious | 52.76 → 54.04 | 32.01 → 32.46 | 13.37 → 13.92 | 15.46 → 14.76 | 38.35 → 39.53 |
+| Pepco MD | Cautious | 2.62 → 2.80 | 1.65 → 1.74 | 0.09 → 0.17 | 6.54 → 6.52 | 12.67 → 13.39 |
+| Pepco MD | Central | 5.04 → 5.18 | 3.13 → 3.19 | 0.64 → 0.70 | 11.09 → 10.89 | 27.26 → 27.99 |
+| Pepco MD | Ambitious | 7.16 → 7.33 | 4.42 → 4.49 | 1.26 → 1.33 | 14.71 → 14.27 | 39.80 → 40.81 |
+
+
+- **Customer savings rise in every case**, by $0.06–3.46B. Shared savings earnings rise in every case.
+- **Dominion and Pepco 2035 savings dip slightly**, by $0.01–0.72/month, because of the PJM 3-year auction lag and the 0.926 FPR. Their 2050 savings rise.
+- **Model-derived BAU, Central** ($B; 2050 $/month): Con Edison 11.41 → 13.95 ($17.48 → $22.89); Dominion 12.33 → 12.95 ($9.64 → $10.15); Pepco 3.63 → 3.76 ($15.65 → $16.42); RG&E 0.70 → 1.52 (−$0.21 → $6.93).
+- **2050 saving as a share of the BAU delivery bill, Central:** Con Edison 21% → 23%, Dominion 13% → 13%, Pepco 15% → 16%, RG&E 8% → 10%.
+- **Unchanged:** the ROE lever (±$8.28/month for Con Edison in 2050) and the BAU.
+
+---
+
 ## 2026-11-01: Alternative capacity formulation, avoided obligation (off by default; this commit)
 
 **Added.**

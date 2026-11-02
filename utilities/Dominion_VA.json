@@ -1123,7 +1123,7 @@
       },
       "capacity": {
         "enabled": true,
-        "label": "Capacity: firm MW at the zonal price",
+        "label": "Capacity: avoided obligation at the long-run price",
         "params": {
           "price_m_per_mw_yr": {
             "value": 0.12,
@@ -1179,10 +1179,10 @@
             "status": "derived"
           },
           "formulation": {
-            "value": "embedded",
+            "value": "avoided_obligation",
             "unit": "'embedded' | 'avoided_obligation'",
-            "source": "Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bill line. 'avoided_obligation': avoided capacity obligation from the contribution to the RTO / NYCA peak, accredited by resource type, coincidence-adjusted, lagged by the auction cycle and priced on the long-run avoided capacity price path (METHODOLOGY 3.6a). The BAU capacity line is the same in both.",
-            "as_of": "2026-11-01",
+            "source": "Setting. 'avoided_obligation' (default since 2 Nov 2026): avoided capacity obligation from the contribution to the RTO / NYCA peak, accredited by resource type, coincidence-adjusted, lagged by the auction cycle and priced on the long-run avoided capacity price path (METHODOLOGY 3.6a). 'embedded' (the earlier formulation, kept as an option): firm flexible MW (programs derates) + efficiency MW x the bill-line capacity price. The BAU capacity line is the same in both.",
+            "as_of": "2026-11-02",
             "status": "setting"
           },
           "obligation_factor": {

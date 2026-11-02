@@ -265,6 +265,9 @@ MODEL_BAU = {('bau_plan', 'basis'): 'model',          # the BAU basis before pub
 # pinned-output tests run the current JSON with the earlier value so they still reproduce exactly
 # and RG&E's (central = NYISO Gold Book Zone B large loads, was 5%) after 94992aa
 DATA_SINCE_7C9B = {'ConEd': {('system_needs', 'dc_growth'): 0.06}, 'RGE': {('system_needs', 'dc_growth'): 0.05}}
+# Capacity formulation before 2 Nov 2026 (the default is now 'avoided_obligation'); the pinned-output
+# tests written before then run the earlier formulation, which is kept as an option
+EMBEDDED = {('capacity', 'formulation'): 'embedded'}
 PLAN_FIXED = {('bau_plan', 'link_growth_to_load'): False}   # plan capex fixed regardless of load
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
@@ -289,6 +292,7 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
         if cur:
             ov.update(MODEL_BAU)
             ov.update(DATA_SINCE_7C9B.get(key, {}))
+            ov.update(EMBEDDED)
         r = LY.project_layers(uj, p, scenario=scn, overrides=ov or None,
                               network={'subband_enabled': False} if cur else None,
                               enabled=NEW_LAYERS_OFF if cur else None)
@@ -518,14 +522,22 @@ def test_transmission_bill_basis():
 
 @pytest.mark.parametrize('key,nb', UTILS)
 def test_efficiency_counted_once_in_capacity(key, nb):
-    """Capacity MW = peak - waiting - firm flexible MW - EE MW (layer on); peak - waiting (layer off)."""
+    """Embedded formulation: capacity MW = peak - waiting - firm flexible MW - EE MW (layer on); peak -
+    waiting (layer off). Avoided obligation: each EE MW enters the obligation once, at accr_ee."""
     uj, p = _utility(key, nb)
     for on in (True, False):
-        s = LY.project_layers(uj, p, enabled={'capacity': on})['ss']
+        s = LY.project_layers(uj, p, enabled={'capacity': on}, overrides=EMBEDDED)['ss']
         red = (s['firm_flex_mw'] + s['ee_mw']) if on else 0.0
         mw = s['peak_mw'] - s['upgrade_wait_mw'] - red
         np.testing.assert_allclose(s['capacity_cost_m'], mw * s['capacity_price_m_per_mw_yr'], rtol=1e-9)
         assert (s['ee_mw'] > 0).any()
+    o1 = LY.project_layers(uj, p, overrides={('capacity', 'accr_ee'): 1.0})['ss']
+    o0 = LY.project_layers(uj, p, overrides={('capacity', 'accr_ee'): 0.0})['ss']
+    np.testing.assert_allclose((o1['capacity_obligation_mw'] - o0['capacity_obligation_mw']).values, o1['ee_mw'].values,
+                               rtol=1e-9, atol=1e-9)
+    off = LY.project_layers(uj, p, enabled={'capacity': False})['ss']
+    np.testing.assert_allclose(off['capacity_cost_m'], (off['peak_mw'] - off['upgrade_wait_mw'])
+                               * off['capacity_price_m_per_mw_yr'], rtol=1e-9)
 
 
 def test_dominion_demand_response_excludes_efficiency():
@@ -620,7 +632,7 @@ def test_model_bau_basis_reproduces_23fec60(key, nb):
     ref = json.load(open(_FIXTURE_23FE))['runs'][key]
     uj, p = _utility(key, nb)
     for sc, cols in ref.items():
-        r = LY.project_layers(uj, p, scenario=sc, overrides={**MODEL_BAU, **DATA_SINCE_7C9B.get(key, {})})
+        r = LY.project_layers(uj, p, scenario=sc, overrides={**MODEL_BAU, **DATA_SINCE_7C9B.get(key, {}), **EMBEDDED})
         for col, d in cols.items():
             for case in ('bau', 'ss'):
                 exp = np.array([np.nan if v is None else v for v in d[case]], float)
@@ -894,6 +906,9 @@ def test_near_term_ramps():
     assert m.loc[2027, 'dr_ss_mw'] == pytest.approx(st + 0.5 * (tg - st))
     r = LY.project_layers(uj, p, overrides={('mechanism', 'near_term_ramp_capacity'): {'2028': 0.0}})
     s = r['ss'].set_index('year')
+    assert s.loc[2028, 'capacity_obligation_mw'] == 0 and s.loc[2029, 'capacity_obligation_mw'] > 0
+    r = LY.project_layers(uj, p, overrides={('mechanism', 'near_term_ramp_capacity'): {'2028': 0.0}, **EMBEDDED})
+    s = r['ss'].set_index('year')
     assert s.loc[2028, 'peak_reduction_mw'] == 0 and s.loc[2029, 'peak_reduction_mw'] > 0
     r = LY.project_layers(uj, p, overrides={('mechanism', 'near_term_ramp_addressable'): {'2028': 1.0}})
     s, b = r['ss'].set_index('year'), r['bau'].set_index('year')
@@ -955,24 +970,43 @@ def test_advance_cautious_sized_and_realized_clears(key, nb, src, fin):
     assert r['ss']['advance_credit_m'].sum() > 0
 
 
-# ── Capacity formulation ('embedded' default vs 'avoided_obligation') ─────────
+# ── Capacity formulation ('avoided_obligation' default since 2 Nov 2026; 'embedded' option) ─
 
 OBL = {('capacity', 'formulation'): 'avoided_obligation'}
+_FIXTURE_212E = os.path.join(ROOT, 'tests', 'fixtures', 'layers_212efce_capacity.json')
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
-def test_capacity_formulation_default_embedded(key, nb):
-    """The JSON default is the current formulation; suppression is off; every new input has a status."""
+def test_capacity_formulation_default_avoided_obligation(key, nb):
+    """The JSON default is the avoided-obligation formulation; suppression is off; every new input has a
+    status; local coincidence is in the tornado (0.5 to 1.0)."""
     uj, _ = _utility(key, nb)
     cp = uj['forward_assumptions']['layers']['capacity']['params']
-    assert cp['formulation']['value'] == 'embedded'
+    assert cp['formulation']['value'] == 'avoided_obligation'
     assert cp['suppression_enabled']['value'] is False
     for k in LY.CAPACITY_OBLIGATION_PARAMS:
         if k in cp:
             assert cp[k]['status'] in ('sourced', 'derived', '_VERIFY', 'setting'), k
-    # obligation-only inputs stay out of the tornado while the formulation is 'embedded'
-    assert not [k for k in LY.assumption_keys(uj['forward_assumptions'])
-                if k[0] == 'capacity' and k[1] in LY.CAPACITY_OBLIGATION_PARAMS]
+    assert ('capacity', 'local_coincidence') in LY.assumption_keys(uj['forward_assumptions'])
+    assert (cp['local_coincidence']['low'], cp['local_coincidence']['high']) == (0.5, 1.0)
+    # obligation-only inputs stay out of the tornado when the formulation is 'embedded'
+    fa = json.loads(json.dumps(uj['forward_assumptions']))
+    fa['layers']['capacity']['params']['formulation']['value'] = 'embedded'
+    assert not [k for k in LY.assumption_keys(fa) if k[0] == 'capacity' and k[1] in LY.CAPACITY_OBLIGATION_PARAMS]
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_capacity_formulations_reproduce_212efce(key, nb):
+    """The default reproduces 212efce's avoided-obligation runs exactly; the embedded option reproduces
+    that commit's default runs exactly."""
+    ref = json.load(open(_FIXTURE_212E))['runs'][key]
+    uj, p = _utility(key, nb)
+    for sc, forms in ref.items():
+        for form, cols in forms.items():
+            r = LY.project_layers(uj, p, scenario=sc, overrides=EMBEDDED if form == 'embedded' else None)
+            for col, d in cols.items():
+                for case in ('bau', 'ss'):
+                    np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{sc} {form} {col} {case}')
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -987,7 +1021,7 @@ def test_capacity_obligation_neutral_settings_reproduce_embedded(key, nb):
     for k in LY.FLEX_TYPES:
         neutral[('capacity', f'accr_{k}')] = None
     for sc in LY.SCENARIOS:
-        e = LY.project_layers(uj, p, scenario=sc)
+        e = LY.project_layers(uj, p, scenario=sc, overrides=EMBEDDED)
         o = LY.project_layers(uj, p, scenario=sc, overrides=neutral)
         for c in ('capacity_cost_m', 'avg_bill_total', 'bill_total', 'shared_savings_earnings_m', 'rr_m'):
             np.testing.assert_allclose(o['ss'][c].values, e['ss'][c].values, rtol=1e-9, atol=1e-9, err_msg=c)
@@ -998,7 +1032,7 @@ def test_capacity_obligation_identities(key, nb):
     """BAU is unchanged; the credit is the obligation lagged by the auction cycle, x obligation factor x the
     long-run avoided price; the capacity bill line falls with the capacity cost; no suppression unless enabled."""
     uj, p = _utility(key, nb)
-    e = LY.project_layers(uj, p, scenario='Central')
+    e = LY.project_layers(uj, p, scenario='Central', overrides=EMBEDDED)
     o = LY.project_layers(uj, p, scenario='Central', overrides=OBL)
     a = o['assumptions']['capacity']
     for c in ('capacity_cost_m', 'avg_bill_total', 'bill_total', 'rr_m'):
@@ -1044,7 +1078,7 @@ def test_capacity_price_suppression_sensitivity(key, nb):
     gain = LY.system_summary(on)['Customer savings ($B, undiscounted nominal)'] - LY.system_summary(o)['Customer savings ($B, undiscounted nominal)']
     assert gain > 0
     # suppression is ignored under the embedded formulation
-    e = LY.project_layers(uj, p, scenario='Central', overrides={('capacity', 'suppression_enabled'): True})
+    e = LY.project_layers(uj, p, scenario='Central', overrides={**EMBEDDED, ('capacity', 'suppression_enabled'): True})
     assert (e['ss']['capacity_suppression_m'] == 0).all()
 
 
@@ -1055,7 +1089,7 @@ def test_capacity_formulation_table(key, nb):
     assert list(t.index) == [(sc, f) for sc in LY.SCENARIOS for f in LY.CAPACITY_FORMULATIONS]
     for sc in LY.SCENARIOS:
         sm = LY.system_summary(LY.project_layers(uj, p, scenario=sc))
-        assert t.loc[(sc, 'embedded'), 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(
+        assert t.loc[(sc, 'avoided_obligation'), 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(
             sm['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
         assert t.loc[(sc, 'avoided_obligation'), 'of which price suppression ($B, undiscounted nominal)'] == 0
     with pytest.raises(ValueError):

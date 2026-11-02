@@ -38,7 +38,7 @@ Each layer has its own switch and low / central / high inputs, each with a sourc
 2. **Programs as core business:** program surcharges leave the bill; flexible MW by type and energy efficiency are paid for in rates.
 3. **Deferral:** flexible headroom counted by the network planner, so reinforcement is ordered later.
 4. **Load enabled:** headroom lets load waiting for the network connect sooner (residential bill effect only).
-5. **Capacity:** firm MW avoided at the zonal capacity price.
+5. **Capacity:** the avoided capacity obligation. It counts the contribution to the RTO / NYCA peak, accredited by resource type and adjusted for coincidence with the system peak, after the auction lag, at the long-run avoided capacity price (METHODOLOGY 3.6a). The earlier firm-MW-at-today's-price formulation remains an option.
 6. **Wholesale energy:** flexible load shifted from on-peak to off-peak hours.
 7. **Avoided transmission:** transmission cost avoided by peak reduction.
 8. **Avoided distribution losses:** marginal losses avoided by efficiency and peak reduction.
@@ -64,14 +64,14 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 
 | | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| **Customer savings 2026–2050, $B undiscounted** | **37.8** (11.8–56.8) | **19.3** (6.0–47.1) | **4.4** (2.3–6.1) | **3.8** (1.5–6.2) |
-| Customer savings, $B NPV 3% (2026 $) | 22.4 (7.1–33.9) | 11.8 (3.7–28.7) | 2.7 (1.5–3.8) | 2.3 (0.9–3.8) |
-| Average residential bill, $/month lower in 2035 | 16.13 (4.75–24.52) | 6.64 (2.77–15.54) | 11.01 (6.65–14.55) | 10.88 (4.46–16.54) |
-| Average residential bill, $/month lower in 2050 | 105.69 (27.74–139.53) | 15.79 (5.60–36.69) | 24.31 (11.75–33.15) | 37.56 (14.17–55.13) |
-| 2050 saving as % of the BAU delivery bill | 21% (6%–28%) | 13% (4%–29%) | 15% (7%–21%) | 8% (3%–12%) |
+| **Customer savings 2026–2050, $B undiscounted** | **40.4** (12.4–60.2) | **20.0** (6.3–48.3) | **4.5** (2.5–6.2) | **4.6** (1.6–7.0) |
+| Customer savings, $B NPV 3% (2026 $) | 23.9 (7.5–35.9) | 12.1 (3.9–29.2) | 2.8 (1.6–3.9) | 2.8 (1.0–4.3) |
+| Average residential bill, $/month lower in 2035 | 17.28 (5.05–26.09) | 6.44 (2.75–14.82) | 10.80 (6.63–14.09) | 12.17 (4.58–18.05) |
+| Average residential bill, $/month lower in 2050 | 111.10 (29.02–146.21) | 16.32 (5.78–37.94) | 25.10 (12.45–34.26) | 43.88 (14.60–62.22) |
+| 2050 saving as % of the BAU delivery bill | 23% (6%–30%) | 13% (5%–30%) | 16% (8%–22%) | 10% (3%–14%) |
 | New flexible MW by 2050 | 3,576 (466–3,729) | 2,547 (181–7,014) | 327 (169–660) | 545 (7–545) |
 | Upgrade Delay avoided, MW-years (MW waiting in BAU) | 178 (31–215) of 141 MW | 482 (32–637) of 373 MW | 36 (11–49) of 23 MW | 24 (1–26) of 17 MW |
-| Shared savings earnings, $B undiscounted | 13.01 (3.46–17.92) | 4.12 (0.38–11.35) | 0.43 (0.03–0.90) | 1.23 (0.46–1.85) |
+| Shared savings earnings, $B undiscounted | 14.10 (3.73–19.36) | 4.41 (0.50–11.89) | 0.49 (0.09–0.97) | 1.56 (0.48–2.22) |
 
 **Published-plan vs model-derived BAU (Central).** The published plans call for more distribution spending than the network model generated, so there is more to defer and right-size. The model-derived BAU remains selectable (`bau_plan.basis: 'model'`).
 
@@ -79,20 +79,20 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 |---|---|---|---|---|
 | BAU average bill 2050, $/month: model → plan | 512 → 653 | 299 → 334 | 424 → 432 | 337 → 580 |
 | BAU distribution capex 2026–2050, $B: model → plan | 150 → 220 | 50 → 80 | 9 → 8 | 8 → 28 |
-| Customer savings, $B undiscounted: model → plan | 11.4 → 37.8 | 12.3 → 19.3 | 3.6 → 4.4 | 0.7 → 3.8 |
-| 2050 bill $/month lower: model → plan | 17.48 → 105.69 | 9.64 → 15.79 | 15.65 → 24.31 | -0.21 → 37.56 |
-| Shared savings earnings, $B: model → plan | 1.68 → 13.01 | 1.13 → 4.12 | 0.12 → 0.43 | 0.00 → 1.23 |
+| Customer savings, $B undiscounted: model → plan | 14.0 → 40.4 | 13.0 → 20.0 | 3.8 → 4.5 | 1.5 → 4.6 |
+| 2050 bill $/month lower: model → plan | 22.89 → 111.10 | 10.15 → 16.32 | 16.42 → 25.10 | 6.93 → 43.88 |
+| Shared savings earnings, $B: model → plan | 2.77 → 14.10 | 1.40 → 4.41 | 0.17 → 0.49 | 0.25 → 1.56 |
 
 **Additional opportunity if electrification follows state policy.** Central BAU load follows each utility's own forecast. If electrification instead follows state policy (the model's earlier assumptions), load grows faster, the plans' growth-driven spending scales up, and there is more to defer. Customer savings, $B undiscounted:
 
 | | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| Cautious: utility forecast → state policy (additional) | 11.8 → 14.3 (+2.5) | 6.0 → 6.3 (+0.3) | 2.3 → 2.6 (+0.3) | 1.5 → 2.1 (+0.5) |
-| Central: utility forecast → state policy (additional) | 37.8 → 49.5 (+11.6) | 19.3 → 20.3 (+1.0) | 4.4 → 5.0 (+0.7) | 3.8 → 6.1 (+2.3) |
-| Ambitious: utility forecast → state policy (additional) | 56.8 → 86.1 (+29.3) | 47.1 → 52.8 (+5.7) | 6.1 → 7.2 (+1.1) | 6.2 → 9.6 (+3.4) |
-| Central 2050 saving, $/month: utility forecast → state policy | 105.69 → 125.09 | 15.79 → 15.53 | 24.31 → 27.26 | 37.56 → 61.09 |
+| Cautious: utility forecast → state policy (additional) | 12.4 → 14.9 (+2.5) | 6.3 → 6.6 (+0.3) | 2.5 → 2.8 (+0.3) | 1.6 → 2.1 (+0.5) |
+| Central: utility forecast → state policy (additional) | 40.4 → 52.0 (+11.6) | 20.0 → 20.9 (+1.0) | 4.5 → 5.2 (+0.7) | 4.6 → 6.9 (+2.3) |
+| Ambitious: utility forecast → state policy (additional) | 60.2 → 89.6 (+29.4) | 48.3 → 54.0 (+5.7) | 6.2 → 7.3 (+1.1) | 7.0 → 10.5 (+3.4) |
+| Central 2050 saving, $/month: utility forecast → state policy | 111.10 → 130.00 | 16.32 → 16.03 | 25.10 → 27.99 | 43.88 → 65.67 |
 
-**In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 6 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.4 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
+**In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 7 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.5 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
 
 **What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
 - The energy efficiency saves, valued at today's residential supply rate.
@@ -121,7 +121,7 @@ Under published-plan BAU, the largest drivers are a policy choice (how much ener
 | Policy levers | External drivers |
 |---|---|
 | Efficiency ambition (savings rate): a top driver for Con Edison, Dominion and Pepco | Electrification pace: utility forecast (central) vs state policy; load growth beyond the utilities' forecasts (Con Edison 0.7%/yr, Dominion 1.88%/yr, Pepco 0.33%/yr, RG&E's Gold Book zone 3.0%/yr) |
-| Flexible MW targets by resource type, and the ramp to reach them | Capacity, energy and transmission price growth |
+| Flexible MW targets by resource type, and the ramp to reach them | Capacity, energy and transmission price growth; how far locally dispatched flexibility coincides with the system peak (local coincidence 0.5–1.0) and capacity accreditation |
 | Locational targeting of flexibility and flexible connections | Network upgrade cost per MW |
 | Utility share of savings; addressable shares of the plan (asset-replacement right-sizing is RG&E's second driver) | Efficiency and flexibility costs; the utility's capital plan and its path after the plan horizon |
 | ROE lever: ±60 bp moves Con Edison's 2050 saving by about ±$8.28/month | Existing network headroom and upgrade delays (see the headroom sweep) |

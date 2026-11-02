@@ -258,3 +258,30 @@ def test_export_advance_fast_start_matches_direct_runs(key):
                 LY.system_summary(run)['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
             assert sm['worst_year_vs_bau']['exceeds_bau'] is False
             assert sm['credits_paid_m'] + sm['financing_cost_m'] - sm['recoveries_m'] == pytest.approx(sm['balance_2050_m'], abs=1e-3)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_program_costs_enter_once(key):
+    """With every flexible cost per kW-year and the efficiency levelised cost at zero, customer savings plus
+    shared savings earnings rise by exactly the original run's program_costs flow, and every value source
+    is unchanged (program costs enter the results once, as the program_costs deduction)."""
+    uj0, p = E.load_utility(key)
+    zero = {('programs', f'cost_kw_yr_{k}'): 0.0 for k in LY.FLEX_TYPES}
+    zero[('programs', 'ee_levelised_cost_kwh')] = 0.0
+    for pace in LY.PACES:
+        uj = E.with_pace(uj0, pace)
+        for sc in LY.SCENARIOS:
+            r0 = LY.project_layers(uj, p, scenario=sc)
+            r1 = LY.project_layers(uj, p, scenario=sc, overrides=zero)
+            f0, f1 = E.value_flows(r0, p), E.value_flows(r1, p)
+            for src in E.FLOW_SOURCES:
+                np.testing.assert_array_equal(f1[src], f0[src], err_msg=f'{pace} {sc} {src}')
+            assert np.abs(f1['program_costs']).max() < 1e-9
+            prog0 = f0['program_costs'].sum()
+            assert prog0 < 0
+            s0, s1 = LY.system_summary(r0), LY.system_summary(r1)
+            tot = lambda sm: (sm['Customer savings ($B, undiscounted nominal)']
+                              + sm['Shared savings earnings ($B, undiscounted nominal)'])
+            assert (tot(s1) - tot(s0)) * 1e3 == pytest.approx(-prog0, rel=1e-9, abs=1e-6)
+            assert ((f1['customers'] + f1['earnings']) - (f0['customers'] + f0['earnings'])).sum() == pytest.approx(
+                -prog0, rel=1e-12, abs=1e-6)
