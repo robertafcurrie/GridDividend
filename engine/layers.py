@@ -994,6 +994,13 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     if cap_form not in CAPACITY_FORMULATIONS:
         raise ValueError(f"capacity formulation {cap_form!r} must be one of {CAPACITY_FORMULATIONS}")
     obl_on = cap_form == 'avoided_obligation'
+    # Customer allocation of the pool (METHODOLOGY 3.10b): the network revenue-requirement
+    # reduction net of earnings, where positive, goes to residential customers at
+    # alloc_share instead of their sales share; everything else stays by sales
+    alloc_opt = mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    rs_sales = params.get('residential_sales_share')
+    alloc_share = residential_pool_share(mech, rs_sales, alloc_opt) if alloc_opt != 'by_sales' else rs_sales
+    alloc_on = alloc_opt != 'by_sales' and alloc_share != rs_sales
     if obl_on:
         acc_k = _capacity_accreditation(cap, pr)
         cap_lr = {**cap, 'price_path': cap.get('avoided_price_path', 'long_run') or 'long_run'}
@@ -1375,8 +1382,18 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                              category='program_surcharge', bill_section='delivery', unit='$/kWh', core=False,
                              program_type=None, origin='projection', volumetric=True,
                              month=(prog_rr + adj_val) / S_case * kwh_b * res_alloc)
+                extra = [rider]
+                if alloc_on and ss:
+                    # residential share of the positive network RR reduction net of earnings moves
+                    # from the sales share to alloc_share (credit < 0 lowers the bill)
+                    p_net = max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist - adj_val)
+                    extra.append(dict(id='customer_allocation_adjustment',
+                                      name='Customer allocation of the shared savings pool (per kWh)',
+                                      category='distribution_rider', bill_section='delivery', unit='$/kWh',
+                                      core=False, program_type=None, origin='projection', volumetric=True,
+                                      month=-(alloc_share / rs_sales - 1) * p_net / S_case * kwh_b))
                 bench, avg = [], []
-                for d in lines0 + [rider]:
+                for d in lines0 + extra:
                     e = dict(d)
                     c = d['category']
                     if d['origin'] == 'projection':
@@ -1480,6 +1497,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # ── Bills ────────────────────────────────────────────────────────
             bench, avg, usage = _bills(adj)
             cb, ca = by_category(bench), by_category(avg)
+            alloc_pool = (max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist - adj) if ss else 0.0)
+            alloc_adj = sum(d['month'] for d in avg if d.get('id') == 'customer_allocation_adjustment')
             rows.append(dict(
                 year=y, **{f'bill_{c}': v for c, v in cb.items()}, bill_total=sum(cb.values()),
                 **{f'avg_bill_{c}': v for c, v in ca.items()}, avg_bill_total=sum(ca.values()),
@@ -1519,7 +1538,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 advance_credit_usd_month=adv_credit / S_case * kwh_b * res_alloc * usage,
                 advance_recovery_usd_month=adv_rec / S_case * kwh_b * res_alloc * usage,
                 advance_return_m=(adv_fin if (adv and adv['financing'] == 'utility_regulatory_asset') else 0.0),
-                utility_earnings_m=rb_earning * eq_roe + roe_cost + earnings))
+                utility_earnings_m=rb_earning * eq_roe + roe_cost + earnings,
+                allocation_pool_m=alloc_pool, allocation_residential_share=alloc_share,
+                allocation_adjustment_usd_month=alloc_adj))
             if ss:
                 mw_rows.append(dict(year=y, **{f'{k}_bau_mw': mw_b[k] for k in FLEX_TYPES},
                                     **{f'{k}_ss_mw': mw_s[k] for k in FLEX_TYPES},
@@ -2272,13 +2293,14 @@ def allocation_split(customers, pool_customer_share, sales_share, residential_po
     Residential and non-residential customer savings, $M a year.
 
     Inputs: customers (total customer savings, $M a year); pool_customer_share (the
-      part of it that is the pool's customer share: the wires and program revenue-
-      requirement reduction net of shared savings earnings, $M a year); sales_share
-      (residential share of sales); residential_pool_share (residential share of the
-      pool's customer share; None = by sales).
-    Output: (residential, non_residential) arrays. Everything except the pool's
-      customer share (supply, capacity, transmission, losses, efficiency energy)
-      stays allocated by sales. By sales, residential = customers x sales_share.
+      part that is reallocated: the network revenue-requirement reduction net of
+      shared savings earnings, where positive, $M a year); sales_share (residential
+      share of sales); residential_pool_share (residential share of the reallocated
+      part; None = by sales).
+    Output: (residential, non_residential) arrays. Everything else (supply, capacity,
+      transmission, losses, efficiency energy, program costs, and any year's negative
+      network remainder) stays allocated by sales. By sales, residential = customers x
+      sales_share and non-residential = customers x (1 - sales_share).
     """
     customers = np.asarray(customers, float)
     if residential_pool_share is None:          # the export's residential / business split, exactly
@@ -2310,61 +2332,72 @@ def residential_pool_share(mech, sales_share, option=None, custom_share=None):
 
 def customer_allocation(run, params, option=None, custom_share=None):
     """
-    The customer share of the savings pool split between residential and non-
-    residential customers (METHODOLOGY 3.10b). Reporting only: bills and totals in
-    `run` follow the sales-based split of today's rates.
+    Residential and non-residential savings for one run under its customer_allocation
+    setting (METHODOLOGY 3.10b). The setting drives the engine: the residential bill
+    carries the allocation adjustment, so the bills here are the run's own.
 
     Inputs: run = project_layers() output; params (residential_sales_share, EIA-861);
-      option = 'by_sales' / 'per_customer' / 'custom' (None = mechanism.customer_allocation);
-      custom_share for 'custom'.
+      option / custom_share: checked against the run's setting (validated; a different
+      option needs a re-run with overrides {('mechanism', 'customer_allocation'): option}).
     Output: dict of yearly arrays ($M nominal unless marked): customers (total customer
-      savings), pool_customer_share (wires + program revenue-requirement reduction net
-      of earnings: BAU minus SS of rr + program bill cost), load_following (the rest),
-      residential, non_residential, residential_bill_bau / residential_bill_ss
-      (average residential bill, $/month: the SS bill moves by the reallocated pool
-      share per residential customer), residential_saving_usd_month,
-      non_residential_saving_usd_month (per non-residential customer); and scalars
+      savings), pool_customer_share (the reallocated part: network revenue-requirement
+      reduction net of shared savings earnings, where positive), residential,
+      non_residential, residential_bill_bau / residential_bill_ss (average residential
+      bill, $/month), residential_saving_usd_month, non_residential_saving_usd_month
+      (per non-residential customer, EIA-861 2024 counts held constant); and scalars
       option, residential_pool_share, sales_share, residential_customers,
-      non_residential_customers (EIA-861 2024, held constant).
+      non_residential_customers.
     """
     mech = run['assumptions']['mechanism']
     rs = params['residential_sales_share']
-    option = option or mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    run_opt = mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    option = option or run_opt
     a = residential_pool_share(mech, rs, option, custom_share)
+    if option != run_opt or a != residential_pool_share(mech, rs, run_opt):
+        raise ValueError(f"run was projected with customer_allocation {run_opt!r}; re-run project_layers with "
+                         f"overrides {{('mechanism', 'customer_allocation'): {option!r}}}")
     b, s = run['bau'], run['ss']
     cust = _customer_saving_yearly(run)
-    r = ((b['rr_m'] + b['program_bill_cost_m']) - (s['rr_m'] + s['program_bill_cost_m'])).values
+    r = s['allocation_pool_m'].values
     res, non = allocation_split(cust, r, rs, None if option == 'by_sales' else a)
     n_r, n_n = mech['residential_customers'], mech['nonresidential_customers']
-    shift = (a - rs) * r * 1e6 / (n_r * 12) if option != 'by_sales' else np.zeros(len(r))
-    bill_ss = s['avg_bill_total'].values - shift
     return {'option': option, 'residential_pool_share': a, 'sales_share': rs,
             'residential_customers': n_r, 'non_residential_customers': n_n,
-            'customers': cust, 'pool_customer_share': r, 'load_following': cust - r,
+            'customers': cust, 'pool_customer_share': r,
             'residential': res, 'non_residential': non,
-            'residential_bill_bau': b['avg_bill_total'].values, 'residential_bill_ss': bill_ss,
-            'residential_saving_usd_month': b['avg_bill_total'].values - bill_ss,
+            'residential_bill_bau': b['avg_bill_total'].values, 'residential_bill_ss': s['avg_bill_total'].values,
+            'residential_saving_usd_month': (b['avg_bill_total'] - s['avg_bill_total']).values,
             'non_residential_saving_usd_month': non * 1e6 / (n_n * 12)}
+
+
+def allocation_overrides(option, custom_share=None):
+    """Overrides that run the engine under a customer_allocation option."""
+    ov = {('mechanism', 'customer_allocation'): option}
+    if custom_share is not None:
+        ov[('mechanism', 'custom_residential_share')] = custom_share
+    return ov
 
 
 def customer_allocation_table(utility_json, params, scenarios=SCENARIOS, custom_share=0.5):
     """
-    Residential and non-residential savings under each customer_allocation option.
+    Residential and non-residential savings under each customer_allocation option
+    (each a full engine run).
 
-    Output: DataFrame indexed by (scenario, option): residential share of the pool's
-      customer share; residential and non-residential savings ($B undiscounted nominal
-      and NPV 3%); average residential bill saving 2035 / 2050 ($/month nominal);
-      non-residential saving per customer 2035 / 2050 ($/month nominal). Totals are
-      the same under every option.
+    Output: DataFrame indexed by (scenario, option): residential share of the
+      reallocated part; residential and non-residential savings ($B undiscounted
+      nominal and NPV 3%); average residential bill saving 2035 / 2050 ($/month
+      nominal); non-residential saving per customer 2035 / 2050 ($/month nominal).
+      Totals are the same under every option.
     """
     rows = []
+    i35, i50 = YEARS.index(2035), YEARS.index(2050)
     for sc in scenarios:
-        run = project_layers(utility_json, params, scenario=sc)
         for opt in CUSTOMER_ALLOCATIONS:
-            al = customer_allocation(run, params, opt, custom_share)
-            i35, i50 = YEARS.index(2035), YEARS.index(2050)
+            run = project_layers(utility_json, params, scenario=sc,
+                                 overrides=allocation_overrides(opt, custom_share if opt == 'custom' else None))
+            al = customer_allocation(run, params)
             rows.append({'scenario': sc, 'option': opt,
-                         'Residential share of pool customer share': al['residential_pool_share'],
+                         'Residential share of reallocated pool': al['residential_pool_share'],
                          'Residential ($B, undiscounted nominal)': al['residential'].sum() / 1e3,
                          'Residential ($B, NPV 3%, 2026 $)': _npv(al['residential'], YEARS, 0.03) / 1e3,
                          'Non-residential ($B, undiscounted nominal)': al['non_residential'].sum() / 1e3,

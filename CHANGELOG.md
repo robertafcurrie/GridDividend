@@ -6,6 +6,70 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Customer allocation revised; drives the engine (this commit)
+
+**Changed.**
+- **The rule:** costs follow the benefits they buy; only savings are reallocated.
+  - **Reallocated:** the network (distribution) revenue-requirement reduction net of shared savings earnings, in years it is positive.
+  - **Stay by sales under every option:** program costs (flexible and efficiency spend, including the amortisation of and return on capitalised amounts), matching the efficiency energy savings they buy; the load-following savings; and any year's negative network remainder.
+  - Previously, program costs were reallocated with the pool. That made per-customer allocation lower residential savings for Dominion and Pepco.
+- **The setting drives the engine.** A non-default option adds an allocation adjustment line (delivery rider category, per kWh) to the residential bill. The line feeds the headline monthly savings, the value flows' residential / business split, and the dividend advance's residential bill cap. New columns: `allocation_pool_m`, `allocation_residential_share`, `allocation_adjustment_usd_month`.
+- **Engine functions:** `customer_allocation()` reports a run under its own setting. `customer_allocation_table()` runs each option. `allocation_overrides()` is new.
+- **Defaults:** `'by_sales'` adds no line, so every default output, fixture, pin and existing export field is unchanged. `allocation_sweep` is regenerated: each option is now a full engine run, with value flows grouped as `load_following` (by sales, now including program costs and any negative network remainder) and `pool_customer_share` (`network_net_of_earnings`, reallocated).
+- **Notebooks:** Section 13 adds the customer allocation table (3d). All three notebooks were re-run.
+- **Tests** (12 new; 357 in total):
+  - Where residential customers' share of customers exceeds their share of sales, per_customer residential savings (cumulative, NPV, yearly, and the monthly bill saving) are at least by_sales, for every utility, scenario and pace.
+  - The allocation moves only the residential bill; with the advance on, its cap holds on the allocated bill.
+  - The existing allocation tests are kept.
+
+**Effect on results:** none by default.
+
+**Residential and non-residential savings by option, revised** (utility-forecast pace; $B undiscounted nominal, NPV 3% in 2026 $ in brackets; $/month nominal):
+
+| Utility | Scenario | Option | Residential share of reallocated savings | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | by sales (default) | 0.260 | 3.24 (1.94) | 9.21 (5.52) | 5.05 / 29.02 | 26.93 / 128.52 |
+| Con Edison | Cautious | per customer | 0.840 | 8.50 (5.00) | 3.95 (2.46) | 7.49 / 48.04 | 17.29 / 45.55 |
+| Con Edison | Cautious | custom 0.5 | 0.500 | 5.41 (3.21) | 7.04 (4.25) | 6.06 / 36.88 | 22.94 / 94.22 |
+| Con Edison | Central | by sales (default) | 0.260 | 10.51 (6.22) | 29.88 (17.68) | 17.28 / 111.10 | 78.12 / 465.77 |
+| Con Edison | Central | per customer | 0.840 | 26.21 (15.27) | 14.18 (8.63) | 23.97 / 175.00 | 51.63 / 186.94 |
+| Con Edison | Central | custom 0.5 | 0.500 | 17.00 (9.96) | 23.39 (13.94) | 20.05 / 137.51 | 67.17 / 350.52 |
+| Con Edison | Ambitious | by sales (default) | 0.260 | 15.66 (9.35) | 44.50 (26.58) | 26.09 / 146.21 | 133.20 / 665.16 |
+| Con Edison | Ambitious | per customer | 0.840 | 34.95 (20.47) | 25.21 (15.46) | 34.75 / 226.62 | 98.90 / 314.29 |
+| Con Edison | Ambitious | custom 0.5 | 0.500 | 23.63 (13.95) | 36.53 (21.98) | 29.67 / 179.45 | 119.02 / 520.13 |
+| RG&E | Cautious | by sales (default) | 0.414 | 0.66 (0.41) | 0.93 (0.58) | 4.58 / 14.60 | 56.76 / 154.67 |
+| RG&E | Cautious | per customer | 0.896 | 1.26 (0.77) | 0.34 (0.21) | 8.14 / 28.27 | 25.18 / 45.92 |
+| RG&E | Cautious | custom 0.5 | 0.500 | 0.77 (0.47) | 0.83 (0.51) | 5.22 / 17.05 | 51.10 / 135.19 |
+| RG&E | Central | by sales (default) | 0.414 | 1.88 (1.15) | 2.67 (1.63) | 12.17 / 43.88 | 149.54 / 464.19 |
+| RG&E | Central | per customer | 0.896 | 3.24 (1.97) | 1.32 (0.81) | 20.12 / 75.01 | 78.89 / 216.59 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.13 (1.30) | 2.43 (1.49) | 13.59 / 49.45 | 136.89 / 419.83 |
+| RG&E | Ambitious | by sales (default) | 0.414 | 2.91 (1.79) | 4.13 (2.53) | 18.05 / 62.22 | 236.64 / 700.85 |
+| RG&E | Ambitious | per customer | 0.896 | 4.75 (2.90) | 2.30 (1.42) | 29.16 / 103.98 | 138.03 / 368.63 |
+| RG&E | Ambitious | custom 0.5 | 0.500 | 3.24 (1.99) | 3.80 (2.33) | 20.04 / 69.70 | 218.97 / 641.33 |
+| Dominion | Cautious | by sales (default) | 0.307 | 1.94 (1.19) | 4.38 (2.69) | 2.75 / 5.78 | 34.49 / 111.75 |
+| Dominion | Cautious | per customer | 0.895 | 3.84 (2.30) | 2.49 (1.59) | 3.56 / 10.22 | 26.91 / 50.43 |
+| Dominion | Cautious | custom 0.5 | 0.500 | 2.56 (1.56) | 3.76 (2.33) | 3.02 / 7.24 | 32.01 / 91.66 |
+| Dominion | Central | by sales (default) | 0.307 | 6.14 (3.70) | 13.83 (8.35) | 6.44 / 16.32 | 91.38 / 378.88 |
+| Dominion | Central | per customer | 0.895 | 10.26 (6.10) | 9.71 (5.96) | 7.94 / 26.56 | 77.24 / 237.55 |
+| Dominion | Central | custom 0.5 | 0.500 | 7.49 (4.49) | 12.48 (7.57) | 6.93 / 19.68 | 86.74 / 332.58 |
+| Dominion | Ambitious | by sales (default) | 0.307 | 14.85 (8.97) | 33.48 (20.22) | 14.82 / 37.94 | 226.63 / 923.54 |
+| Dominion | Ambitious | per customer | 0.895 | 20.03 (11.88) | 28.31 (17.31) | 15.64 / 53.90 | 218.95 / 703.02 |
+| Dominion | Ambitious | custom 0.5 | 0.500 | 16.55 (9.92) | 31.79 (19.26) | 15.09 / 43.17 | 224.11 / 851.29 |
+| Pepco MD | Cautious | by sales (default) | 0.410 | 1.02 (0.64) | 1.46 (0.92) | 6.63 / 12.45 | 83.33 / 179.31 |
+| Pepco MD | Cautious | per customer | 0.917 | 1.29 (0.80) | 1.19 (0.76) | 7.33 / 17.03 | 76.15 / 129.42 |
+| Pepco MD | Cautious | custom 0.5 | 0.500 | 1.07 (0.67) | 1.41 (0.89) | 6.76 / 13.26 | 82.06 / 170.48 |
+| Pepco MD | Central | by sales (default) | 0.410 | 1.84 (1.14) | 2.65 (1.65) | 10.80 / 25.10 | 136.02 / 346.25 |
+| Pepco MD | Central | per customer | 0.917 | 2.17 (1.34) | 2.32 (1.45) | 11.78 / 30.92 | 125.92 / 282.82 |
+| Pepco MD | Central | custom 0.5 | 0.500 | 1.90 (1.18) | 2.59 (1.61) | 10.97 / 26.13 | 134.23 / 335.02 |
+| Pepco MD | Ambitious | by sales (default) | 0.410 | 2.56 (1.59) | 3.68 (2.28) | 14.09 / 34.26 | 185.21 / 484.76 |
+| Pepco MD | Ambitious | per customer | 0.917 | 2.86 (1.76) | 3.38 (2.10) | 14.93 / 40.03 | 176.64 / 421.82 |
+| Pepco MD | Ambitious | custom 0.5 | 0.500 | 2.61 (1.62) | 3.63 (2.25) | 14.24 / 35.28 | 183.69 / 473.62 |
+
+- **Central, per customer, residential savings rise everywhere:** Con Edison $10.5B → $26.2B ($111 → $175/month in 2050), Dominion $6.1B → $10.3B, RG&E $1.9B → $3.2B, Pepco $1.8B → $2.2B.
+- **What moves, Central, 2026–2050:** the network saving net of earnings, $27.1B / $2.8B / $7.0B / $0.65B (Con Edison / RG&E / Dominion / Pepco). Program costs of $8.6B / $1.1B / $8.6B / $1.5B stay by sales.
+
+---
+
 ## 2026-11-02: Customer allocation of the pool, residential vs non-residential (this commit)
 
 **Added.**

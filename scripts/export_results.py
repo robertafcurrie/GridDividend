@@ -64,8 +64,10 @@ WATERFALL_YEARS = (2035, 2050)
 SHARE_SWEEP = (0.20, 0.30, 0.40)                 # utility share of the savings pool (default 0.30)
 OBJECTIVE_SWEEP = (0.0, 0.025, 0.05, 0.10)       # additional savings objective (default 0%)
 ALLOCATION_CUSTOM_SHARE = 0.5                    # residential share of the pool's customer share, 'custom' option
-LOAD_FOLLOWING = ('capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy')   # stay allocated by sales
-POOL_PARTS = ('deferral', 'additional_objective', 'program_costs', 'earnings')             # pool's customer share
+# Customer allocation: costs follow the benefits they buy; only savings are reallocated
+LOAD_FOLLOWING = ('capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy', 'program_costs',
+                  'network_negative_remainder')                       # stay allocated by sales
+POOL_PARTS = ('network_net_of_earnings',)                              # reallocated (positive years)
 # Tornado driver type: a choice regulators or utilities make (policy) or a condition they do not control (external)
 POLICY_LAYERS = {'programs', 'deferral', 'load_enabled', 'mechanism', 'roe', 'objective'}
 POLICY_PARAMS = {('bau_plan', 'addressable_growth'), ('bau_plan', 'addressable_replacement'),
@@ -137,7 +139,9 @@ def value_flows(run, params):
       program_costs     = BAU program surcharges - SS program revenue requirement (a deduction)
       earnings          = shared savings earnings (recovered in rates)
     customers = sum of sources + program_costs - earnings = customer savings;
-    residential / business split by the residential share of sales (EIA-861).
+    residential / business split by the residential share of sales (EIA-861), except
+    that under mechanism.customer_allocation the positive network RR reduction net of
+    earnings (network_net_of_earnings) is split at the option's residential share.
     """
     b, s = run['bau'], run['ss']
     t = np.arange(len(YEARS))
@@ -155,8 +159,15 @@ def value_flows(run, params):
          'earnings': (s['rr_m'] - s['rr_core_m']).values - (b['rr_m'] - b['rr_core_m']).values}
     f['customers'] = sum(f[k] for k in FLOW_SOURCES) + f['program_costs'] - f['earnings']
     rs = params['residential_sales_share']
-    f['residential'] = f['customers'] * rs
-    f['business'] = f['customers'] * (1 - rs)
+    # customer allocation (METHODOLOGY 3.10b): the network RR reduction net of earnings, where
+    # positive, is reallocated; everything else (and negative years) stays by sales
+    net = f['deferral'] + f['additional_objective'] - f['earnings']
+    f['network_net_of_earnings'] = np.maximum(net, 0.0)
+    f['network_negative_remainder'] = np.minimum(net, 0.0)
+    mech = run['assumptions']['mechanism']
+    opt = mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    a = None if opt == 'by_sales' else LY.residential_pool_share(mech, rs, opt)
+    f['residential'], f['business'] = LY.allocation_split(f['customers'], f['network_net_of_earnings'], rs, a)
     return f
 
 
@@ -271,29 +282,34 @@ def fast_start_block(uj, params, scenario):
 
 def allocation_sweep(uj, params, scenario, run=None, custom_share=ALLOCATION_CUSTOM_SHARE):
     """
-    The pool's customer share (wires and program revenue-requirement reduction net of
-    shared savings earnings: deferral + additional objective + program costs - earnings)
-    split between residential and non-residential customers under each
-    customer_allocation option; load-following savings (capacity, transmission, losses,
-    wholesale, efficiency energy) stay split by sales. Totals are the same under every
-    option; by_sales reproduces the run block exactly.
+    The scenario under each customer_allocation option (by_sales = the default run;
+    the others re-run the engine, so bills, the advance cap and headlines follow the
+    option). Costs follow the benefits they buy; only savings are reallocated: the
+    network revenue-requirement reduction net of shared savings earnings, in years it
+    is positive, is split at the option's residential share; capacity, transmission,
+    losses, wholesale, efficiency energy, program costs and any negative network
+    remainder stay split by sales. Totals are the same under every option; by_sales
+    reproduces the run block exactly.
     """
-    run = run or LY.project_layers(uj, params, scenario=scenario)
-    flows = value_flows(run, params)
     rs = params['residential_sales_share']
-    mech = run['assumptions']['mechanism']
-    pool = flows['deferral'] + flows['additional_objective'] + flows['program_costs'] - flows['earnings']
     i35, i50 = YEARS.index(2035), YEARS.index(2050)
     out = {}
     for opt in LY.CUSTOMER_ALLOCATIONS:
-        al = LY.customer_allocation(run, params, opt, custom_share)
+        if opt == 'by_sales':
+            r = run or LY.project_layers(uj, params, scenario=scenario)
+        else:
+            r = LY.project_layers(uj, params, scenario=scenario,
+                                  overrides=LY.allocation_overrides(opt, custom_share if opt == 'custom' else None))
+        flows = value_flows(r, params)
+        al = LY.customer_allocation(r, params)
         a = al['residential_pool_share']
-        res, non = LY.allocation_split(flows['customers'], pool, rs, None if opt == 'by_sales' else a)
+        res, non = flows['residential'], flows['business']
+        mech = r['assumptions']['mechanism']
         vf = {}
         for basis, agg in (('undiscounted_nominal', lambda v: float(np.sum(v))), ('npv3_2026', _npv)):
-            vf[basis] = {cls: {'load_following': {k: agg(flows[k]) * sh_lf for k in LOAD_FOLLOWING},
-                               'pool_customer_share': {k: agg(flows[k]) * sh_p * (-1 if k == 'earnings' else 1)
-                                                       for k in POOL_PARTS},
+            vf[basis] = {cls: {'load_following': {k: agg(flows[k]) * sh_lf
+                                                  for k in LOAD_FOLLOWING},
+                               'pool_customer_share': {k: agg(flows[k]) * sh_p for k in POOL_PARTS},
                                'total': agg(tot)}
                          for cls, sh_lf, sh_p, tot in (('residential', rs, a, res), ('non_residential', 1 - rs, 1 - a, non))}
         out[opt] = {'option': opt, 'residential_pool_share': a, 'residential_sales_share': rs,
@@ -302,9 +318,9 @@ def allocation_sweep(uj, params, scenario, run=None, custom_share=ALLOCATION_CUS
                                'avg_residential_bill_usd_month': {'bau': _r(al['residential_bill_bau']),
                                                                   'shared_savings': _r(al['residential_bill_ss'])},
                                'residential_saving_usd_month': _r(al['residential_saving_usd_month']),
-                               'non_residential_saving_usd_month_per_customer': _r(al['non_residential_saving_usd_month']),
+                               'non_residential_saving_usd_month_per_customer': _r(non * 1e6 / (mech['nonresidential_customers'] * 12)),
                                'residential_savings_m': _r(res), 'non_residential_savings_m': _r(non),
-                               'pool_customer_share_m': _r(pool)},
+                               'pool_customer_share_m': _r(flows['network_net_of_earnings'])},
                     'value_flows_m': vf,
                     'headline': {'customer_savings_b_undiscounted': float(np.sum(flows['customers'])) / 1e3,
                                  'residential_savings_b_undiscounted': float(np.sum(res)) / 1e3,
@@ -313,8 +329,8 @@ def allocation_sweep(uj, params, scenario, run=None, custom_share=ALLOCATION_CUS
                                  'non_residential_savings_b_npv3': _npv(non) / 1e3,
                                  'residential_bill_saving_2035': float(al['residential_saving_usd_month'][i35]),
                                  'residential_bill_saving_2050': float(al['residential_saving_usd_month'][i50]),
-                                 'non_residential_saving_per_customer_2035': float(al['non_residential_saving_usd_month'][i35]),
-                                 'non_residential_saving_per_customer_2050': float(al['non_residential_saving_usd_month'][i50]),
+                                 'non_residential_saving_per_customer_2035': float(non[i35] * 1e6 / (mech['nonresidential_customers'] * 12)),
+                                 'non_residential_saving_per_customer_2050': float(non[i50] * 1e6 / (mech['nonresidential_customers'] * 12)),
                                  'residential_customers': mech['residential_customers'],
                                  'non_residential_customers': mech['nonresidential_customers']}}
     return out

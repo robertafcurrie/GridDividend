@@ -364,3 +364,24 @@ def test_per_customer_share_equals_customer_counts(key):
     t = LY.customer_allocation_table(uj, p, scenarios=('Central',))
     tot = t['Residential ($B, undiscounted nominal)'] + t['Non-residential ($B, undiscounted nominal)']
     assert tot.max() - tot.min() < 1e-9
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_per_customer_never_below_by_sales_for_residential(key):
+    """Where residential customers' share of customers exceeds their share of sales, per_customer residential savings
+    are at least the by_sales residential savings (only positive network savings move; costs stay by sales)."""
+    ex = _export(key)
+    uj, p = E.load_utility(key)
+    mech = LY.resolve(uj['forward_assumptions'])['mechanism']
+    n_r, n_n = mech['residential_customers'], mech['nonresidential_customers']
+    if n_r / (n_r + n_n) <= p['residential_sales_share']:
+        pytest.skip('residential customer share does not exceed sales share')
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            sw = ex['runs'][pace][sc]['allocation_sweep']
+            pc, bs = sw['per_customer'], sw['by_sales']
+            assert pc['headline']['residential_savings_b_undiscounted'] >= bs['headline']['residential_savings_b_undiscounted'] - 1e-12
+            assert pc['headline']['residential_savings_b_npv3'] >= bs['headline']['residential_savings_b_npv3'] - 1e-12
+            assert (np.array(pc['yearly']['residential_savings_m']) >= np.array(bs['yearly']['residential_savings_m']) - 1e-3).all()
+            assert (np.array(pc['yearly']['residential_saving_usd_month'])
+                    >= np.array(bs['yearly']['residential_saving_usd_month']) - 1e-3).all(), (pace, sc)

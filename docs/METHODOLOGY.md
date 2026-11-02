@@ -991,60 +991,72 @@ true-up     = if the year-end balance is above schedule, next year's credit is p
 
 ### 3.10b Customer allocation of the pool: residential vs non-residential (`customer_allocation`)
 
-**What it represents.** How the customers' share of the savings pool is divided between residential and non-residential customers. The pool's customer share is the wires and program revenue-requirement reduction net of shared savings earnings, returned through delivery rates. In the value flows it is deferral + additional objective + program costs − earnings, and BAU minus SS of (revenue requirement + program surcharge cost). How a regulator divides it is a rate-design choice, so the model offers three options (`mechanism.customer_allocation`, a setting):
+**Rule: costs follow the benefits they buy; only savings are reallocated.**
+
+**What it represents.** How the customers' share of the shared savings pool is divided between residential and non-residential customers. How a regulator divides it is a rate-design choice. The model offers three options through `mechanism.customer_allocation`, a setting:
 - `'by_sales'` (default; the earlier method): by the residential share of sales (EIA-861 2024: Con Edison 26.0%, RG&E 41.4%, Dominion 30.7%, Pepco 41.0%).
 - `'per_customer'`: equal per customer, by EIA-861 2024 class customer counts (`residential_customers`, `nonresidential_customers`). The residential share is Con Edison 84.0%, RG&E 89.6%, Dominion 89.5% and Pepco 91.7%.
 - `'custom'`: a residential share between 0 and 1 (`custom_residential_share`; the export uses 0.5).
 
-**Why only the pool is reallocated.** The other savings follow load through existing rates. Moving them would mean redesigning those rates, not the shared-savings mechanism:
-- Capacity is charged per kW of each class's peak contribution.
-- Transmission is charged by load.
-- Lower supply prices and avoided losses reach every kWh.
-- Efficiency energy savings stay with the customers whose usage falls.
+**What moves and what does not.** Only the savings are reallocated: the network (distribution) revenue-requirement reduction net of shared savings earnings, in years when it is positive. Everything else stays allocated by sales under every option:
+- **Program costs:** flexible and efficiency spend, including the amortisation of and return on capitalised amounts. The efficiency energy savings those costs buy are allocated by usage, so the costs are too.
+- **Load-following savings:** capacity, transmission, losses, wholesale energy and efficiency energy. They follow load through existing rates (capacity per kW of peak contribution, transmission by load, supply and losses per kWh). Moving them would mean redesigning those rates, not the shared-savings mechanism.
+- **A negative network remainder:** in a year where the network reduction net of earnings is negative, the shortfall is allocated by sales.
 
-So capacity, transmission, losses, wholesale energy and efficiency energy stay allocated by sales under every option. The pool's customer share is different: it is a reduction in the revenue requirement net of the utility's earnings, collected through delivery rates and riders whose class allocation the commission sets. That is the part a shared-savings mechanism could choose to return differently.
+The network saving net of the utility's earnings is the part that a shared-savings mechanism returns through delivery rates and riders whose class allocation the commission sets. That is the part it could choose to return differently.
 
 **Calculation.**
 
 ```
-pool customer share P_t = (BAU - SS) of (revenue requirement + program surcharge cost)      ($M)
-load-following L_t      = customer savings_t - P_t
-residential_t           = L_t x sales share + P_t x residential pool share
-non-residential_t       = customer savings_t - residential_t
-                          (by_sales: customer savings x sales share and x (1 - sales share), exactly as the value flows)
-residential bill_t      = SS average residential bill - (residential pool share - sales share) x P_t / (residential customers x 12)
-non-residential $/month = non-residential_t / (non-residential customers x 12)        (counts held at 2024)
+network net of earnings N_t = (BAU - SS) distribution RR - shared savings earnings (incl. any advance)   ($M)
+reallocated P_t             = max(0, N_t)
+residential_t               = (customer savings_t - P_t) x sales share + P_t x residential share (option)
+non-residential_t           = customer savings_t - residential_t
+                              (by_sales: customer savings x sales share and x (1 - sales share), exactly as before)
+residential bill (engine)   = + allocation adjustment line (delivery rider category, per kWh):
+                              -(residential share / sales share - 1) x P_t / sales_t x benchmark kWh  (x usage on the average bill)
+non-residential $/month     = non-residential_t / (non-residential customers x 12)     (counts held at 2024)
 ```
 
-Totals, the pool, earnings and every value source are the same under every option. `customer_allocation()` reports the split for one run and `customer_allocation_table()` reports every scenario and option. The export's `allocation_sweep` carries yearly bills, value flows split by class, and headline savings by class for each option.
+**The setting drives the engine.**
+- The residential bill carries the adjustment line, so the average and benchmark bills, the headline monthly savings and the dividend advance's residential bill cap all use the allocated residential bill.
+- The value flows split residential and business by the option.
+- Totals, the pool, earnings and every value source are unchanged.
+- With `'by_sales'` there is no adjustment line, so every output is identical to before.
+- `customer_allocation()` reports a run's split, and `customer_allocation_table()` runs every scenario under each option (notebook Section 13, 3d).
+- The export's `allocation_sweep` carries yearly bills, value flows split by class, and headline savings by class for each option.
 
 **Results** (Central, utility-forecast pace; $B undiscounted nominal, NPV 3% in 2026 $ in brackets; $/month nominal; all scenarios in the CHANGELOG):
 
-| Utility | Scenario | Option | Residential share of pool | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
+| Utility | Scenario | Option | Residential share of reallocated savings | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
 |---|---|---|---|---|---|---|---|
 | Con Edison | Central | by sales (default) | 0.260 | 10.51 (6.22) | 29.88 (17.68) | 17.28 / 111.10 | 78.12 / 465.77 |
-| Con Edison | Central | per customer | 0.840 | 21.22 (12.22) | 19.18 (11.68) | 18.85 / 151.90 | 69.89 / 251.24 |
-| Con Edison | Central | custom 0.5 | 0.500 | 14.94 (8.70) | 25.45 (15.20) | 17.93 / 127.96 | 74.72 / 377.09 |
+| Con Edison | Central | per customer | 0.840 | 26.21 (15.27) | 14.18 (8.63) | 23.97 / 175.00 | 51.63 / 186.94 |
+| Con Edison | Central | custom 0.5 | 0.500 | 17.00 (9.96) | 23.39 (13.94) | 20.05 / 137.51 | 67.17 / 350.52 |
 | RG&E | Central | by sales (default) | 0.414 | 1.88 (1.15) | 2.67 (1.63) | 12.17 / 43.88 | 149.54 / 464.19 |
-| RG&E | Central | per customer | 0.896 | 2.69 (1.64) | 1.86 (1.15) | 17.02 / 61.03 | 107.80 / 316.61 |
-| RG&E | Central | custom 0.5 | 0.500 | 2.03 (1.24) | 2.53 (1.55) | 13.04 / 46.95 | 142.06 / 437.75 |
+| RG&E | Central | per customer | 0.896 | 3.24 (1.97) | 1.32 (0.81) | 20.12 / 75.01 | 78.89 / 216.59 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.13 (1.30) | 2.43 (1.49) | 13.59 / 49.45 | 136.89 / 419.83 |
 | Dominion | Central | by sales (default) | 0.307 | 6.14 (3.70) | 13.83 (8.35) | 6.44 / 16.32 | 91.38 / 378.88 |
-| Dominion | Central | per customer | 0.895 | 5.21 (3.00) | 14.76 (9.06) | 3.50 / 18.25 | 116.58 / 362.37 |
-| Dominion | Central | custom 0.5 | 0.500 | 5.83 (3.47) | 14.14 (8.58) | 5.48 / 16.96 | 99.63 / 373.47 |
+| Dominion | Central | per customer | 0.895 | 10.26 (6.10) | 9.71 (5.96) | 7.94 / 26.56 | 77.24 / 237.55 |
+| Dominion | Central | custom 0.5 | 0.500 | 7.49 (4.49) | 12.48 (7.57) | 6.93 / 19.68 | 86.74 / 332.58 |
 | Pepco MD | Central | by sales (default) | 0.410 | 1.84 (1.14) | 2.65 (1.65) | 10.80 / 25.10 | 136.02 / 346.25 |
-| Pepco MD | Central | per customer | 0.917 | 1.40 (0.86) | 3.09 (1.93) | 8.27 / 21.72 | 164.13 / 383.78 |
-| Pepco MD | Central | custom 0.5 | 0.500 | 1.76 (1.09) | 2.73 (1.70) | 10.35 / 24.50 | 140.99 / 352.89 |
+| Pepco MD | Central | per customer | 0.917 | 2.17 (1.34) | 2.32 (1.45) | 11.78 / 30.92 | 125.92 / 282.82 |
+| Pepco MD | Central | custom 0.5 | 0.500 | 1.90 (1.18) | 2.59 (1.61) | 10.97 / 26.13 | 134.23 / 335.02 |
 
 **Reading the results.**
-- **Where the pool's customer share is positive, per-customer allocation moves savings to residential customers.** Con Edison Central's is $18.5B and RG&E's is $1.7B. Con Edison's residential share rises from $10.5B to $21.2B, and its 2050 bill saving from $111 to $152/month.
-- **Where it is negative over the period, per-customer allocation lowers residential savings.** Dominion Central's is −$1.6B and Pepco's is −$0.9B. There, program costs (mostly efficiency) and earnings exceed the wires savings, and the customer savings come from load-following streams that stay split by sales. A larger residential share of a net cost lowers the residential saving.
-  - Dominion's 2035 residential saving falls from $6.44 to $3.50/month, but its 2050 saving rises from $16.32 to $18.25, as deferral savings overtake program costs.
-- **The design question is which costs and savings travel together.** Under per-customer allocation, residential customers would carry most of the efficiency program costs while the efficiency energy savings stay with each class's usage.
+- **Per-customer allocation raises residential savings for every utility.** Residential customers' share of customers exceeds their share of sales, and only positive savings move.
+  - Con Edison Central: $10.5B → $26.2B, and the 2050 residential bill saving $111 → $175/month.
+  - Dominion: $6.1B → $10.3B.
+  - RG&E: $1.9B → $3.2B.
+  - Pepco: $1.8B → $2.2B.
+- **Non-residential customers still save in every case.** Their per-customer saving is lower, since they keep their sales share of the load-following savings and pay their sales share of program costs.
+- **What moves is the network saving net of earnings,** Central 2026–2050: Con Edison $27.1B, RG&E $2.8B, Dominion $7.0B, Pepco $0.65B. Program costs ($8.6B, $1.1B, $8.6B and $1.5B) stay by sales.
+- **No year has a negative network remainder** at Central.
 
 **Limitations.**
 - Customer counts are held at EIA-861 2024 levels.
-- The residential bill shift uses residential customers, not sales, so under by_sales the class totals and the average-bill saving differ slightly, as before.
-- The class split of today's rates is taken as given. The allocation is reporting only; the engine's bills and totals follow the sales-based split.
+- The bill adjustment converts the reallocated dollars per kWh of sales at average residential usage, as the other delivery lines do.
+- The class split of today's rates is otherwise taken as given.
 
 ### 3.11 ROE lever (layer 10)
 
@@ -1321,7 +1333,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 - The assumptions register matches the JSON.
 - Every layered input has a valid status.
 
-`tests/test_export.py` checks that the exports balance and match direct runs. The allocation tests check three things: `allocation_sweep` by_sales reproduces the existing export fields exactly; residential + non-residential equal customer savings under every option, with the load-following parts unchanged; and the per_customer residential share equals the residential share of EIA-861 customer counts. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
+`tests/test_export.py` checks that the exports balance and match direct runs. The allocation tests check three things: `allocation_sweep` by_sales reproduces the existing export fields exactly; residential + non-residential equal customer savings under every option, with the load-following parts unchanged; the per_customer residential share equals the residential share of EIA-861 customer counts; and where residential customers' share of customers exceeds their share of sales, per_customer residential savings are at least the by_sales ones, for every utility, scenario and pace. `test_customer_allocation_drives_bill_and_advance_cap` (layers) checks four things: the allocation moves only the residential bill; totals, earnings and BAU are unchanged; the adjustment is a credit; and with the advance on, the cap holds on the allocated bill. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
 
 `tests/test_regression.py` pins the earlier model: the v1.0 BASE results for Con Edison, Dominion and Pepco, plus the correction-flag checks.
 

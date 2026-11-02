@@ -1094,3 +1094,24 @@ def test_capacity_formulation_table(key, nb):
         assert t.loc[(sc, 'avoided_obligation'), 'of which price suppression ($B, undiscounted nominal)'] == 0
     with pytest.raises(ValueError):
         LY.project_layers(uj, p, overrides={('capacity', 'formulation'): 'other'})
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('opt', ['per_customer', 'custom'])
+def test_customer_allocation_drives_bill_and_advance_cap(key, nb, opt):
+    """Non-default allocations move the residential bill by the adjustment line only; totals, earnings and BAU are
+    unchanged; with the advance on, the cap holds on the allocated residential bill."""
+    uj, p = _utility(key, nb)
+    base = LY.project_layers(uj, p, scenario='Central')
+    r = LY.project_layers(uj, p, scenario='Central', overrides={('mechanism', 'customer_allocation'): opt})
+    for c in ('avg_bill_total', 'bill_total', 'rr_m'):
+        np.testing.assert_array_equal(r['bau'][c].values, base['bau'][c].values)
+    for c in ('shared_savings_earnings_m', 'rr_m', 'capacity_cost_m', 'allocation_pool_m'):
+        np.testing.assert_allclose(r['ss'][c].values, base['ss'][c].values, rtol=1e-12, atol=1e-9)
+    assert (base['ss']['allocation_adjustment_usd_month'] == 0).all()
+    adj = r['ss']['allocation_adjustment_usd_month'].values
+    assert (adj <= 1e-12).all() and adj.min() < 0          # residential share > sales share: a credit
+    assert LY.system_summary(r)['Customer savings ($B, undiscounted nominal)'] == pytest.approx(
+        LY.system_summary(base)['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
+    ra = LY.project_layers(uj, p, scenario='Cautious', overrides={**ADV, ('mechanism', 'customer_allocation'): opt})
+    assert (ra['ss']['avg_bill_total'].values <= ra['bau']['avg_bill_total'].values + 1e-9).all()
