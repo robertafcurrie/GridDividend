@@ -3,7 +3,7 @@
   "utility": "ConEd",
   "name": "Consolidated Edison (CECONY)",
   "short_name": "Con Edison",
-  "source_commit": "e096c7269290811b3e916483a6998d0f30e9d6ea",
+  "source_commit": "7747ac0327e8790a656e5cd1bb35408b59710135",
   "source_modified_since_commit": false,
   "generated": "2026-11-02",
   "dollar_basis": "Nominal dollars. Cumulative figures undiscounted unless labelled npv3_2026 (NPV at 3%, 2026 dollars). Bills are the average residential bill, $/month.",
