@@ -14,54 +14,56 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 | RGE | 21 | 24 | 77 | 62 | 184 | 42% | 63% |
 | DomVA | 46 | 30 | 63 | 61 | 200 | 32% | 45% |
 | PepcoMD | 30 | 34 | 66 | 61 | 191 | 35% | 51% |
+| EversourceCT | 21 | 31 | 76 | 61 | 189 | 40% | 59% |
+| UI_CT | 20 | 30 | 76 | 61 | 187 | 41% | 60% |
 
 ## Status counts by layer
 
-All four utilities together.
+All six utilities together.
 
 | Layer | sourced | derived | _VERIFY | setting | Total |
 |---|---:|---:|---:|---:|---:|
-| starting_bill | 55 | 9 | 13 | 0 | 77 |
-| projection | 4 | 0 | 12 | 0 | 16 |
-| system_needs | 4 | 15 | 9 | 0 | 28 |
-| programs | 19 | 20 | 129 | 8 | 176 |
-| deferral | 0 | 0 | 4 | 0 | 4 |
-| load_enabled | 0 | 0 | 12 | 12 | 24 |
-| capacity | 23 | 18 | 15 | 32 | 88 |
-| wholesale_energy | 4 | 6 | 18 | 4 | 32 |
-| transmission | 3 | 10 | 7 | 30 | 50 |
-| losses | 2 | 10 | 0 | 4 | 16 |
-| objective | 0 | 0 | 0 | 24 | 24 |
-| mechanism | 4 | 8 | 0 | 68 | 80 |
-| roe | 0 | 4 | 0 | 4 | 8 |
-| network | 6 | 17 | 41 | 20 | 84 |
-| bau_plan | 9 | 6 | 6 | 40 | 61 |
-| capacity_carve_out | 0 | 0 | 3 | 0 | 3 |
+| starting_bill | 74 | 11 | 18 | 0 | 103 |
+| projection | 6 | 0 | 18 | 0 | 24 |
+| system_needs | 6 | 17 | 19 | 0 | 42 |
+| programs | 27 | 36 | 189 | 12 | 264 |
+| deferral | 0 | 0 | 6 | 0 | 6 |
+| load_enabled | 0 | 0 | 18 | 18 | 36 |
+| capacity | 25 | 30 | 29 | 48 | 132 |
+| wholesale_energy | 6 | 6 | 30 | 6 | 48 |
+| transmission | 5 | 16 | 11 | 44 | 76 |
+| losses | 2 | 15 | 1 | 6 | 24 |
+| objective | 0 | 0 | 0 | 36 | 36 |
+| mechanism | 6 | 12 | 0 | 102 | 120 |
+| roe | 0 | 6 | 0 | 6 | 12 |
+| network | 8 | 23 | 65 | 30 | 126 |
+| bau_plan | 9 | 12 | 12 | 60 | 93 |
+| capacity_carve_out | 0 | 0 | 5 | 0 | 5 |
 | starting_adjustments | 1 | 0 | 0 | 0 | 1 |
 
 ## Status counts by utility and layer
 
 _VERIFY / total status-tagged inputs.
 
-| Layer | ConEd | RGE | DomVA | PepcoMD |
-|---|---:|---:|---:|---:|
-| starting_bill | 1 / 25 | 6 / 12 | 1 / 25 | 5 / 15 |
-| projection | 3 / 4 | 3 / 4 | 3 / 4 | 3 / 4 |
-| system_needs | 2 / 7 | 3 / 7 | 2 / 7 | 2 / 7 |
-| programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 |
-| deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
-| load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
-| capacity | 3 / 23 | 4 / 21 | 4 / 22 | 4 / 22 |
-| wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
-| transmission | 1 / 12 | 2 / 12 | 2 / 13 | 2 / 13 |
-| losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
-| objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
-| mechanism | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 |
-| roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
-| network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
-| bau_plan | 0 / 14 | 3 / 15 | 2 / 16 | 1 / 16 |
-| capacity_carve_out | – | 1 / 1 | 1 / 1 | 1 / 1 |
-| starting_adjustments | – | – | – | 0 / 1 |
+| Layer | ConEd | RGE | DomVA | PepcoMD | EversourceCT | UI_CT |
+|---|---:|---:|---:|---:|---:|---:|
+| starting_bill | 1 / 25 | 6 / 12 | 1 / 25 | 5 / 15 | 3 / 14 | 2 / 12 |
+| projection | 3 / 4 | 3 / 4 | 3 / 4 | 3 / 4 | 3 / 4 | 3 / 4 |
+| system_needs | 2 / 7 | 3 / 7 | 2 / 7 | 2 / 7 | 4 / 7 | 6 / 7 |
+| programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 | 30 / 44 | 30 / 44 |
+| deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
+| load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
+| capacity | 3 / 23 | 4 / 21 | 4 / 22 | 4 / 22 | 7 / 22 | 7 / 22 |
+| wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 | 6 / 8 | 6 / 8 |
+| transmission | 1 / 12 | 2 / 12 | 2 / 13 | 2 / 13 | 2 / 13 | 2 / 13 |
+| losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 | 1 / 4 | 0 / 4 |
+| objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
+| mechanism | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 |
+| roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
+| network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 | 12 / 21 | 12 / 21 |
+| bau_plan | 0 / 14 | 3 / 15 | 2 / 16 | 1 / 16 | 3 / 16 | 3 / 16 |
+| capacity_carve_out | – | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
+| starting_adjustments | – | – | – | 0 / 1 | – | – |
 
 ## ConEd
 
@@ -973,6 +975,462 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | residential_sales_share | 0.4102 | – | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Potomac Electric Power Co, MD only: bundled (Part A) + delivery-only (Part C) rows, so retai… |
 | residential_customer_share | 0.9174 | – |  |
 
+## EversourceCT
+
+Value is the single value or setting; ranges are low / central / high. Sources are truncated here; see the CSV for the full text.
+
+| Layer | Input | Value | Low | Central | High | Unit | Status | As of | Source |
+|---|---|---|---|---|---|---|---|---|---|
+| starting_bill | customer_charge | 9.62 |  |  |  | $/month | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027); OCC FAQ on the 2026 RAM decision (1 May… |
+| starting_bill | distribution_kwh | 0.05844 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 5.844 c/kWh |
+| starting_bill | rider_esi | 0.02031 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 2.031 c/kWh |
+| starting_bill | rider_rdm | 0.00011 |  |  |  | $/kWh | _VERIFY | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): listed as "0.011 per kWh" without a uni… |
+| starting_bill | rider_cta | 0.00496 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.496 c/kWh; OCC FAQ on the 2026 RAM de… |
+| starting_bill | tac | 0.0505 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 5.050 c/kWh (effective 1 May 2026) |
+| starting_bill | nbfmcc | -0.02061 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 2.061 c/kWh credit (1 May 2026 - 30 Apr… |
+| starting_bill | sbc | -0.00103 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.103 c/kWh credit (1 May 2026 - 30 Apr… |
+| starting_bill | reif | 0.001 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.1 c/kWh (statutory) |
+| starting_bill | clm | 0.006 |  |  |  | $/kWh | _VERIFY | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): statutory C&LM 0.3 c/kWh plus up to 0.3… |
+| starting_bill | gsc | 0.11577 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC consumer advisory (22 May 2026): CL&P Standard Service 11.58 c/kWh from 1 Jul 2026 (approved by PURA 20 May 2026); OCC bill page 11.577… |
+| starting_bill | bfmcc |  |  |  |  | $/kWh | _VERIFY | 2026-11-02 | Not published separately on the OCC bill page; assumed inside the Generation Service Charge |
+| starting_bill | capacity |  |  |  |  | $/kWh | derived | 2026-11-02 | Carved out of the Generation Service Charge in the layered model (forward_assumptions.capacity_carve_out) |
+| starting_bill | taxes | 0.0 |  |  |  | $/month | sourced | 2026-11-02 | Connecticut residential electricity carries no sales tax; the gross earnings tax is embedded in rates (Conn. Gen. Stat. 12-264) |
+| projection | inflation_rate | 0.025 |  |  |  | per year | sourced | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 INFLATION_RATE |
+| projection | supply_energy_growth |  | 0.015 | 0.025 | 0.04 | per year, nominal | _VERIFY | 2026-11-02 | Assumption: central = INFLATION_RATE (flat real energy prices) |
+| projection | transmission_growth |  | 0.015 | 0.025 | 0.05 | per year, nominal | _VERIFY | 2026-11-02 | Assumption: central = INFLATION_RATE; high reflects transmission build-out |
+| projection | program_surcharge_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal $/kWh | _VERIFY | 2026-11-02 | Assumption: BAU surcharge rates grow with inflation (policy-driven) |
+| system_needs | baseline_energy_growth |  | -0.012 | -0.008 | -0.004 | per year | derived | 2026-11-02 | Derived: Eversource 2025 Forecast of Loads and Resources (Reference Plan): net energy 20,233 GWh (2025) to 21,342 GWh (2034) = +0.59%/yr, o… |
+| system_needs | electrification_growth |  | 0.0068 | 0.0136 | 0.0204 | per year, share of 2026 non-DC sales | derived | 2026-11-02 | Derived: mean of notebooks/GridDividend_Connecticut.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 = 0.0136 (EVs and buildings). 2026-2034… |
+| system_needs | ev_share_of_electrification | 0.8 |  |  |  | share of electrification energy | sourced | 2026-11-02 | NREL Electrification Futures Study: transportation is 1,424 of 1,782 TWh (80%) of the 2050 increase in the High scenario and 810 of 932 TWh… |
+| system_needs | dc_growth |  | 0.0 | {"2026":0,"2027":45} | {"2026":0,"2027":90} | per year, or {year: MW added since 2026} | _VERIFY | 2026-11-02 | Eversource 2025 Forecast of Loads and Resources: large customer additions (>0.5 MW, not data centres) 58 MW (2025) rising to 103 MW, flat f… |
+| system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-11-02 | Assumption for data-centre energy from MW |
+| system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-11-02 | Assumption: v1.0 grows peak with load one-for-one (central) |
+| system_needs | dist_upgrade_cost_per_mw |  | 1.5 | 2.0 | 3.0 | $M per MW | _VERIFY | 2026-11-02 | utilities/Eversource_CT.json _dist_upgrade_VERIFY: placeholder $2.0M/MW (between RG&E 1.5 and Pepco MD 2.2); high = $3.0M/MW (urban substat… |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-11-02 | Setting (default 2028) |
+| programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 NWS_AMORTISATION_YEARS |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-11-02 | Setting: today's programs are expensed through surcharges |
+| programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
+| programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (managed EV charging) |
+| programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (behind-the-meter and distribution-connected batteries) |
+| programs | split_der | 0.1 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (distributed solar and other DER) |
+| programs | cost_kw_yr_dr |  | 80 | 60 | 40 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Proxy: Pepco MD values (Rider R-DLC pays $40-80 per controlled device per year; Brattle VPP study net cost ~$43/kW-yr). Connecticut Connect… |
+| programs | cost_kw_yr_ev |  | 100 | 60 | 30 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for managed-charging incentives and platform |
+| programs | cost_kw_yr_storage |  | 250 | 150 | 100 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for distributed battery capacity payments |
+| programs | cost_kw_yr_der |  | 100 | 60 | 40 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for other DER dispatch payments |
+| programs | capitalised_dr |  | 0.5 | 0.0 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption: DR incentives are mostly OPEX |
+| programs | capitalised_ev |  | 0.75 | 0.5 | 0.25 | share capitalised | _VERIFY | 2026-11-02 | Assumption: chargers/telemetry part capital |
+| programs | capitalised_storage |  | 1.0 | 0.75 | 0.5 | share capitalised | _VERIFY | 2026-11-02 | Assumption: utility-owned or capitalised contracts |
+| programs | capitalised_der |  | 0.5 | 0.25 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption |
+| programs | derate_dr |  | 0.69 | 0.92 | 0.92 | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028… |
+| programs | derate_ev |  | 0.3 | 0.5 | 0.7 | capacity accreditation | _VERIFY | 2026-11-02 | Assumption: no ELCC class for managed charging |
+| programs | derate_storage | 0.59 |  |  |  | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM ELCC class… |
+| programs | derate_der | 0.08 |  |  |  | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028… |
+| programs | ee_incremental_savings_pct |  | 0.0025 | 0.005 | 0.01 | first-year savings above BAU, share of sales per… | _VERIFY | 2026-11-02 | Assumption (_VERIFY): BAU = today's pace, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): 125,243 MWh first-year savings = 0… |
+| programs | ee_levelised_cost_kwh |  | 0.109 | 0.056 | 0.028 | $ per kWh saved (lifetime, undiscounted) | derived | 2026-11-02 | Derived. Low (Cautious) = this utility's reported cost, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): incentives + other c… |
+| programs | ee_measure_life | 10 |  |  |  | years | derived | 2026-11-02 | Derived: EIA-861 2025 (Connecticut Light & Power Co) incremental life-cycle / first-year savings = 9.9 years |
+| programs | ee_capitalised |  | 1.0 | 0.5 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption (EE regulatory asset, e.g. EmPOWER amortisation) |
+| programs | mw_start_dr | 118.3 |  |  |  | MW | sourced | 2026-11-02 | EIA-861 2025 Demand_Response (Connecticut Light & Power Co): potential peak demand savings 118.3 MW (actual 109.1 MW; 30,448 customers enro… |
+| programs | mw_2035_dr |  | 177.4 | 186.0 | 438.3 | MW nameplate | derived | 2026-11-02 | Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.7… |
+| programs | mw_2050_dr |  | 204.5 | 204.5 | 482.0 | MW nameplate | derived | 2026-11-02 | Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.7… |
+| programs | mw_start_ev | 0.0 |  |  |  | MW | _VERIFY | 2026-11-02 | Not found: no managed-charging MW published for this utility (PURA EV Charging Program, Docket 17-12-03RE04) |
+| programs | mw_2035_ev |  | 0.0 | 121.7 | 243.5 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff:… |
+| programs | mw_2050_ev |  | 0.0 | 133.8 | 267.8 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff:… |
+| programs | mw_start_storage | 15.0 |  |  |  | MW | derived | 2026-11-02 | utilities JSON der_storage_mw_start: Energy Storage Solutions installed + ConnectedSolutions batteries statewide (~19 MW, ISO-NE DGFWG CT p… |
+| programs | mw_2035_storage |  | 22.5 | 458.2 | 458.2 | MW nameplate | derived | 2026-11-02 | Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached b… |
+| programs | mw_2050_storage |  | 30.0 | 503.9 | 503.9 | MW nameplate | derived | 2026-11-02 | Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached b… |
+| programs | mw_start_der | 0.0 |  |  |  | MW | _VERIFY | 2026-11-02 | Not separately identified |
+| programs | mw_2035_der |  | 0.0 | 48.7 | 97.4 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power P… |
+| programs | mw_2050_der |  | 0.0 | 53.6 | 107.1 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power P… |
+| programs | ev_hub_share | 0.2 |  |  |  | share of EV peak growth at large charging hubs | _VERIFY | 2026-11-02 | Assumption |
+| programs | flex_conn_share |  | 0.0 | 0.1 | 0.25 | share of new distribution-connected DC and EV-hub… | _VERIFY | 2026-11-02 | Duke University Nicholas Institute, "Rethinking Load Growth" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk sy… |
+| programs | flex_conn_peak_depth | 1.0 |  |  |  | share of a flexible connection curtailable at net… | _VERIFY | 2026-11-02 | Assumption: flexible connections accept full curtailment in constrained hours |
+| programs | flex_conn_energy_curtailed |  | 0.01 | 0.005 | 0.0025 | share of the flexible load's annual energy curtai… | sourced | 2026-11-02 | Duke University Nicholas Institute, "Rethinking Load Growth" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk sy… |
+| programs | ramp_pct_peak_dr |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | derived | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_ev |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_storage |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | sourced | 2026-11-02 | Kept at the EmPOWER Maryland value (no Connecticut evaluation located). Check: EIA-861 2025 reports 40.1 MW / 125.2 GWh = 0.32 kW per MWh f… |
+| deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-11-02 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-11-02 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-11-02 | Assumption: connection works not paid by the customer |
+| load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-11-02 | Assumption |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-11-02 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-11-02 | What-if lever, no source |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-11-02 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
+| capacity | price_m_per_mw_yr | 0.03108 |  |  |  | $M per MW-yr (2026) | derived | 2026-11-02 | ISO-NE FCA 17 (2026/2027): $2.59/kW-month (Rest-of-Pool; Connecticut not separately priced) x 12 / 1000; shared/capacity_markets/ISONE.json… |
+| capacity | price_growth |  | 0.0 | 0.025 | 0.0557 | per year, nominal | derived | 2026-11-02 | central = INFLATION_RATE (flat real; ISONE.json zone CT); low = flat nominal; high = 3%/yr real (1.03 x 1.025 - 1), the sensitivity for win… |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-11-02 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.10894 |  |  |  | $M per MW-yr | derived | 2026-11-02 | ISO-NE, ICR and related values for FCA 18: Net CONE $9.078/kW-month x 12 / 1000 = $0.1089M/MW-yr (2027/28 $). No newer CONE / Net CONE stud… |
+| capacity | long_run_price_year | 2027 |  |  |  | year | setting | 2026-11-02 | Price year of long_run_price_m_per_mw_yr (FCA 18, 2027/28 capability period), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-11-02 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | published_prices | {"2027":0.04296} |  |  |  | $M per MW-yr by year | derived | 2026-11-02 | ISO-NE FCA 18 (2027/2028): $3.580/kW-month in all zones x 12 / 1000 = $0.04296M/MW-yr. ARA2 2027/28 ($3.935) is a reconfiguration price, no… |
+| capacity | formulation | avoided_obligation |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-02 | Setting. 'avoided_obligation' (default since 2 Nov 2026): avoided capacity obligation from the contribution to the RTO / NYCA peak, accredi… |
+| capacity | obligation_factor | 1.151 |  |  |  | MW of obligation per MW of coincident peak | derived | 2026-11-02 | Derived: ISO-NE ICR for FCA 18 31,591 MW / reference 50/50 peak 27,440 MW = 1.151. Net of HQICC (1,041 MW) the factor is 30,550 / 27,440 =… |
+| capacity | system_coincidence | 0.9625 |  |  |  | utility load at the ISO-NE peak hour / utility no… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): Pepco MD value (PJM 2026 load forecast). No utility load at the ISO-NE annual peak hour was located; Connecticut is ~23% o… |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-02 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr | 0.91 |  |  |  | share | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | accr_storage_by_duration | {"4":0.59,"6":0.68,"8":0.71,"10":0.78} |  |  |  | {hours: share} | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-02 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der | 0.07 |  |  |  | share | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-02 | Energy efficiency lowers the peak load forecast (ISO-NE reconstitutes FCM-cleared EE into the load forecast, so each EE MW either clears as… |
+| capacity | auction_lag_years |  | 3 | 1 | 0 | years | derived | 2026-11-02 | Derived: FCA 17 and FCA 18 already fix 2026/27 and 2027/28 prices (forward auctions ~3 years ahead, low); prompt annual auctions from 2028/… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-02 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-02 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 16.7 |  |  |  | % price change per 1% of requirement | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM VRR slope; ISO-NE's demand curve was not derived (sensitivity only, suppression off). Derived (_VERIFY): slope of PJM'… |
+| capacity | suppression_start_year | 2028 |  |  |  | year | setting | 2026-11-02 | Setting (_VERIFY): first prompt-auction capability period (2028/29) under Capacity Auction Reforms |
+| capacity | market_peak_mw | 25228 |  |  |  | MW | sourced | 2026-11-02 | ISO-NE 2026 CELT (final draft): New England summer 50/50 peak 25,228 MW (2026), 26,849 MW (2035); winter 20,483 to 26,411 MW |
+| wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was… |
+| wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was… |
+| wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-11-02 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
+| wholesale_energy | mwh_per_mw_dr |  | 61 | 61 | 74 | MWh shifted per MW of demand response per year (e… | _VERIFY | 2026-11-02 | Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 tota… |
+| wholesale_energy | mwh_per_mw_ev |  | 500 | 900 | 1460 | MWh shifted per MW of managed EV charging per year | _VERIFY | 2026-11-02 | Assumption: managed MW is evening-peak charging moved overnight; low 2 h x 250 days, central 3 h x 300 days, high 4 h x 365 days. No utilit… |
+| wholesale_energy | mwh_per_mw_storage |  | 1000 | 1200 | 1460 | MWh discharged per MW of distributed storage per… | _VERIFY | 2026-11-02 | 4-hour duration (the NYISO 2025 State of the Market reference battery) x cycles a year: low 250, central 300, high 365 (daily). Cycle count… |
+| wholesale_energy | mwh_per_mw_der |  | 61 | 61 | 74 | MWh shifted per MW of other DER per year | _VERIFY | 2026-11-02 | Treated like demand response (event-based dispatch): Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), A… |
+| wholesale_energy | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| transmission | cost_kw_yr | 183.71 |  |  |  | $/kW-yr, 2026 (grows with the transmission line i… | sourced | 2026-11-02 | ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year (2025: $185.28); regional ATRR $3,331.2M; 2024 12CP RNS load 18,132,696 kW |
+| transmission | avoidable_share |  | 0.0 | 0.5 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-11-02 | ISO-NE RNS is an average embedded rate pooled across New England: low 0 (cost shift within the pool), central 0.5, high 1.0. Assumption (si… |
+| transmission | bill_basis | transmission_lines |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-11-02 | Starting bill structure (starting_bill) |
+| transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
+| transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
+| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario: ISO-NE plans regional (pool-transmission-facility) transmission through the Regional System Plan, so the… |
+| transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
+| transmission | allocation_effect | zonal_share |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'zonal_share', with New England as the zone: ISO-NE Regional Network Service pools all transmission owner… |
+| transmission | zone_nspl_mw | 18133 |  |  |  | MW (New England RNS network load, 12CP average, 2… | derived | 2026-11-02 | Derived: ISO-NE RNS rate effective 1 Jan 2026: regional ATRR $3,331.2M / $183.71 per kW-year = 18,133 MW (ISO-NE reports 2024 12CP RNS load… |
+| transmission | utility_share_of_zone | 0.1831 |  |  |  | share of New England network load | derived | 2026-11-02 | Derived (_VERIFY): utility 2026 summer peak forecast (4,619 MW) / ISO-NE 2026 CELT New England 50/50 summer peak (25,228 MW), as a proxy fo… |
+| transmission | load_driven_share |  | 0.0 | 0.05 | 0.2 | share of planned transmission investment that is… | derived | 2026-11-02 | Derived: ISO-NE 2026 RNS Rate Overview and Forecast (Eversource for the PTOs): 2026 regional PTF additions ~$1,096M = $56M Regional System… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
+| losses | avg_loss_pct | 0.0286 |  |  |  | share of energy | _VERIFY | 2026-11-02 | Proxy (_VERIFY): UI's 2.86% (UI 2025 Report on Loads and Resources, requirements vs sales). EIA-861 2025 Operational Data for CL&P (losses… |
+| losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-11-02 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
+| losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-11-02 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
+| losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-02 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-02 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-02 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-02 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-02 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-02 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
+| mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share, i.e. a… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-11-02 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-02 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-02 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-02 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-02 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-02 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-02 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-02 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-02 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-02 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-02 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-02 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customers' share of the shared savings pool is split between residential and non-residential customers. Costs follow the b… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 1193581 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part… |
+| mechanism | nonresidential_customers | 116365 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part… |
+| roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-11-02 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
+| roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-11-02 | Model setting |
+| network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-11-02 | Model setting |
+| network | bands | [{"name":"Most loaded","capacity_share":0.2,"loading":1.0},… |  |  |  | bands of substation loading, most to least loaded… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
+| network | n_bands | 5 |  |  |  | number of bands (generated mode) | derived | 2026-11-02 | Same count as the explicit bands (quintiles of firm capacity) |
+| network | mean_utilisation |  |  |  |  | capacity-weighted mean starting planning utilisat… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3, Metric (i): subs… |
+| network | utilisation_spread | 0.37 |  |  |  | most minus least loaded band (generated mode; lin… | _VERIFY | 2026-11-02 | Derived from the explicit bands (1.00 - 0.63); the filing reports only the mean and the count of feeders above 100%, so the shape is assume… |
+| network | planning_limit_factor | 0.8 |  |  |  | planning capacity / feeder rating (planning utili… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): planning utilisa… |
+| network | operating_limit |  |  |  |  | operating limit as a multiple of planning capacit… | derived | 2026-11-02 | Derived: the full feeder rating relative to 0.80 x rating (contract reserves ignored) Dominion value used as a proxy until this utility's o… |
+| network | subband_enabled | true |  |  |  | per-utility switch: carve a constrained sub-band… | setting | 2026-11-02 | Model setting |
+| network | subband_load_share | 0.043 |  |  |  | share of network load in the constrained sub-band | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): 82 of ~1,900 fee… |
+| network | subband_utilisation | 1.125 |  |  |  | starting planning utilisation of the constrained… | _VERIFY | 2026-11-02 | Midpoint of the planning limit (1.00) and the operating limit (1.25); the filing gives only the count of feeders above 100%, not their load… |
+| network | upgrade_delay_ordinary_years |  | 0.5 | 1.5 | 3.0 | Upgrade Delay for Interconnection, ordinary new l… | _VERIFY | 2026-11-02 | No Eversource CT interconnection timeline for new load found. Con Edison guide used as proxy. Con Edison, E-Mobility Interconnection Guide:… |
+| network | upgrade_delay_large_years |  | 2.0 | 3.0 | 6.0 | Upgrade Delay for Interconnection, large loads (d… | _VERIFY | 2026-11-02 | No Eversource CT interconnection timeline for new load found. Con Edison guide used as proxy. Large loads: Con Edison guide low 2.0 yr (24… |
+| network | backlog_clearance_pct |  | 0.06 | 0.2 | 0.33 | share of the outstanding constrained backlog (exi… | _VERIFY | 2026-11-02 | No utility publishes a clearance rate for constrained feeders. Low 6%/yr: Dominion Energy Virginia, Application for approval of large-load… |
+| network | constrained_build_priority | true |  |  |  | constrained areas get build-rate priority: their… | setting | 2026-11-02 | Model setting (overloaded feeders are relieved first for reliability) |
+| network | planning_headroom |  | 0.05 | 0.1 | 0.15 | firm network capacity above network peak, share | _VERIFY | 2026-11-02 | No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity);… |
+| network | reinforcement_lead_years |  | 2 | 3 | 5 | years from order to in service | _VERIFY | 2026-11-02 | Assumption: distribution feeder and substation reinforcement typically takes 2-5 years |
+| network | max_build_pct |  | 0.02 | 0.035 | 0.05 | maximum reinforcement ordered per year, share of… | _VERIFY | 2026-11-02 | Assumption (supply chain, outages, crews) |
+| network | seed_pipeline | derived |  |  |  | projects under way at 2026: 'derived' = the next… | derived | 2026-11-02 | Model calibration; no utility publishes its in-flight distribution capacity pipeline in MW |
+| network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
+| network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-11-02 | Model setting (policy lever: locational targeting of flexibility) |
+| network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-11-02 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-11-02 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026,2027,2028,2029,2030] |  |  |  | years | derived | 2026-11-02 | Years covered by the plan path (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [611.8,674.5,737.3,800.0,800.0] |  |  |  | $M nominal per year (distribution) | _VERIFY | 2026-11-02 | Derived (_VERIFY): linear from CL&P 2025 distribution capex $549.1M (Eversource 2025 financial review) to $800M in 2029 (Eversource: annual… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-11-02 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-11-02 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.2584,0.5304,0.083,0.1282] |  |  |  | shares of distribution capex: growth, replacement… | _VERIFY | 2026-11-02 | Proxy: RG&E's 2026 split (growth 25.8%, replacement 53.0%, grid modernisation 8.3%, other 12.8%; NYSEG/RG&E Q1 2026 variance report), as fo… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-11-02 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-11-02 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-11-02 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-11-02 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-11-02 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029,2030] |  |  |  | years | derived | 2026-11-02 | Years of the transmission rate base path. |
+| bau_plan | transmission_plan_rate_base_m | [4600.0,4837.6,5066.9,5288.2,5501.7,5707.7] |  |  |  | $M (end of year) | _VERIFY | 2026-11-02 | Derived (_VERIFY): CL&P transmission rate base ~$4.6B at YE 2025 (Eversource 2025 Annual Report), rolled forward with CL&P's 2025 transmiss… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-02 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.0069 |  |  |  | per year (summer peak) | derived | 2026-11-02 | Derived: Eversource 2025 Forecast of Loads and Resources (Reference Plan, 50/50): summer peak 4,563 MW (2025) to 4,856 MW (2034) = 0.69%/yr… |
+| bau_plan | electrification_pace | utility_forecast |  |  |  | 'utility_forecast' \| 'state_policy' | setting | 2026-11-02 | Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published pl… |
+| capacity_carve_out | capacity_carve_out | {"parents":[{"line":"gsc","share":1.0}],"price_usd_per_mw_d… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-11-02 | Price: ISO-NE FCA 17 (2026/27) $2.59/kW-month x 12 / 365 x 1000 = $85.15/MW-day. Peak: utility JSON peak_demand_mw. Residential share and c… |
+
+**EversourceCT: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
+
+| Field | Value | Status | Note |
+|---|---|---|---|
+| residential_kwh_month | 700 | – | Transmission is a FERC formula rate. ISO-NE Regional Network Service (RNS) pools the PTF revenue requirements of all New England transmissi… |
+| rate_base_start_m | 6174 | – | Derived (not sourced): FERC Form 1 2025 (The Connecticut Light and Power Company (respondent 243)) distribution functional rate base = dist… |
+| annual_capex_m | 549.1 | _VERIFY | Eversource 2025 financial review (as reported): CL&P distribution capex $549.1M (2025), $570.7M (2024); the table headers were garbled in t… |
+| total_revenue_m | 4155.4 | – | Eversource 2025 Annual Report (CL&P): retail revenue $4,155.4M = supply $1,050.0M + local delivery $1,425.1M + public benefits $959.3M + tr… |
+| roe | 0.0925 | – | Eversource 2018 10-K: the Docket 17-10-46 settlement (approved 18 Apr 2018) set an authorised regulatory ROE of 9.25% and 53% common equity… |
+| equity_ratio | 0.53 | – |  |
+| electric_customers | 1309946 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part… |
+| peak_demand_mw | 4619 | – | Eversource, 2025 Forecast of Loads and Resources (CT Siting Council, 26 Feb 2025), Table 2-1: 2026 summer peak forecast 4,619 MW (50/50 ref… |
+| annual_energy_gwh | 20351 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part… |
+| delivery_rate_kwh | 0.08382 | _VERIFY | Rate 1 (residential), rates effective 1 May 2026 - 30 Apr 2027 (RAM Docket 26-01-03), from the OCC "Understand your electric bill" page and… |
+| supply_rate_kwh | 0.16627 | – | Generation Service Charge (Standard Service) 11.577 c/kWh (1 Jul - 31 Dec 2026; OCC consumer advisory 22 May 2026: 11.58 c) + Transmission… |
+| basic_charge_month | 9.62 | – |  |
+| delivery_share_rr | 0.343 | – | Derived: local delivery revenue $1,425.1M / retail revenue $4,155.4M (Eversource 2025 Annual Report, CL&P) = 0.3430. The 2025 local deliver… |
+| property_tax_rate | 0.018 | – | Derived: FERC Form 1 2025 (The Connecticut Light and Power Company (respondent 243)), page 262 property and real estate taxes charged, all… |
+| income_tax_rate_combined | 0.2752 | – | Derived: federal 21% + Connecticut corporation business tax 7.5% with the 10% surtax (8.25%) x (1 - 0.21) = 27.52% combined. |
+| dc_load_growth_annual | 0.0 | – |  |
+| dc_load_mw_start | 58 | _VERIFY | Not data centres: Eversource 2025 FLR "large customer additions" (>0.5 MW) of 58 MW (2025) rising to 103 MW, flat from 2027, used as the la… |
+| dc_load_growth_rate | 0.0 | – |  |
+| dc_distribution_share | 0.75 | – |  |
+| dc_flexibility_share | 0.2 | – |  |
+| der_storage_mw_start | 15 | _VERIFY | Derived: Energy Storage Solutions had 8 MW installed statewide and ConnectedSolutions batteries ~11 MW (ISO-NE DG Forecast Working Group, C… |
+| ev_territory_share | 0.76 | _VERIFY | Derived: share of Connecticut electric customers (EIA-861 2025: CL&P 1,309,946; UI 348,263; municipal utilities ~60,000) = 0.76. The statew… |
+| ev_managed_charging_pct_bau | 0.05 | – | PLACEHOLDER 5% (Pepco MD proxy). The PURA EV Charging Program (Docket 17-12-03RE04) includes managed-charging incentives, but no enrolment… |
+| nws_eligible_capex_share_start | 0.18 | _VERIFY | Proxy (Pepco MD values): start 18%, ceiling 30% of distribution capex NWS-eligible. Load growth is modest (peak forecast 0.69%/yr) and most… |
+| nws_eligible_capex_share_max | 0.3 | _VERIFY | No Connecticut grid-utilisation dataset equivalent to Dominion's (SCC PUR-2026-00164) was found; the Dominion bands are used as a proxy (ne… |
+| dist_upgrade_cost_per_mw | 2.0 | _VERIFY | Placeholder $2.0M/MW: suburban and rural, mostly overhead; between RG&E (1.5) and Pepco MD (2.2). No CL&P cost per MW of capacity added was… |
+| residential_sales_share | 0.498 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part… |
+| residential_customer_share | 0.9112 | – |  |
+
+## UI_CT
+
+Value is the single value or setting; ranges are low / central / high. Sources are truncated here; see the CSV for the full text.
+
+| Layer | Input | Value | Low | Central | High | Unit | Status | As of | Source |
+|---|---|---|---|---|---|---|---|---|---|
+| starting_bill | customer_charge | 13.02 |  |  |  | $/month | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027); OCC FAQ on the 2026 RAM decision (1 May… |
+| starting_bill | distribution_kwh | 0.113469 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 11.3469 c/kWh |
+| starting_bill | rider_rdm | -0.003178 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.3178 c/kWh credit |
+| starting_bill | tac | 0.048722 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 4.8722 c/kWh (effective 1 May 2026) |
+| starting_bill | nbfmcc | -0.028278 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 2.828 c/kWh credit (1 May 2026 - 30 Apr… |
+| starting_bill | sbc | -0.013147 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 1.315 c/kWh credit (1 May 2026 - 30 Apr… |
+| starting_bill | reif | 0.001 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.1 c/kWh (statutory) |
+| starting_bill | clm | 0.006 |  |  |  | $/kWh | _VERIFY | 2026-11-02 | OCC, "Understand your electric bill" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): statutory C&LM 0.3 c/kWh plus up to 0.3… |
+| starting_bill | gsc | 0.1195 |  |  |  | $/kWh | sourced | 2026-11-02 | OCC consumer advisory (22 May 2026): UI Standard Service 11.95 c/kWh from 1 Jul 2026 (after UI amended its filing for a bypassable FMCC ove… |
+| starting_bill | bfmcc |  |  |  |  | $/kWh | _VERIFY | 2026-11-02 | Not published separately on the OCC bill page; UI folds its bypassable FMCC (a Mystic over-collection refund from 1 Jul 2026) into the Stan… |
+| starting_bill | capacity |  |  |  |  | $/kWh | derived | 2026-11-02 | Carved out of the Generation Service Charge in the layered model (forward_assumptions.capacity_carve_out) |
+| starting_bill | taxes | 0.0 |  |  |  | $/month | sourced | 2026-11-02 | Connecticut residential electricity carries no sales tax; the gross earnings tax is embedded in rates (Conn. Gen. Stat. 12-264) |
+| projection | inflation_rate | 0.025 |  |  |  | per year | sourced | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 INFLATION_RATE |
+| projection | supply_energy_growth |  | 0.015 | 0.025 | 0.04 | per year, nominal | _VERIFY | 2026-11-02 | Assumption: central = INFLATION_RATE (flat real energy prices) |
+| projection | transmission_growth |  | 0.015 | 0.025 | 0.05 | per year, nominal | _VERIFY | 2026-11-02 | Assumption: central = INFLATION_RATE; high reflects transmission build-out |
+| projection | program_surcharge_growth |  | 0.0 | 0.025 | 0.05 | per year, nominal $/kWh | _VERIFY | 2026-11-02 | Assumption: BAU surcharge rates grow with inflation (policy-driven) |
+| system_needs | baseline_energy_growth |  | -0.007 | -0.003 | 0.001 | per year | _VERIFY | 2026-11-02 | Derived (_VERIFY): UI 2025 Report on Loads and Resources gives totals only (sales 4,923 to 5,873 GWh 2025-2034, +1.98%/yr; peak fell 7.7% o… |
+| system_needs | electrification_growth |  | 0.0114 | 0.0228 | 0.0342 | per year, share of 2026 non-DC sales | _VERIFY | 2026-11-02 | Derived (_VERIFY): UI 2025 Report on Loads and Resources sales growth 1.98%/yr 2025-2034 less the baseline (-0.3%/yr) = ~2.3%/yr from EVs a… |
+| system_needs | ev_share_of_electrification | 0.8 |  |  |  | share of electrification energy | sourced | 2026-11-02 | NREL Electrification Futures Study: transportation is 1,424 of 1,782 TWh (80%) of the 2050 increase in the High scenario and 810 of 932 TWh… |
+| system_needs | dc_growth |  | 0.0 | 0.0 | 0.0 | per year | _VERIFY | 2026-11-02 | UI 2025 Report on Loads and Resources includes large loads but does not quantify them; no segment (dc_load_mw_start 0). _VERIFY |
+| system_needs | dc_load_factor |  | 0.6 | 0.75 | 0.9 | fraction | _VERIFY | 2026-11-02 | Assumption for data-centre energy from MW |
+| system_needs | peak_elasticity |  | 0.8 | 1.0 | 1.2 | peak growth / non-DC energy growth | _VERIFY | 2026-11-02 | Assumption: v1.0 grows peak with load one-for-one (central) |
+| system_needs | dist_upgrade_cost_per_mw |  | 1.74 | 2.2 | 3.08 | $M per MW | _VERIFY | 2026-11-02 | Proxy: Pepco MD range (White Flint $1.74-3.08M/MW, Order No. 92607); utilities/UI_CT.json _dist_upgrade_VERIFY |
+| programs | transition_year | 2028 |  |  |  | year | setting | 2026-11-02 | Setting (default 2028) |
+| programs | amortisation_years | 10 |  |  |  | years | sourced | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 NWS_AMORTISATION_YEARS |
+| programs | existing_capitalised | 0.0 |  |  |  | share of today's surcharge-funded spend capitalis… | setting | 2026-11-02 | Setting: today's programs are expensed through surcharges |
+| programs | split_dr | 0.45 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR) |
+| programs | split_ev | 0.25 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (managed EV charging) |
+| programs | split_storage | 0.2 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (behind-the-meter and distribution-connected batteries) |
+| programs | split_der | 0.1 |  |  |  | share of flexible MW | _VERIFY | 2026-11-02 | Illustrative split (distributed solar and other DER) |
+| programs | cost_kw_yr_dr |  | 80 | 60 | 40 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Proxy: Pepco MD values (Rider R-DLC pays $40-80 per controlled device per year; Brattle VPP study net cost ~$43/kW-yr). Connecticut Connect… |
+| programs | cost_kw_yr_ev |  | 100 | 60 | 30 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for managed-charging incentives and platform |
+| programs | cost_kw_yr_storage |  | 250 | 150 | 100 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for distributed battery capacity payments |
+| programs | cost_kw_yr_der |  | 100 | 60 | 40 | $ per kW-yr (2026 $) | _VERIFY | 2026-11-02 | Assumption for other DER dispatch payments |
+| programs | capitalised_dr |  | 0.5 | 0.0 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption: DR incentives are mostly OPEX |
+| programs | capitalised_ev |  | 0.75 | 0.5 | 0.25 | share capitalised | _VERIFY | 2026-11-02 | Assumption: chargers/telemetry part capital |
+| programs | capitalised_storage |  | 1.0 | 0.75 | 0.5 | share capitalised | _VERIFY | 2026-11-02 | Assumption: utility-owned or capitalised contracts |
+| programs | capitalised_der |  | 0.5 | 0.25 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption |
+| programs | derate_dr |  | 0.69 | 0.92 | 0.92 | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028… |
+| programs | derate_ev |  | 0.3 | 0.5 | 0.7 | capacity accreditation | _VERIFY | 2026-11-02 | Assumption: no ELCC class for managed charging |
+| programs | derate_storage | 0.59 |  |  |  | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM ELCC class… |
+| programs | derate_der | 0.08 |  |  |  | capacity accreditation | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028… |
+| programs | ee_incremental_savings_pct |  | 0.0025 | 0.005 | 0.01 | first-year savings above BAU, share of sales per… | _VERIFY | 2026-11-02 | Assumption (_VERIFY): BAU = today's pace, EIA-861 2025 Energy_Efficiency (United Illuminating Co): 33,200 MWh first-year savings = 0.68% of… |
+| programs | ee_levelised_cost_kwh |  | 0.128 | 0.056 | 0.028 | $ per kWh saved (lifetime, undiscounted) | derived | 2026-11-02 | Derived. Low (Cautious) = this utility's reported cost, EIA-861 2025 Energy_Efficiency (United Illuminating Co): incentives + other costs $… |
+| programs | ee_measure_life | 8 |  |  |  | years | derived | 2026-11-02 | Derived: EIA-861 2025 (United Illuminating Co) incremental life-cycle / first-year savings = 7.9 years |
+| programs | ee_capitalised |  | 1.0 | 0.5 | 0.0 | share capitalised | _VERIFY | 2026-11-02 | Assumption (EE regulatory asset, e.g. EmPOWER amortisation) |
+| programs | mw_start_dr | 10.1 |  |  |  | MW | sourced | 2026-11-02 | EIA-861 2025 Demand_Response (United Illuminating Co): potential peak demand savings 10.1 MW (actual 9.9 MW; 10,275 customers enrolled). Co… |
+| programs | mw_2035_dr |  | 15.1 | 49.4 | 127.2 | MW nameplate | derived | 2026-11-02 | Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.2… |
+| programs | mw_2050_dr |  | 20.2 | 59.0 | 151.9 | MW nameplate | derived | 2026-11-02 | Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.2… |
+| programs | mw_start_ev | 0.0 |  |  |  | MW | _VERIFY | 2026-11-02 | Not found: no managed-charging MW published for this utility (PURA EV Charging Program, Docket 17-12-03RE04) |
+| programs | mw_2035_ev |  | 0.0 | 35.3 | 70.6 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff:… |
+| programs | mw_2050_ev |  | 0.0 | 42.2 | 84.4 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff:… |
+| programs | mw_start_storage | 4.0 |  |  |  | MW | derived | 2026-11-02 | utilities JSON der_storage_mw_start: Energy Storage Solutions installed + ConnectedSolutions batteries statewide (~19 MW, ISO-NE DGFWG CT p… |
+| programs | mw_2035_storage |  | 6.0 | 121.8 | 121.8 | MW nameplate | derived | 2026-11-02 | Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.21, reached b… |
+| programs | mw_2050_storage |  | 8.0 | 145.5 | 145.5 | MW nameplate | derived | 2026-11-02 | Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.21, reached b… |
+| programs | mw_start_der | 0.0 |  |  |  | MW | _VERIFY | 2026-11-02 | Not separately identified |
+| programs | mw_2035_der |  | 0.0 | 14.1 | 28.3 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power P… |
+| programs | mw_2050_der |  | 0.0 | 16.8 | 33.7 | MW nameplate | _VERIFY | 2026-11-02 | Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power P… |
+| programs | ev_hub_share | 0.2 |  |  |  | share of EV peak growth at large charging hubs | _VERIFY | 2026-11-02 | Assumption |
+| programs | flex_conn_share |  | 0.0 | 0.1 | 0.25 | share of new distribution-connected DC and EV-hub… | _VERIFY | 2026-11-02 | Duke University Nicholas Institute, "Rethinking Load Growth" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk sy… |
+| programs | flex_conn_peak_depth | 1.0 |  |  |  | share of a flexible connection curtailable at net… | _VERIFY | 2026-11-02 | Assumption: flexible connections accept full curtailment in constrained hours |
+| programs | flex_conn_energy_curtailed |  | 0.01 | 0.005 | 0.0025 | share of the flexible load's annual energy curtai… | sourced | 2026-11-02 | Duke University Nicholas Institute, "Rethinking Load Growth" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk sy… |
+| programs | ramp_pct_peak_dr |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | derived | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_ev |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_storage |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ramp_pct_peak_der |  | 0.004 | 0.0137 |  | maximum MW added per year, share of the utility's… | _VERIFY | 2026-11-02 | Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control ad… |
+| programs | ee_kw_per_mwh |  | 0.0969 | 0.1093 | 0.1172 | kW summer peak saved per MWh/yr of first-year sav… | sourced | 2026-11-02 | Kept at the EmPOWER Maryland value (no Connecticut evaluation located). Check: EIA-861 2025 reports 7.2 MW / 33.2 GWh = 0.22 kW per MWh fir… |
+| deferral | locational_match |  | 0.2 | 0.4 | 0.6 | share of new firm MW located where growth capex i… | _VERIFY | 2026-11-02 | Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it |
+| load_enabled | enable_share |  | 0.5 | 1.0 | 1.0 | share of flexible headroom offered to waiting loa… | setting | 2026-11-02 | Setting: priority to connecting waiting load where the network is constrained |
+| load_enabled | connection_cost_kw |  | 300 | 150 | 50 | $ per kW connected, not covered by CIAC (2026 $) | _VERIFY | 2026-11-02 | Assumption: connection works not paid by the customer |
+| load_enabled | incremental_om_mwh |  | 5.0 | 2.0 | 0.0 | $ per MWh served to enabled load (2026 $) | _VERIFY | 2026-11-02 | Assumption |
+| load_enabled | uplift_mode | derived |  |  |  | 'derived' \| 'direct' | setting | 2026-11-02 | Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network c… |
+| load_enabled | direct_uplift_pct |  | 0.02 | 0.05 | 0.1 | uplift in existing network capacity (direct mode) | _VERIFY | 2026-11-02 | What-if lever, no source |
+| load_enabled | customer_funded_share | 1.0 |  |  |  | share of network upgrade cost per MW counted as c… | setting | 2026-11-02 | Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is t… |
+| capacity | price_m_per_mw_yr | 0.03108 |  |  |  | $M per MW-yr (2026) | derived | 2026-11-02 | ISO-NE FCA 17 (2026/2027): $2.59/kW-month (Rest-of-Pool; Connecticut not separately priced) x 12 / 1000; shared/capacity_markets/ISONE.json… |
+| capacity | price_growth |  | 0.0 | 0.025 | 0.0557 | per year, nominal | derived | 2026-11-02 | central = INFLATION_RATE (flat real; ISONE.json zone CT); low = flat nominal; high = 3%/yr real (1.03 x 1.025 - 1), the sensitivity for win… |
+| capacity | price_path | today |  |  |  | 'today' \| 'long_run' | setting | 2026-11-02 | Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensiti… |
+| capacity | long_run_price_m_per_mw_yr | 0.10894 |  |  |  | $M per MW-yr | derived | 2026-11-02 | ISO-NE, ICR and related values for FCA 18: Net CONE $9.078/kW-month x 12 / 1000 = $0.1089M/MW-yr (2027/28 $). No newer CONE / Net CONE stud… |
+| capacity | long_run_price_year | 2027 |  |  |  | year | setting | 2026-11-02 | Price year of long_run_price_m_per_mw_yr (FCA 18, 2027/28 capability period), inflated at inflation_rate. |
+| capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-11-02 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | published_prices | {"2027":0.04296} |  |  |  | $M per MW-yr by year | derived | 2026-11-02 | ISO-NE FCA 18 (2027/2028): $3.580/kW-month in all zones x 12 / 1000 = $0.04296M/MW-yr. ARA2 2027/28 ($3.935) is a reconfiguration price, no… |
+| capacity | formulation | avoided_obligation |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-02 | Setting. 'avoided_obligation' (default since 2 Nov 2026): avoided capacity obligation from the contribution to the RTO / NYCA peak, accredi… |
+| capacity | obligation_factor | 1.151 |  |  |  | MW of obligation per MW of coincident peak | derived | 2026-11-02 | Derived: ISO-NE ICR for FCA 18 31,591 MW / reference 50/50 peak 27,440 MW = 1.151. Net of HQICC (1,041 MW) the factor is 30,550 / 27,440 =… |
+| capacity | system_coincidence | 0.9625 |  |  |  | utility load at the ISO-NE peak hour / utility no… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): Pepco MD value (PJM 2026 load forecast). No utility load at the ISO-NE annual peak hour was located; Connecticut is ~23% o… |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-02 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr | 0.91 |  |  |  | share | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | accr_storage_by_duration | {"4":0.59,"6":0.68,"8":0.71,"10":0.78} |  |  |  | {hours: share} | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-02 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der | 0.07 |  |  |  | share | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction R… |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-02 | Energy efficiency lowers the peak load forecast (ISO-NE reconstitutes FCM-cleared EE into the load forecast, so each EE MW either clears as… |
+| capacity | auction_lag_years |  | 3 | 1 | 0 | years | derived | 2026-11-02 | Derived: FCA 17 and FCA 18 already fix 2026/27 and 2027/28 prices (forward auctions ~3 years ahead, low); prompt annual auctions from 2028/… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-02 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-02 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 16.7 |  |  |  | % price change per 1% of requirement | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM VRR slope; ISO-NE's demand curve was not derived (sensitivity only, suppression off). Derived (_VERIFY): slope of PJM'… |
+| capacity | suppression_start_year | 2028 |  |  |  | year | setting | 2026-11-02 | Setting (_VERIFY): first prompt-auction capability period (2028/29) under Capacity Auction Reforms |
+| capacity | market_peak_mw | 25228 |  |  |  | MW | sourced | 2026-11-02 | ISO-NE 2026 CELT (final draft): New England summer 50/50 peak 25,228 MW (2026), 26,849 MW (2035); winter 20,483 to 26,411 MW |
+| wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was… |
+| wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-11-02 | Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was… |
+| wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-11-02 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
+| wholesale_energy | mwh_per_mw_dr |  | 61 | 61 | 74 | MWh shifted per MW of demand response per year (e… | _VERIFY | 2026-11-02 | Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 tota… |
+| wholesale_energy | mwh_per_mw_ev |  | 500 | 900 | 1460 | MWh shifted per MW of managed EV charging per year | _VERIFY | 2026-11-02 | Assumption: managed MW is evening-peak charging moved overnight; low 2 h x 250 days, central 3 h x 300 days, high 4 h x 365 days. No utilit… |
+| wholesale_energy | mwh_per_mw_storage |  | 1000 | 1200 | 1460 | MWh discharged per MW of distributed storage per… | _VERIFY | 2026-11-02 | 4-hour duration (the NYISO 2025 State of the Market reference battery) x cycles a year: low 250, central 300, high 365 (daily). Cycle count… |
+| wholesale_energy | mwh_per_mw_der |  | 61 | 61 | 74 | MWh shifted per MW of other DER per year | _VERIFY | 2026-11-02 | Treated like demand response (event-based dispatch): Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), A… |
+| wholesale_energy | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| transmission | cost_kw_yr | 183.71 |  |  |  | $/kW-yr, 2026 (grows with the transmission line i… | sourced | 2026-11-02 | ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year (2025: $185.28); regional ATRR $3,331.2M; 2024 12CP RNS load 18,132,696 kW |
+| transmission | avoidable_share |  | 0.0 | 0.5 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-11-02 | ISO-NE RNS is an average embedded rate pooled across New England: low 0 (cost shift within the pool), central 0.5, high 1.0. Assumption (si… |
+| transmission | bill_basis | transmission_lines |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-11-02 | Starting bill structure (starting_bill) |
+| transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
+| transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
+| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario: ISO-NE plans regional (pool-transmission-facility) transmission through the Regional System Plan, so the… |
+| transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
+| transmission | allocation_effect | zonal_share |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'zonal_share', with New England as the zone: ISO-NE Regional Network Service pools all transmission owner… |
+| transmission | zone_nspl_mw | 18133 |  |  |  | MW (New England RNS network load, 12CP average, 2… | derived | 2026-11-02 | Derived: ISO-NE RNS rate effective 1 Jan 2026: regional ATRR $3,331.2M / $183.71 per kW-year = 18,133 MW (ISO-NE reports 2024 12CP RNS load… |
+| transmission | utility_share_of_zone | 0.0504 |  |  |  | share of New England network load | derived | 2026-11-02 | Derived (_VERIFY): utility 2026 summer peak forecast (1,272 MW) / ISO-NE 2026 CELT New England 50/50 summer peak (25,228 MW), as a proxy fo… |
+| transmission | load_driven_share |  | 0.0 | 0.05 | 0.2 | share of planned transmission investment that is… | derived | 2026-11-02 | Derived: ISO-NE 2026 RNS Rate Overview and Forecast (Eversource for the PTOs): 2026 regional PTF additions ~$1,096M = $56M Regional System… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
+| losses | avg_loss_pct | 0.0286 |  |  |  | share of energy | derived | 2026-11-02 | Derived: UI 2025 Report on Loads and Resources: system requirements 5,068 GWh vs sales 4,923 GWh (2025) = 2.86% losses. |
+| losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-11-02 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
+| losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-11-02 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
+| losses | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-11-02 | Model setting |
+| objective | objective_pct |  | 0.0 | 0.0 | 0.1 | share of the objective base | setting | 2026-11-02 | Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set i… |
+| objective | objective_base | dist_revenue_requirement |  |  |  | 'dist_opex' \| 'capex_plan' \| 'dist_revenue_requ… | setting | 2026-11-02 | Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution reve… |
+| objective | objective_start_year | 2027 |  |  |  | year | setting | 2026-11-02 | Setting: first year the objective applies. |
+| objective | objective_ramp_years | 3 |  |  |  | years | setting | 2026-11-02 | Setting: years over which the objective ramps linearly to its full level. |
+| objective | objective_persistence | persistent |  |  |  | 'persistent' or years | setting | 2026-11-02 | Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp. |
+| objective | objective_cost_to_achieve_pct | 0.2 |  |  |  | share of gross savings | setting | 2026-11-02 | Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the sav… |
+| mechanism | utility_share |  | 0.4 | 0.3 | 0.1 | share of savings pool (shared savings earnings) | derived | 2026-11-02 | notebooks/GridDividend_Connecticut.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share, i.e. a… |
+| mechanism | pool_basis | revenue_requirement |  |  |  | 'revenue_requirement' (the only basis in the laye… | setting | 2026-11-02 | Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (… |
+| mechanism | fast_start | false |  |  |  | true \| false | setting | 2026-11-02 | Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan ri… |
+| mechanism | near_term_ramp_capacity |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first s… |
+| mechanism | near_term_ramp_programs_mw |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subjec… |
+| mechanism | near_term_ramp_addressable |  |  |  |  | {year: fraction} for 2026-2030, or null | setting | 2026-11-02 | Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in… |
+| mechanism | advance_enabled | false |  |  |  | true \| false | setting | 2026-11-02 | Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and reco… |
+| mechanism | advance_start_year | 2027 |  |  |  | year | setting | 2026-11-02 | Setting: first year of the advance credit. |
+| mechanism | advance_sizing_fraction | 0.5 |  |  |  | fraction | setting | 2026-11-02 | Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverabl… |
+| mechanism | advance_sizing_scenario | Cautious |  |  |  | 'Cautious' \| 'Central' | setting | 2026-11-02 | Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious. |
+| mechanism | advance_credit_years | 5 |  |  |  | years | setting | 2026-11-02 | Setting: years over which the level credit is paid (the model's choice; not specified in the request). |
+| mechanism | advance_financing | securitized |  |  |  | 'securitized' \| 'utility_regulatory_asset' | setting | 2026-11-02 | Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_ass… |
+| mechanism | advance_securitized_rate | 0.04 |  |  |  | per year | setting | 2026-11-02 | Setting: financing rate when the advance is securitized. |
+| mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-02 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
+| mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-02 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
+| mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-02 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customers' share of the shared savings pool is split between residential and non-residential customers. Costs follow the b… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 314909 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), United Illuminating Co (EIA utility 19497), CT: bundled (Part A) + delivery-only (Part C) ro… |
+| mechanism | nonresidential_customers | 33354 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), United Illuminating Co (EIA utility 19497), CT: bundled (Part A) + delivery-only (Part C) ro… |
+| roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-11-02 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
+| roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-11-02 | Model setting |
+| network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-11-02 | Model setting |
+| network | bands | [{"name":"Most loaded","capacity_share":0.2,"loading":1.0},… |  |  |  | bands of substation loading, most to least loaded… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
+| network | n_bands | 5 |  |  |  | number of bands (generated mode) | derived | 2026-11-02 | Same count as the explicit bands (quintiles of firm capacity) |
+| network | mean_utilisation |  |  |  |  | capacity-weighted mean starting planning utilisat… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3, Metric (i): subs… |
+| network | utilisation_spread | 0.37 |  |  |  | most minus least loaded band (generated mode; lin… | _VERIFY | 2026-11-02 | Derived from the explicit bands (1.00 - 0.63); the filing reports only the mean and the count of feeders above 100%, so the shape is assume… |
+| network | planning_limit_factor | 0.8 |  |  |  | planning capacity / feeder rating (planning utili… | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): planning utilisa… |
+| network | operating_limit |  |  |  |  | operating limit as a multiple of planning capacit… | derived | 2026-11-02 | Derived: the full feeder rating relative to 0.80 x rating (contract reserves ignored) Dominion value used as a proxy until this utility's o… |
+| network | subband_enabled | true |  |  |  | per-utility switch: carve a constrained sub-band… | setting | 2026-11-02 | Model setting |
+| network | subband_load_share | 0.043 |  |  |  | share of network load in the constrained sub-band | _VERIFY | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): 82 of ~1,900 fee… |
+| network | subband_utilisation | 1.125 |  |  |  | starting planning utilisation of the constrained… | _VERIFY | 2026-11-02 | Midpoint of the planning limit (1.00) and the operating limit (1.25); the filing gives only the count of feeders above 100%, not their load… |
+| network | upgrade_delay_ordinary_years |  | 0.5 | 1.5 | 3.0 | Upgrade Delay for Interconnection, ordinary new l… | _VERIFY | 2026-11-02 | No UI interconnection timeline for new load found. Con Edison guide used as proxy. Con Edison, E-Mobility Interconnection Guide: New & Upgr… |
+| network | upgrade_delay_large_years |  | 2.0 | 3.0 | 6.0 | Upgrade Delay for Interconnection, large loads (d… | _VERIFY | 2026-11-02 | No UI interconnection timeline for new load found. Con Edison guide used as proxy. Large loads: Con Edison guide low 2.0 yr (24 months), ce… |
+| network | backlog_clearance_pct |  | 0.06 | 0.2 | 0.33 | share of the outstanding constrained backlog (exi… | _VERIFY | 2026-11-02 | No utility publishes a clearance rate for constrained feeders. Low 6%/yr: Dominion Energy Virginia, Application for approval of large-load… |
+| network | constrained_build_priority | true |  |  |  | constrained areas get build-rate priority: their… | setting | 2026-11-02 | Model setting (overloaded feeders are relieved first for reliability) |
+| network | planning_headroom |  | 0.05 | 0.1 | 0.15 | firm network capacity above network peak, share | _VERIFY | 2026-11-02 | No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity);… |
+| network | reinforcement_lead_years |  | 2 | 3 | 5 | years from order to in service | _VERIFY | 2026-11-02 | Assumption: distribution feeder and substation reinforcement typically takes 2-5 years |
+| network | max_build_pct |  | 0.02 | 0.035 | 0.05 | maximum reinforcement ordered per year, share of… | _VERIFY | 2026-11-02 | Assumption (supply chain, outages, crews) |
+| network | seed_pipeline | derived |  |  |  | projects under way at 2026: 'derived' = the next… | derived | 2026-11-02 | Model calibration; no utility publishes its in-flight distribution capacity pipeline in MW |
+| network | constrained_loading | 1.0 |  |  |  | loading above which a band counts as constrained | sourced | 2026-11-02 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-trans… |
+| network | flex_targeting_enabled | false |  |  |  | site flexible headroom first in bands above their… | setting | 2026-11-02 | Model setting (policy lever: locational targeting of flexibility) |
+| network | flex_targeting_share | 1.0 |  |  |  | maximum share of flexible headroom sited in bands… | setting | 2026-11-02 | Model setting (policy lever) |
+| bau_plan | basis | published_plan |  |  |  | 'published_plan' \| 'model' | setting | 2026-11-02 | Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of… |
+| bau_plan | plan_years | [2026,2027,2028,2029,2030] |  |  |  | years | derived | 2026-11-02 | Years covered by the plan path (see plan_dist_capex_m). |
+| bau_plan | plan_dist_capex_m | [71.3,73.1,75.0,76.8,78.7] |  |  |  | $M nominal per year (distribution) | _VERIFY | 2026-11-02 | Derived (_VERIFY): no UI distribution capital plan located (Docket 24-10-04 allowed additions and Avangrid investor material not reached).… |
+| bau_plan | beyond_path | taper |  |  |  | 'continue' \| 'taper' \| 'policy' | setting | 2026-11-02 | Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load gr… |
+| bau_plan | taper_year |  | 2032 | 2035 | 2040 | year | setting | 2026-11-02 | Setting: year by which capex growth has tapered to load growth (taper path). |
+| bau_plan | category_shares | [0.2584,0.5304,0.083,0.1282] |  |  |  | shares of distribution capex: growth, replacement… | _VERIFY | 2026-11-02 | Proxy: RG&E's 2026 split (growth 25.8%, replacement 53.0%, grid modernisation 8.3%, other 12.8%; NYSEG/RG&E Q1 2026 variance report; RG&E i… |
+| bau_plan | addressable_growth |  | 0.5 | 0.8 | 1.0 | share of growth-driven capex | setting | 2026-11-02 | Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actuall… |
+| bau_plan | addressable_replacement |  | 0.1 | 0.2 | 0.3 | share of asset-replacement capex | setting | 2026-11-02 | Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where… |
+| bau_plan | addressable_gridmod |  | 0.0 | 0.05 | 0.1 | share of grid modernisation / resilience capex | setting | 2026-11-02 | Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven… |
+| bau_plan | addressable_other | 0.0 |  |  |  | share of other capex | setting | 2026-11-02 | Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable. |
+| bau_plan | addressable_ramp_years | 5 |  |  |  | years | setting | 2026-11-02 | Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and… |
+| bau_plan | transmission_plan_years | [2025,2026,2027,2028,2029,2030] |  |  |  | years | derived | 2026-11-02 | Years of the transmission rate base path. |
+| bau_plan | transmission_plan_rate_base_m | [1100.6,1104.0,1130.9,1211.8,1306.9,1385.1] |  |  |  | $M (end of year) | _VERIFY | 2026-11-02 | Derived (_VERIFY): UI customers pay the pooled ISO-NE RNS rate, not UI's own transmission cost, so the path is scaled to make the transmiss… |
+| bau_plan | link_growth_to_load | true |  |  |  | true \| false | setting | 2026-11-02 | Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative syst… |
+| bau_plan | plan_load_growth | 0.0117 |  |  |  | per year (summer peak) | derived | 2026-11-02 | Derived: UI 2025 Report on Loads and Resources, Exhibit 1: normal-weather summer peak 1,257 MW (2025) to 1,395 MW (2034) = 1.17%/yr (UI sta… |
+| bau_plan | electrification_pace | utility_forecast |  |  |  | 'utility_forecast' \| 'state_policy' | setting | 2026-11-02 | Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published pl… |
+| capacity_carve_out | capacity_carve_out | {"parents":[{"line":"gsc","share":1.0}],"price_usd_per_mw_d… |  |  |  | inputs to $/month (see method) | _VERIFY | 2026-11-02 | Price: ISO-NE FCA 17 (2026/27) $2.59/kW-month x 12 / 365 x 1000 = $85.15/MW-day. Peak: utility JSON peak_demand_mw. Residential share and c… |
+
+**UI_CT: earlier-model fields** (top level of the JSON; status `_VERIFY` where a `_..._VERIFY` note precedes the field, otherwise untagged).
+
+| Field | Value | Status | Note |
+|---|---|---|---|
+| residential_kwh_month | 700 | – | Transmission is a FERC formula rate. ISO-NE Regional Network Service (RNS) pools the PTF revenue requirements of all New England transmissi… |
+| rate_base_start_m | 1430 | – | Derived (not sourced): FERC Form 1 2025 (The United Illuminating Company (respondent 299)) distribution functional rate base = distribution… |
+| annual_capex_m | 69.6 | _VERIFY | Derived: FERC Form 1 distribution net plant change + distribution depreciation, a gross-additions proxy: $155M (2022), $127M (2023), $86M (… |
+| total_revenue_m | 1105.4 | – | Derived: EIA-861 2025 total retail revenue, Parts A + C = $1,105.4M (distribution, transmission, public benefits and Standard Service). |
+| roe | 0.094 | – | PURA Docket 24-10-04 final decision (28 Oct 2025): allowed ROE 9.45% less 20 bp for performance and management issues = 9.25% (PURA release… |
+| equity_ratio | 0.5 | – |  |
+| electric_customers | 348263 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), United Illuminating Co (EIA utility 19497), CT: bundled (Part A) + delivery-only (Part C) ro… |
+| peak_demand_mw | 1272 | – | Derived: UI 2025 Report on Loads and Resources (CT Siting Council, 28 Feb 2025), Exhibit 1: normal-weather summer peak 1,257 MW (2025) grow… |
+| annual_energy_gwh | 4875 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), United Illuminating Co (EIA utility 19497), CT: bundled (Part A) + delivery-only (Part C) ro… |
+| delivery_rate_kwh | 0.110291 | _VERIFY | Rate R (residential), rates effective 1 May 2026 - 30 Apr 2027 (RAM Docket 26-01-04), from the OCC "Understand your electric bill" page and… |
+| supply_rate_kwh | 0.168222 | – | Generation Service Charge (Standard Service) 11.95 c/kWh (1 Jul - 31 Dec 2026; OCC consumer advisory 22 May 2026, after UI amended its fili… |
+| basic_charge_month | 13.02 | – |  |
+| delivery_share_rr | 0.4097 | – | Derived: Docket 24-10-04 reconsideration revenue requirement $452.845M (3 Mar 2026) / total_revenue_m $1,105.4M = 0.4097. |
+| property_tax_rate | 0.0205 | – | Derived: FERC Form 1 2025 (The United Illuminating Company (respondent 299)), page 262 property and real estate taxes charged, all departme… |
+| income_tax_rate_combined | 0.2752 | – | Derived: federal 21% + Connecticut corporation business tax 7.5% with the 10% surtax (8.25%) x (1 - 0.21) = 27.52% combined. |
+| dc_load_growth_annual | 0.0 | – |  |
+| dc_load_mw_start | 0 | _VERIFY | UI 2025 Report on Loads and Resources includes large loads but does not quantify them. Set to 0 (no segment) pending data. |
+| dc_load_growth_rate | 0.0 | – |  |
+| dc_distribution_share | 0.75 | – |  |
+| dc_flexibility_share | 0.2 | – |  |
+| der_storage_mw_start | 4 | _VERIFY | Derived: Energy Storage Solutions 8 MW installed statewide + ConnectedSolutions batteries ~11 MW (ISO-NE DGFWG CT presentation, 8 Dec 2025)… |
+| ev_territory_share | 0.2 | _VERIFY | Derived: share of Connecticut electric customers (EIA-861 2025: UI 348,263 of ~1.72M) = 0.20. |
+| ev_managed_charging_pct_bau | 0.05 | – | PLACEHOLDER 5% (Pepco MD proxy). The PURA EV Charging Program (Docket 17-12-03RE04) includes managed-charging incentives, but no enrolment… |
+| nws_eligible_capex_share_start | 0.18 | _VERIFY | Proxy (Pepco MD values): start 18%, ceiling 30% of distribution capex NWS-eligible. Load growth is modest (peak forecast 1.17%/yr) and most… |
+| nws_eligible_capex_share_max | 0.3 | _VERIFY | No Connecticut grid-utilisation dataset equivalent to Dominion's (SCC PUR-2026-00164) was found; the Dominion bands are used as a proxy (ne… |
+| dist_upgrade_cost_per_mw | 2.2 | _VERIFY | Placeholder $2.2M/MW (Pepco MD value): dense urban cores (New Haven, Bridgeport) with suburban overhead elsewhere. No UI cost per MW of cap… |
+| residential_sales_share | 0.4395 | – | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), United Illuminating Co (EIA utility 19497), CT: bundled (Part A) + delivery-only (Part C) ro… |
+| residential_customer_share | 0.9042 | – |  |
+
 ## Look-back module (2021-2026)
 
 Figures in `utilities/<utility>_lookback.json` (engine/lookback.py; METHODOLOGY section 12). They are not inputs to the forward model and are not counted above.
@@ -983,6 +1441,8 @@ Figures in `utilities/<utility>_lookback.json` (engine/lookback.py; METHODOLOGY 
 | RGE | 85 | 31 | 15 | 5 | 136 |
 | DomVA | 319 | 59 | 17 | 5 | 400 |
 | PepcoMD | 91 | 56 | 14 | 2 | 163 |
+| EversourceCT | 84 | 35 | 29 | 9 | 157 |
+| UI_CT | 79 | 34 | 33 | 2 | 148 |
 
 ### ConEd: look-back
 
@@ -1841,3 +2301,318 @@ Figures in `utilities/<utility>_lookback.json` (engine/lookback.py; METHODOLOGY 
 | class_allocation | residential_share_of_sales | 0.4292 | share | derived | EIA Form 861, 2021, Maryland part: residential / total retail sales, Parts A + C |
 | class_allocation | customer_charge_before | 8.01 | $/month | sourced | MD PSC Order No. 89868 (Case 9655), Table 11 - Current and Proposed Customer Charges (Yr2): Schedule R current $8.01 |
 | class_allocation | customer_charge_after | 8.22 | $/month | sourced | MD PSC Order No. 89868 (Case 9655), Table 11: Schedule R $8.22 from year two of the plan ("the Commission directs these charges to go into… |
+
+### EversourceCT: look-back
+
+| Block | Figure | Value | Unit | Status | Source |
+|---|---|---|---|---|---|
+| bill | 2021/categories/distribution_base |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/distribution_rider |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/program_surcharge |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/supply_energy |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/capacity |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/transmission |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/taxes_and_fees |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/unitemised/delivery | 95.27 | $/month | derived | Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part C delivery-only revenue per kWh: distribution… |
+| bill | 2021/unitemised/supply | 53.81 | $/month | derived | Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part A bundled minus Part C delivery-only: Standar… |
+| bill | 2021/total | 149.08 | $/month | derived | Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part A bundled) |
+| bill | eia_series/2021/bundled_cents_kwh | 21.2971 | cents/kWh nominal | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2021/delivery_only_cents_kwh | 13.6097 | cents/kWh nominal | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2021/total_retail_mwh | 20501333.0 | MWh | sourced | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2021/residential_mwh_share | 0.4919 | share | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2022/bundled_cents_kwh | 25.475 | cents/kWh nominal | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2022/delivery_only_cents_kwh | 14.0523 | cents/kWh nominal | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2022/total_retail_mwh | 20560885.0 | MWh | sourced | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2022/residential_mwh_share | 0.4937 | share | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2023/bundled_cents_kwh | 31.6294 | cents/kWh nominal | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2023/delivery_only_cents_kwh | 12.9875 | cents/kWh nominal | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2023/total_retail_mwh | 19576770.0 | MWh | sourced | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2023/residential_mwh_share | 0.4889 | share | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2024/bundled_cents_kwh | 28.5075 | cents/kWh nominal | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2024/delivery_only_cents_kwh | 16.2619 | cents/kWh nominal | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2024/total_retail_mwh | 20151389.0 | MWh | sourced | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2024/residential_mwh_share | 0.489 | share | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2025/bundled_cents_kwh | 28.876 | cents/kWh nominal | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2025/delivery_only_cents_kwh | 18.6476 | cents/kWh nominal | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales… |
+| bill | eia_series/2025/total_retail_mwh | 20350866.0 | MWh | sourced | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2025/residential_mwh_share | 0.498 | share | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| rr_bridge | scope/jurisdiction_share/2021 | 1.0 | share | derived | The Connecticut Light and Power Company serves Connecticut only |
+| rr_bridge | scope/jurisdiction_share/2025 | 1.0 | share | derived | The Connecticut Light and Power Company serves Connecticut only |
+| rr_bridge | allowed_return/2021/roe | 0.0925 | share | sourced | Eversource 2018 10-K: Docket 17-10-46 settlement (approved 18 Apr 2018), authorised regulatory ROE 9.25%; unchanged by the 2021 settlement |
+| rr_bridge | allowed_return/2021/equity_ratio | 0.53 | share | sourced | Eversource 2018 10-K: Docket 17-10-46 settlement, 53% common equity |
+| rr_bridge | allowed_return/2021/cost_of_debt | 0.05 | share | _VERIFY | Forward-model default COST_OF_DEBT; Docket 17-10-46 cost of debt not located |
+| rr_bridge | allowed_return/2025/roe | 0.0925 | share | sourced | Docket 17-10-46 settlement ROE 9.25%, still in force in 2025 (no base-rate case until Docket 26-05-10) |
+| rr_bridge | allowed_return/2025/equity_ratio | 0.53 | share | sourced | Docket 17-10-46 settlement, 53% common equity (still in force) |
+| rr_bridge | allowed_return/2025/cost_of_debt | 0.05 | share | _VERIFY | Forward-model default COST_OF_DEBT; not located |
+| rr_bridge | form1/2021/dep_distribution | 178.223 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/dep_general | 29.245 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/dep_intangible | 2.461 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/dep_total | 354.844 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/dep_transmission | 144.915 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/income_taxes | 121.302 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/net_adit | -1562.102 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/net_working_capital | 335.596 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/np_distribution | 5372.969 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/np_general | 416.808 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/np_intangible | 150.479 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/np_transmission | 4454.333 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2021/om_admin_general | 218.117 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_customer_accounts | 126.656 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_customer_service | 164.608 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_distribution | 197.265 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_production | 1377.777 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_purchased_power | 1377.661 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_regional_market | 3.142 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_sales | 0.0 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_transmission | 80.113 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/operating_revenues | 3612.256 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/taxes_other_than_income | 365.493 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2021/om_ag_employee_pensions_benefits | 18.184 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), electric O&M account 926 (employee pensions and benefits), via… |
+| rr_bridge | form1/2021/property_tax_total_company | 203.77 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real es… |
+| rr_bridge | form1/2021/net_plant_total_company | 10682.661 | $M nominal | sourced | FERC Form 1, 2021, The Connecticut Light and Power Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_fe… |
+| rr_bridge | form1/2025/dep_distribution | 229.927 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/dep_general | 41.555 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/dep_total | 461.611 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/dep_transmission | 190.129 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/income_taxes | 167.128 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/net_adit | -2005.888 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/net_working_capital | 430.294 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/np_distribution | 6783.946 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/np_general | 480.933 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/np_intangible | 0.0 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/np_transmission | 5387.466 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_fer… |
+| rr_bridge | form1/2025/om_admin_general | 189.716 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_customer_accounts | 131.651 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_customer_service | 255.698 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_distribution | 275.02 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_production | 1805.054 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_purchased_power | 1754.027 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_regional_market | 5.122 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_sales | 0.0 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_transmission | 112.284 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/operating_revenues | 5243.27 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/taxes_other_than_income | 452.959 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_fe… |
+| rr_bridge | form1/2025/om_ag_employee_pensions_benefits | 9.733 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), electric O&M account 926 (employee pensions and benefits), via… |
+| rr_bridge | form1/2025/property_tax_total_company | 238.249 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real es… |
+| rr_bridge | form1/2025/net_plant_total_company | 13269.877 | $M nominal | sourced | FERC Form 1, 2025, The Connecticut Light and Power Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_fe… |
+| rr_bridge | step_2026 | 0.0 | $M a year | derived | No base-rate change in 2026: base rates have not changed since the May 2020 step of the Docket 17-10-46 settlement; Docket 26-05-10 (filed… |
+| rr_bridge | property_tax_attribution/ratio/2021 | 0.019075 | share of net plant a year | derived | Derived: Form 1 2021 property_tax_total_company $203.8M / net_plant_total_company $10,682.7M |
+| rr_bridge | property_tax_attribution/ratio/2025 | 0.017954 | share of net plant a year | derived | Derived: Form 1 2025 property_tax_total_company $238.2M / net_plant_total_company $13,269.9M |
+| rr_bridge | om_normalisation/non_service_benefits_electric/2021 | 0.0 | $M nominal | setting | Check: Form 1 account 926 is 18.2 (2021) and 9.7 (2025) $M; not credit-driven, so no normalisation is applied |
+| rr_bridge | om_normalisation/non_service_benefits_electric/2025 | 0.0 | $M nominal | setting | Check: Form 1 account 926 is 18.2 (2021) and 9.7 (2025) $M; not credit-driven, so no normalisation is applied |
+| supply_side | capacity_prices/isone[0] | 4.631 | $/kW-month | _VERIFY | FCA 12: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[1] | 3.8 | $/kW-month | _VERIFY | FCA 13: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[2] | 2.0 | $/kW-month | sourced | FCA 14: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[3] | 2.61 | $/kW-month | sourced | FCA 15: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[4] | 2.591 | $/kW-month | sourced | FCA 16: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[5] | 2.59 | $/kW-month | sourced | FCA 17: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[6] | 3.58 | $/kW-month | sourced | FCA 18: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | energy_supply_cents_kwh[2021] | 7.6874 | cents/kWh nominal | derived | EIA Form 861, 2021, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2022] | 11.4227 | cents/kWh nominal | derived | EIA Form 861, 2022, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2023] | 18.6419 | cents/kWh nominal | derived | EIA Form 861, 2023, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2024] | 12.2456 | cents/kWh nominal | derived | EIA Form 861, 2024, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2025] | 10.2284 | cents/kWh nominal | derived | EIA Form 861, 2025, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | transmission[2026] | 0.0505 | $/kWh | sourced | OCC "Understand your electric bill": Transmission Adjustment Clause from 1 May 2026 |
+| supply_side | transmission[2025] | 185.28 | $/kW-year (ISO-NE RNS rate) | sourced | ISO-NE, RNS Rate Effective January 1, 2026 (prior-year rate $185.28/kW-year) |
+| supply_side | transmission[2026] | 183.71 | $/kW-year (ISO-NE RNS rate) | sourced | ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year |
+| supply_side | transmission[2021] |  | None | _VERIFY | Not located: CL&P residential TAC rate in 2021 |
+| supply_side | standard_service_cents_kwh[0] | 24.17 | cents/kWh nominal | _VERIFY | OCC (brief of 2 Nov 2026): CL&P Standard Service peak, Jan-Jun 2023 |
+| supply_side | standard_service_cents_kwh[1] | 9.75 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): CL&P Standard Service 9.75 c from 1 Jul 2025 |
+| supply_side | standard_service_cents_kwh[2] | 12.64 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): 12.64 c from 1 Jan 2026 (12.641 c) |
+| supply_side | standard_service_cents_kwh[3] | 11.58 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): 11.58 c from 1 Jul 2026 (11.577 c) |
+| supply_side | public_benefits_cents_kwh[0] | 4.0 | cents/kWh nominal (combined public-bene… | sourced | OCC FAQ on the 2026 RAM decision (1 May 2026): "from approximately 4 cents per kilowatt hour" |
+| supply_side | public_benefits_cents_kwh[1] | -1.5 | cents/kWh nominal (combined, a credit) | sourced | OCC FAQ on the 2026 RAM decision (1 May 2026): "to a credit of about 1.5 cents per kilowatt hour" |
+| supply_side | public_benefits_cents_kwh[2] |  | None | _VERIFY | Not located: the 2023 public-benefits spike (pre-2024 FMCC/SBC levels) was not retrieved in this build |
+| proceedings | filed | 2017-11-22 | date | sourced | Eversource 8-K (11 Jan 2018); brief of 2 Nov 2026 |
+| proceedings | decided | 2018-04-18 | date | sourced | Eversource 2018 10-K: PURA approved the settlement on 18 Apr 2018 |
+| proceedings | revenue_requested_m | [255.8,44.7,36.4] | $M incremental by rate year (total $336… | sourced | OCC, New rates in effect for Eversource electric customers May 1, 2018 (three-year request $336.9M); split by rate year from the brief of 2… |
+| proceedings | revenue_approved_m | [97.1,32.7,24.7] | $M incremental by rate year (total $154… | _VERIFY | Derived: OCC (request $336.9M reduced by $182.4M = $154.5M); split by rate year from the brief of 2 Nov 2026 (_VERIFY). The Eversource 2018… |
+| proceedings | roe_requested |  | None | _VERIFY | Not located: ROE requested in Docket 17-10-46 |
+| proceedings | roe_granted | 0.0925 | share | sourced | Eversource 2018 10-K: authorised regulatory ROE 9.25%, 53% equity |
+| proceedings | comparison/requested_m | 255.8 | $M a year (nominal) | derived | Derived from revenue_requested_m of Docket 17-10-46 |
+| proceedings | comparison/approved_m | 97.1 | $M a year (nominal) | derived | Derived from revenue_approved_m of Docket 17-10-46 (_VERIFY split) |
+| proceedings | filed |  | None | _VERIFY | Not located |
+| proceedings | decided | 2021-10-01 | date | sourced | CL&P 8-K, 1 Oct 2021 (settlement announced; PURA approved Oct 2021) |
+| proceedings | revenue_requested_m |  | None | setting | Not a revenue request |
+| proceedings | revenue_approved_m | -75.0 | $M one-time bill credits and assistance… | sourced | CL&P 8-K, 1 Oct 2021: $65M bill credits + $10M customer assistance, on top of the $28.4M Isaias performance penalty already credited ($103.… |
+| proceedings | roe_requested |  | None | setting | Not applicable |
+| proceedings | roe_granted | 0.0925 | share | sourced | Unchanged: the 90 bp (Apr 2021 storm decision) and 45 bp (Sep 2021 draft) ROE reductions were not implemented |
+| proceedings | comparison/requested_m |  | $M a year (nominal) | _VERIFY | Not applicable |
+| proceedings | comparison/approved_m |  | $M a year (nominal) | _VERIFY | Not applicable |
+| proceedings | filed |  | None | _VERIFY | Not located |
+| proceedings | decided | 2026-07-29 | date | sourced | PURA final decision, 29 Jul 2026 (brief of 2 Nov 2026) |
+| proceedings | revenue_requested_m | 974.2 | $M (one-time) | _VERIFY | PURA Docket 25-12-13 final decision (29 Jul 2026), as summarised in the brief of 2 Nov 2026 |
+| proceedings | revenue_approved_m | 869.4 | $M found prudent (one-time; $63.3M defe… | _VERIFY | PURA Docket 25-12-13 final decision (29 Jul 2026), as summarised in the brief of 2 Nov 2026 |
+| proceedings | roe_requested |  | None | setting | Not applicable |
+| proceedings | roe_granted |  | None | setting | Not applicable |
+| proceedings | comparison/requested_m | 974.2 | $M a year (nominal) | derived | Derived from revenue_requested_m of Docket 25-12-13 |
+| proceedings | comparison/approved_m | 869.4 | $M a year (nominal) | derived | Derived from revenue_approved_m of Docket 25-12-13 |
+| proceedings | filed | 2026-07-14 | date | sourced | Brief of 2 Nov 2026; notice of intent (20 May 2026, "Docket No. 26-05-XX") gave ~14 Jul 2026 |
+| proceedings | decided |  | None | setting | Pending; decision expected mid-2027 |
+| proceedings | revenue_requested_m | 451.0 | $M a year (base; $727M including storm… | _VERIFY | Brief of 2 Nov 2026 (AARP CT on Docket 26-05-10, Oct 2026); the May 2026 notice of intent gave ~$503M |
+| proceedings | revenue_approved_m |  | None | setting | Pending |
+| proceedings | roe_requested | 0.1025 | share | _VERIFY | Brief of 2 Nov 2026 (requested ROE 10.25%, equity ~54%) |
+| proceedings | roe_granted |  | None | setting | Pending |
+| proceedings | comparison/requested_m | 451.0 | $M a year (nominal) | derived | Derived from revenue_requested_m of Docket 26-05-10 |
+| proceedings | comparison/approved_m |  | $M a year (nominal) | _VERIFY | Pending |
+| class_allocation | residential_share_of_increase |  | None | _VERIFY | Not located: revenue allocation settlement (filed 2 Feb 2018) class percentages |
+| class_allocation | residential_share_of_sales | 0.4919 | share | derived | EIA Form 861, 2021, CT: residential / total retail sales, Parts A + C |
+| class_allocation | customer_charge_before |  | None | _VERIFY | Not located: Rate 1 customer charge before May 2018 |
+| class_allocation | customer_charge_after | 9.62 | $/month | sourced | OCC RAM FAQ (1 May 2026): Eversource fixed charge $9.62 (in force since the settlement; date of the step _VERIFY) |
+| class_allocation | residential_share_of_increase |  | None | _VERIFY | Not located: proposed class allocation in the filing |
+| class_allocation | residential_share_of_sales | 0.498 | share | derived | EIA Form 861, 2025, CT: residential / total retail sales, Parts A + C |
+| class_allocation | customer_charge_before | 9.62 | $/month | sourced | OCC RAM FAQ (1 May 2026) |
+| class_allocation | customer_charge_after |  | None | _VERIFY | Not located: proposed customer charge |
+
+### UI_CT: look-back
+
+| Block | Figure | Value | Unit | Status | Source |
+|---|---|---|---|---|---|
+| bill | 2021/categories/distribution_base |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/distribution_rider |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/program_surcharge |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/supply_energy |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/capacity |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/transmission |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/categories/taxes_and_fees |  | $/month | _VERIFY | No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build) |
+| bill | 2021/unitemised/delivery | 114.08 | $/month | derived | Derived: EIA Form 861, 2021, UI_CT residential average revenue per kWh x 700 kWh (Part C delivery-only revenue per kWh: distribution, distr… |
+| bill | 2021/unitemised/supply | 62.28 | $/month | derived | Derived: EIA Form 861, 2021, UI_CT residential average revenue per kWh x 700 kWh (Part A bundled minus Part C delivery-only: Standard Servi… |
+| bill | 2021/total | 176.36 | $/month | derived | Derived: EIA Form 861, 2021, UI_CT residential average revenue per kWh x 700 kWh (Part A bundled) |
+| bill | eia_series/2021/bundled_cents_kwh | 25.1936 | cents/kWh nominal | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2021/delivery_only_cents_kwh | 16.2978 | cents/kWh nominal | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2021/total_retail_mwh | 4946159.0 | MWh | sourced | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2021/residential_mwh_share | 0.4415 | share | derived | EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2022/bundled_cents_kwh | 23.5549 | cents/kWh nominal | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2022/delivery_only_cents_kwh | 15.5187 | cents/kWh nominal | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2022/total_retail_mwh | 4874503.0 | MWh | sourced | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2022/residential_mwh_share | 0.4377 | share | derived | EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2023/bundled_cents_kwh | 33.1569 | cents/kWh nominal | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2023/delivery_only_cents_kwh | 14.8517 | cents/kWh nominal | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2023/total_retail_mwh | 4778191.0 | MWh | sourced | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2023/residential_mwh_share | 0.4273 | share | derived | EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2024/bundled_cents_kwh | 34.0427 | cents/kWh nominal | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2024/delivery_only_cents_kwh | 19.585 | cents/kWh nominal | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2024/total_retail_mwh | 4842995.0 | MWh | sourced | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2024/residential_mwh_share | 0.4339 | share | derived | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| bill | eia_series/2025/bundled_cents_kwh | 35.4034 | cents/kWh nominal | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2025/delivery_only_cents_kwh | 20.1679 | cents/kWh nominal | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (United Illuminating Co, EIA 19497): residential revenue / sales, Par… |
+| bill | eia_series/2025/total_retail_mwh | 4875249.0 | MWh | sourced | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: total retail sales, Parts A + C |
+| bill | eia_series/2025/residential_mwh_share | 0.4395 | share | derived | EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: residential / total retail sales, Parts A + C |
+| rr_bridge | scope/jurisdiction_share/2021 | 1.0 | share | derived | The United Illuminating Company serves Connecticut only |
+| rr_bridge | scope/jurisdiction_share/2025 | 1.0 | share | derived | The United Illuminating Company serves Connecticut only |
+| rr_bridge | allowed_return/2021/roe | 0.091 | share | _VERIFY | Assumed: the allowed ROE in force before Docket 22-08-08, read as 9.10% from PURA's 24-10-04 release ("the currently allowed 9.10%"), which… |
+| rr_bridge | allowed_return/2021/equity_ratio | 0.5 | share | _VERIFY | Assumed 50% (Docket 16-06-04 capital structure not located) |
+| rr_bridge | allowed_return/2021/cost_of_debt | 0.05 | share | _VERIFY | Forward-model default COST_OF_DEBT; not located |
+| rr_bridge | allowed_return/2025/roe | 0.0863 | share | sourced | PURA Docket 22-08-08 decision (25 Aug 2023): ROE 9.10% less 47 bp = 8.63% effective, in force until 31 Oct 2025 |
+| rr_bridge | allowed_return/2025/equity_ratio | 0.5 | share | _VERIFY | Assumed 50% (Docket 22-08-08 capital structure not located) |
+| rr_bridge | allowed_return/2025/cost_of_debt | 0.05 | share | _VERIFY | Forward-model default COST_OF_DEBT; not located |
+| rr_bridge | form1/2021/dep_distribution | 53.813 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/dep_general | 12.253 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/dep_intangible | 17.739 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/dep_total | 107.122 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/dep_transmission | 23.318 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/income_taxes | 19.061 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/net_adit | -389.55 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/net_working_capital | 55.647 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/np_distribution | 1278.048 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/np_general | 230.019 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/np_intangible | 270.386 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/np_production | 49.931 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/np_transmission | 798.095 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2021/om_admin_general | 22.708 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_customer_accounts | 63.044 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_customer_service | 48.865 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_distribution | 107.975 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_production | 312.676 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_purchased_power | 299.022 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_sales | 0.812 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_transmission | 38.81 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/operating_revenues | 966.716 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/taxes_other_than_income | 102.888 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2021/om_ag_employee_pensions_benefits | 3.354 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company (respondent 299), electric O&M account 926 (employee pensions and benefits), via PUDL co… |
+| rr_bridge | form1/2021/property_tax_total_company | 52.831 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real estate tax… |
+| rr_bridge | form1/2021/net_plant_total_company | 2684.652 | $M nominal | sourced | FERC Form 1, 2021, The United Illuminating Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_ferc1__yea… |
+| rr_bridge | form1/2025/dep_distribution | 62.936 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/dep_general | 21.83 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/dep_total | 121.623 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/dep_transmission | 33.84 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/income_taxes | 24.31 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/net_adit | -494.429 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/net_working_capital | 119.106 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/np_distribution | 1482.681 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/np_general | 283.174 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/np_intangible | 0.0 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/np_production | 23.964 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/np_transmission | 1100.649 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__year… |
+| rr_bridge | form1/2025/om_admin_general | 33.965 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_customer_accounts | 140.298 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_customer_service | 51.381 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_distribution | 136.235 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_production | 410.434 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_purchased_power | 380.784 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_sales | 0.35 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_transmission | 47.645 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/operating_revenues | 1256.284 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/taxes_other_than_income | 132.337 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yea… |
+| rr_bridge | form1/2025/om_ag_employee_pensions_benefits | 2.435 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company (respondent 299), electric O&M account 926 (employee pensions and benefits), via PUDL co… |
+| rr_bridge | form1/2025/property_tax_total_company | 65.791 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real estate tax… |
+| rr_bridge | form1/2025/net_plant_total_company | 3210.353 | $M nominal | sourced | FERC Form 1, 2025, The United Illuminating Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_ferc1__yea… |
+| rr_bridge | step_2026 | 67.98 | $M a year | sourced | PURA Docket 24-10-04 reconsideration decision (3 Mar 2026; OCC statement): revenue requirement $452,845,438, an increase of $67,980,438 ove… |
+| rr_bridge | property_tax_attribution/ratio/2021 | 0.019679 | share of net plant a year | derived | Derived: Form 1 2021 property_tax_total_company $52.8M / net_plant_total_company $2,684.7M |
+| rr_bridge | property_tax_attribution/ratio/2025 | 0.020493 | share of net plant a year | derived | Derived: Form 1 2025 property_tax_total_company $65.8M / net_plant_total_company $3,210.4M |
+| rr_bridge | om_normalisation/non_service_benefits_electric/2021 | 0.0 | $M nominal | setting | Check: Form 1 account 926 is 3.4 (2021) and 2.4 (2025) $M; not credit-driven, so no normalisation is applied |
+| rr_bridge | om_normalisation/non_service_benefits_electric/2025 | 0.0 | $M nominal | setting | Check: Form 1 account 926 is 3.4 (2021) and 2.4 (2025) $M; not credit-driven, so no normalisation is applied |
+| supply_side | capacity_prices/isone[0] | 4.631 | $/kW-month | _VERIFY | FCA 12: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[1] | 3.8 | $/kW-month | _VERIFY | FCA 13: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[2] | 2.0 | $/kW-month | sourced | FCA 14: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[3] | 2.61 | $/kW-month | sourced | FCA 15: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[4] | 2.591 | $/kW-month | sourced | FCA 16: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[5] | 2.59 | $/kW-month | sourced | FCA 17: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | capacity_prices/isone[6] | 3.58 | $/kW-month | sourced | FCA 18: shared/capacity_markets/ISONE.json fca_sources |
+| supply_side | energy_supply_cents_kwh[2021] | 8.8958 | cents/kWh nominal | derived | EIA Form 861, 2021, UI_CT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2022] | 8.0362 | cents/kWh nominal | derived | EIA Form 861, 2022, UI_CT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2023] | 18.3052 | cents/kWh nominal | derived | EIA Form 861, 2023, UI_CT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2024] | 14.4577 | cents/kWh nominal | derived | EIA Form 861, 2024, UI_CT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | energy_supply_cents_kwh[2025] | 15.2355 | cents/kWh nominal | derived | EIA Form 861, 2025, UI_CT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C) |
+| supply_side | transmission[2026] | 0.048722 | $/kWh | sourced | OCC "Understand your electric bill": Transmission Adjustment Clause from 1 May 2026 |
+| supply_side | transmission[2025] | 185.28 | $/kW-year (ISO-NE RNS rate) | sourced | ISO-NE, RNS Rate Effective January 1, 2026 (prior-year rate $185.28/kW-year) |
+| supply_side | transmission[2026] | 183.71 | $/kW-year (ISO-NE RNS rate) | sourced | ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year |
+| supply_side | transmission[2021] |  | None | _VERIFY | Not located: UI residential TAC rate in 2021 |
+| supply_side | standard_service_cents_kwh[0] | 11.68 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): UI Standard Service 11.68 c from 1 Jul 2025 |
+| supply_side | standard_service_cents_kwh[1] | 13.7 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): 13.70 c from 1 Jan 2026 |
+| supply_side | standard_service_cents_kwh[2] | 11.95 | cents/kWh nominal | sourced | OCC consumer advisory (22 May 2026): 11.95 c from 1 Jul 2026 |
+| supply_side | public_benefits_cents_kwh[0] | 4.0 | cents/kWh nominal (combined public-bene… | sourced | OCC FAQ on the 2026 RAM decision (1 May 2026): "from approximately 4 cents per kilowatt hour" |
+| supply_side | public_benefits_cents_kwh[1] | -1.3 | cents/kWh nominal (combined, a credit) | sourced | OCC FAQ on the 2026 RAM decision (1 May 2026): "to a credit of about 1.3 cents per kilowatt hour" |
+| supply_side | public_benefits_cents_kwh[2] |  | None | _VERIFY | Not located: the 2023 public-benefits spike (pre-2024 FMCC/SBC levels) was not retrieved in this build |
+| proceedings | filed |  | None | _VERIFY | Not located |
+| proceedings | decided |  | None | _VERIFY | Not located |
+| proceedings | revenue_requested_m |  | None | _VERIFY | Not located: steps of the Docket 16-06-04 settlement |
+| proceedings | revenue_approved_m |  | None | _VERIFY | Not located |
+| proceedings | roe_requested |  | None | _VERIFY | Not located |
+| proceedings | roe_granted |  | None | _VERIFY | Not located (the ROE in force before Docket 22-08-08) |
+| proceedings | comparison/requested_m |  | $M a year (nominal) | _VERIFY | Not located |
+| proceedings | comparison/approved_m |  | $M a year (nominal) | _VERIFY | Not located |
+| proceedings | filed |  | None | _VERIFY | Filing date not located (docket opened Aug 2022) |
+| proceedings | decided | 2023-08-25 | date | sourced | PURA Docket 22-08-08 decision summary (25 Aug 2023) |
+| proceedings | revenue_requested_m | [91.055,20.12,19.466] | $M incremental by rate year (three-year… | _VERIFY | PURA Docket 22-08-08 decision summary, as summarised in the brief of 2 Nov 2026 |
+| proceedings | revenue_approved_m | [22.957] | $M (one-year increase; revenue requirem… | sourced | PURA Docket 22-08-08 decision; PURA 24-10-04 release ("currently authorized revenues of $384,865,000") |
+| proceedings | roe_requested | 0.102 | share | _VERIFY | Brief of 2 Nov 2026 (UI requested 10.20%) |
+| proceedings | roe_granted | 0.0863 | share | sourced | PURA Docket 22-08-08: ROE 9.10% less 47 bp = 8.63% effective |
+| proceedings | comparison/requested_m | 91.055 | $M a year (nominal) | derived | Derived from revenue_requested_m of Docket 22-08-08 |
+| proceedings | comparison/approved_m | 22.957 | $M a year (nominal) | derived | Derived from revenue_approved_m of Docket 22-08-08 |
+| proceedings | filed |  | None | _VERIFY | Filing date not located (docket opened Oct 2024) |
+| proceedings | decided | 2025-10-28 | date | sourced | PURA final decision release (28 Oct 2025); reconsideration 3 Mar 2026 |
+| proceedings | revenue_requested_m | 105.419 | $M (requested increase on $384.865M; to… | sourced | PURA, Final Decision in United Illuminating Rate Case (28 Oct 2025): proposed increase $105,418,797 |
+| proceedings | revenue_approved_m | 67.98 | $M (after reconsideration; the final de… | sourced | OCC statement on the UI reconsideration (3 Mar 2026): revenue requirement $452,845,438, +$67,980,438; PURA 28 Oct 2025: $450,789,348 |
+| proceedings | roe_requested | 0.105 | share | sourced | PURA release (28 Oct 2025): UI sought 10.5% |
+| proceedings | roe_granted | 0.094 | share | derived | Derived: PURA 9.45% less 20 bp = 9.25% (28 Oct 2025); reconsideration removed 15 bp (10 bp Inglis / English Station, 5 bp DER platform and… |
+| proceedings | comparison/requested_m | 105.419 | $M a year (nominal) | derived | Derived from revenue_requested_m of Docket 24-10-04 |
+| proceedings | comparison/approved_m | 67.98 | $M a year (nominal) | derived | Derived from revenue_approved_m of Docket 24-10-04 |
+| class_allocation | residential_share_of_increase |  | None | _VERIFY | Not located: class allocation in the decision |
+| class_allocation | residential_share_of_sales | 0.4395 | share | derived | EIA Form 861, 2025, CT: residential / total retail sales, Parts A + C |
+| class_allocation | customer_charge_before |  | None | _VERIFY | Not located: Rate R customer charge before 1 Nov 2025 |
+| class_allocation | customer_charge_after | 13.02 | $/month | sourced | OCC RAM FAQ (1 May 2026): UI fixed charge $13.02 |
+| class_allocation | residential_share_of_increase |  | None | _VERIFY | Not located: class allocation in the decision |
+| class_allocation | residential_share_of_sales | 0.4273 | share | derived | EIA Form 861, 2023, CT: residential / total retail sales, Parts A + C |
+| class_allocation | customer_charge_before |  | None | _VERIFY | Not located |
+| class_allocation | customer_charge_after |  | None | _VERIFY | Not located |

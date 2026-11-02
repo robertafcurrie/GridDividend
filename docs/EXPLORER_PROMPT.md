@@ -8,7 +8,7 @@ and runs code to build an interactive explorer from them. Give it the export fil
 ## The prompt
 
 Build an interactive explorer for the GridDividend results in exports/<utility>.json
-(ConEd, RGE, DomVA, PepcoMD).
+(ConEd, RGE, DomVA, PepcoMD, EversourceCT, UI_CT).
 Use only figures from those files: don't estimate, round away or invent any number.
 Read docs/GLOSSARY.md for the terms, and each file's metadata notes (flows_note,
 share_sweep_note, objective_sweep_note, objective_sweep_run_note, fast_start_note,
@@ -54,7 +54,10 @@ The data, per utility file:
 - lookback: 2021–2026 bill trend (bill_trend), the 2026 tariff bill
   (bill_2026_tariff), the revenue-requirement bridge (rr_bridge: rows and
   grouped_rows), rate cases asked against granted (proceedings and
-  asked_granted_totals), capacity prices (supply_side.capacity_prices), class
+  asked_granted_totals), capacity prices (supply_side.capacity_prices: pjm, nyiso or
+  isone, whichever is not null; ISO-NE prices are $/kW-month by capability period),
+  Connecticut's Standard Service and public-benefits series
+  (supply_side.standard_service_cents_kwh, supply_side.public_benefits_cents_kwh), class
   allocation (class_allocation), and Dominion's riders (riders, Dominion file only).
 - Ignore the advance blocks (runs[...].advance and advance_fast_start, the top-level
   advance_stress and advance_fast_start_stress, and metadata.advance_note): the
@@ -100,7 +103,8 @@ Rules for honesty:
 - The additional savings objective is additional by assumption: present it as
   "if the utility finds a further X%".
 - "Lower share of zonal transmission costs" (lower_share_of_zonal_transmission_costs_*)
-  is a cost shift to other customers in the PJM zone. Show it separately with the
+  is a cost shift to other customers in the PJM zone (in Connecticut, the rest of New
+  England). Show it separately with the
   cost shifted (cost_shifted_to_other_zone_customers_*); never count it as savings.
 - Show the source commit and generation date, and say the page is a snapshot that
   must be rebuilt when the exports change.

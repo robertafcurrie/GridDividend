@@ -1,5 +1,6 @@
 # Layer engine (engine/layers.py) checks. Run: python -m pytest tests/
 import contextlib
+import copy
 import importlib.util
 import io
 import json
@@ -22,7 +23,11 @@ SETUP = ('# ============================================================\n# SECT
          '# ============================================================\n# SECTION 1b: NEAR-TERM',
          'def load_utility(key):')
 UTILS = [('ConEd', 'GridDividend_NewYork.ipynb'), ('RGE', 'GridDividend_NewYork.ipynb'),
-         ('DomVA', 'GridDividend_Virginia.ipynb'), ('PepcoMD', 'GridDividend_Maryland.ipynb')]
+         ('DomVA', 'GridDividend_Virginia.ipynb'), ('PepcoMD', 'GridDividend_Maryland.ipynb'),
+         ('EversourceCT', 'GridDividend_Connecticut.ipynb'), ('UI_CT', 'GridDividend_Connecticut.ipynb')]
+# Fixture tests pin outputs at earlier commits: only the utilities that existed then
+PINNED = ('ConEd', 'RGE', 'DomVA', 'PepcoMD')
+PINNED_UTILS = [u for u in UTILS if u[0] in PINNED]
 _CACHE = {}
 
 
@@ -74,6 +79,34 @@ def test_starting_total_equals_starting_bill(key, nb):
     carved = sum(d['month'] for d in LY.starting_lines(uj, carve_out=True, adjustments=False))
     assert raw == pytest.approx(script_total, abs=0.005)
     assert carved == pytest.approx(raw, abs=1e-9)                 # carve-out keeps the total
+
+
+@pytest.mark.parametrize('key,nb', [u for u in UTILS if u[0] in ('EversourceCT', 'UI_CT')])
+def test_temporary_rate_revert(key, nb):
+    """Connecticut's public-benefits credit returns to its pre-credit level from May 2027 (8/12 of 2027), then grows
+    like any program surcharge; without the revert the credit would be projected forward. Lines without 'revert'
+    are untouched."""
+    uj, p = _utility(key, nb)
+    kwh = uj['starting_bill']['benchmark_kwh_month']
+    lines = {d['id']: d for d in LY.starting_lines(uj)}
+    assert lines['nbfmcc']['month'] < 0 and lines['sbc']['month'] < 0
+    assert [d['id'] for d in LY.starting_lines(uj) if d.get('revert')] == ['nbfmcc', 'sbc']
+    g = LY.resolve(uj['forward_assumptions'])['projection']['program_surcharge_growth']
+    b = LY.project_layers(uj, p)['bau'].set_index('year')
+    non_core = sum(d['month'] for d in lines.values() if d['category'] == 'program_surcharge' and not d['core'])
+    rev = sum((d['revert']['month'] if d.get('revert') else d['month'])
+              for d in lines.values() if d['category'] == 'program_surcharge' and not d['core'])
+    core = sum(d['month'] for d in lines.values() if d['category'] == 'program_surcharge' and d['core'])
+    assert b.loc[2026, 'bill_program_surcharge'] == pytest.approx(non_core + core, abs=1e-9)
+    w = lines['nbfmcc']['revert']['first_year_share']
+    assert b.loc[2027, 'bill_program_surcharge'] == pytest.approx((non_core + (rev - non_core) * w + core) * (1 + g), rel=1e-9)
+    assert b.loc[2030, 'bill_program_surcharge'] == pytest.approx((rev + core) * (1 + g) ** 4, rel=1e-9)
+    assert rev == pytest.approx((0.033 + 0.001) * kwh, abs=1e-9)    # NBFMCC + SBC at 3.3 c, plus RE investment
+    plain = copy.deepcopy(uj)
+    for ln in plain['starting_bill']['lines']:
+        ln.pop('revert', None)
+    b0 = LY.project_layers(plain, p)['bau'].set_index('year')
+    assert b0.loc[2030, 'bill_program_surcharge'] == pytest.approx((non_core + core) * (1 + g) ** 4, rel=1e-9)
 
 
 def test_pepco_order_adjustment():
@@ -204,7 +237,7 @@ def _compare_fixture(r, ref, name, skip=None):
                                           err_msg=f'{name} {col} {case}')
 
 
-@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('key,nb', PINNED_UTILS)
 def test_one_band_equals_single_pool_model(key, nb):
     """forward_assumptions as at ebb0c04 (no bands, no ramp limit) reproduce that commit's outputs exactly."""
     from engine.report import TIGHT_NETWORK
@@ -274,7 +307,7 @@ PLAN_FIXED = {('bau_plan', 'link_growth_to_load'): False}   # plan capex fixed r
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
 
-@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('key,nb', PINNED_UTILS)
 @pytest.mark.parametrize('source', ['current_json', 'legacy_json'])
 def test_network_defaults_reproduce_1b09e20(key, nb, source):
     """
@@ -583,8 +616,10 @@ def test_earnings_attributed_in_proportion_to_pool(key, nb):
         pool = lc[f'Savings pool contribution ($B, {basis})']
         np.testing.assert_allclose(attr.values, (pool / pool.sum() * attr.sum()).values, rtol=1e-9, atol=1e-12)
     assert lc['Shared savings earnings attributable ($B, undiscounted nominal)'].sum() == pytest.approx(full, rel=1e-9)
-    # deferral lowers what customers pay, so it now earns a positive share
-    assert lc.loc['deferral', 'Shared savings earnings attributable ($B, undiscounted nominal)'] > 0
+    # deferral lowers what customers pay, so it earns a positive share wherever the pool earns anything
+    # (United Illuminating's Central pool is negative in every year: no earnings to attribute)
+    if key in PINNED or full > 0:
+        assert lc.loc['deferral', 'Shared savings earnings attributable ($B, undiscounted nominal)'] > 0
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
@@ -634,7 +669,7 @@ def test_pepco_capacity_prices_aligned():
 _FIXTURE_23FE = os.path.join(ROOT, 'tests', 'fixtures', 'layers_23fec60_model_bau.json')
 
 
-@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('key,nb', PINNED_UTILS)
 def test_model_bau_basis_reproduces_23fec60(key, nb):
     """With bau_plan.basis = 'model' the current JSON reproduces the layered outputs at 23fec60 exactly."""
     ref = json.load(open(_FIXTURE_23FE))['runs'][key]
@@ -954,7 +989,12 @@ def test_advance_sizing_cap_and_true_up(key, nb, src):
     assert ad['size_m'] == pytest.approx(0.5 * (base * d).sum(), rel=1e-12)
     pc = np.array(ad['planned_credit_m'])
     assert (pc * d).sum() == pytest.approx(ad['size_m'], rel=1e-9)
-    assert pc[LY.YEARS.index(2027)] > 0 and pc[LY.YEARS.index(2026)] == 0
+    # a pool that is never positive (United Illuminating, Cautious) sizes no advance from the pool
+    if key in PINNED or base.sum() > 0:
+        assert pc[LY.YEARS.index(2027)] > 0
+    else:
+        assert ad['size_m'] == 0 and (pc == 0).all()
+    assert pc[LY.YEARS.index(2026)] == 0
     # cap: customers' total net saving is never negative in a recovery year; no residential bill above BAU
     cust = LY._customer_saving_yearly(r)
     assert (cust[s['advance_recovery_m'].values > 0] >= -1e-6).all()
@@ -975,7 +1015,10 @@ def test_advance_cautious_sized_and_realized_clears(key, nb, src, fin):
     r = LY.project_layers(uj, p, scenario='Cautious', overrides={**ADV, ('mechanism', 'advance_recovery_source'): src,
                                                                   ('mechanism', 'advance_financing'): fin})
     assert abs(r['ss']['advance_balance_m'].iloc[-1]) < 1e-3
-    assert r['ss']['advance_credit_m'].sum() > 0
+    if key in PINNED or np.sum(r['advance']['recoverable_base_m']) > 0:
+        assert r['ss']['advance_credit_m'].sum() > 0
+    else:                                   # nothing recoverable (pool never positive): no credit
+        assert r['ss']['advance_credit_m'].sum() == 0
 
 
 # ── Capacity formulation ('avoided_obligation' default since 2 Nov 2026; 'embedded' option) ─
@@ -1003,7 +1046,7 @@ def test_capacity_formulation_default_avoided_obligation(key, nb):
     assert not [k for k in LY.assumption_keys(fa) if k[0] == 'capacity' and k[1] in LY.CAPACITY_OBLIGATION_PARAMS]
 
 
-@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('key,nb', PINNED_UTILS)
 def test_capacity_formulations_reproduce_212efce(key, nb):
     """The default reproduces 212efce's avoided-obligation runs exactly; the embedded option reproduces
     that commit's default runs exactly (both with the transmission formulation of that time, 'single')."""
@@ -1173,7 +1216,7 @@ def test_transmission_default_split_and_inputs(key, nb):
         LY.project_layers(uj, p, overrides={('transmission', 'formulation'): 'other'})
 
 
-@pytest.mark.parametrize('key,nb', UTILS)
+@pytest.mark.parametrize('key,nb', PINNED_UTILS)
 def test_transmission_formulations_reproduce_fe90816(key, nb):
     """'single' reproduces fe90816's default runs exactly; the default reproduces this commit's split runs."""
     ref = json.load(open(_FIXTURE_TX))['runs'][key]
@@ -1251,8 +1294,8 @@ def test_transmission_avoided_build_switch_and_scenarios(key, nb):
     assert (off['transmission_build_avoided_m'] == 0).all() and (off['transmission_avoided_capex_m'] == 0).all()
     tp = LY.resolve(uj['forward_assumptions'])['transmission']
     cau = LY.project_layers(uj, p, scenario='Cautious')['ss']
-    if key in ('DomVA', 'PepcoMD'):
-        assert (cau['transmission_build_avoided_m'] == 0).all()      # PJM Cautious realisation 0
+    if key in ('DomVA', 'PepcoMD', 'EversourceCT', 'UI_CT'):
+        assert (cau['transmission_build_avoided_m'] == 0).all()      # PJM / ISO-NE Cautious realisation 0
     on = LY.project_layers(uj, p)['ss']
     if tp['load_driven_share'] > 0:
         assert on['transmission_build_avoided_m'].sum() > 0

@@ -1,7 +1,7 @@
 """
 Results export for the web explorer.
 
-Writes exports/<utility>.json for the four utilities: every scenario (Cautious /
+Writes exports/<utility>.json for the six utilities: every scenario (Cautious /
 Central / Ambitious) x electrification pace (utility forecast / state policy),
 from the layered model as it stands (no model changes here):
   - yearly 2026-2050: BAU and shared-savings average residential bill by bill
@@ -33,7 +33,7 @@ from the layered model as it stands (no model changes here):
     allocation;
   - metadata: source commit, date, dollar basis, pool setting.
 
-    python scripts/export_results.py            # all four utilities
+    python scripts/export_results.py            # all six utilities
     python scripts/export_results.py ConEd      # one utility
 
 tests/test_export.py checks that each export's flows balance and its totals
@@ -58,7 +58,8 @@ from engine import lookback as LB  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, 'exports')
 UTILITIES = {'ConEd': 'GridDividend_NewYork.ipynb', 'RGE': 'GridDividend_NewYork.ipynb',
-             'DomVA': 'GridDividend_Virginia.ipynb', 'PepcoMD': 'GridDividend_Maryland.ipynb'}
+             'DomVA': 'GridDividend_Virginia.ipynb', 'PepcoMD': 'GridDividend_Maryland.ipynb',
+             'EversourceCT': 'GridDividend_Connecticut.ipynb', 'UI_CT': 'GridDividend_Connecticut.ipynb'}
 SETUP = ('# ============================================================\n# SECTION 0: SETUP',
          '# ============================================================\n# SECTION 1: USER-ADJUSTABLE',
          '# ============================================================\n# SECTION 1b: NEAR-TERM',
@@ -79,6 +80,8 @@ POLICY_PARAMS = {('bau_plan', 'addressable_growth'), ('bau_plan', 'addressable_r
 FLOW_SOURCES = ('deferral', 'capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy',
                 'additional_objective')
 _NS = {}
+# Market-specific addition to metadata.transmission_note (none for PJM and NYISO, so their exports are unchanged)
+TX_NOTE_MARKET = {'ISONE': ' Connecticut (ISO-NE): the zone is New England. Regional Network Service pools all transmission owners\' revenue requirements by 12-coincident-peak network load, so (a) is a cost shift to other New England customers; it is measured on the annual peak and so overstated.'}
 
 
 def load_utility(key):
@@ -485,7 +488,7 @@ def build_export(key):
                         'fast_start_note': 'fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.',
                         'allocation_sweep_note': "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
                         'lookback_note': 'lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_trend: headline like-for-like trend, EIA-861 2021-2025 at the benchmark usage (delivery and supply where EIA reports delivery-only customers); bill_2026_tariff: the 2026 starting bill by category, shown separately; bill_levels_by_basis: 2021 (EIA) and 2026 (tariff) levels, different bases, not a change. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal); rows (detailed) and grouped_rows (capital-driven, cost of capital, operating with normalised O&M, pension non-service, rate-case step). riders (Dominion): every Virginia rider, residential $/month at 1,000 kWh and revenue requirement by rate year, with the bill bridge. asked_granted_totals: requested against approved, cumulative and %, temporary rates separate. supply_side: influenced, not controlled, by the distribution utility.',
-                        'transmission_note': 'Transmission (split formulation, METHODOLOGY 3.8a): customer savings, value flows and bills count (b), transmission upgrades deferred. (a), the lower share of zonal transmission costs (PJM: a lower network service peak load shifts part of the fixed zonal transmission cost to other customers in the zone), is reported separately as lower_share_of_zonal_transmission_costs (yearly $M and headline $B, undiscounted nominal) with cost_shifted_to_other_zone_customers alongside; it is not in customer savings, bills, the shared-savings pool or shared savings earnings (transmission.allocation_in_headline off). 0 in New York.',
+                        'transmission_note': 'Transmission (split formulation, METHODOLOGY 3.8a): customer savings, value flows and bills count (b), transmission upgrades deferred. (a), the lower share of zonal transmission costs (PJM: a lower network service peak load shifts part of the fixed zonal transmission cost to other customers in the zone), is reported separately as lower_share_of_zonal_transmission_costs (yearly $M and headline $B, undiscounted nominal) with cost_shifted_to_other_zone_customers alongside; it is not in customer savings, bills, the shared-savings pool or shared savings earnings (transmission.allocation_in_headline off). 0 in New York.' + TX_NOTE_MARKET.get(uj0.get('capacity_market'), ''),
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}

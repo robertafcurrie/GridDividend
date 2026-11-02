@@ -26,14 +26,15 @@ import pandas as pd
 from . import layers as LY
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOOKBACK_FILES = {'ConEd': 'ConEd', 'RGE': 'RGE', 'DomVA': 'Dominion_VA', 'PepcoMD': 'Pepco_MD'}
+LOOKBACK_FILES = {'ConEd': 'ConEd', 'RGE': 'RGE', 'DomVA': 'Dominion_VA', 'PepcoMD': 'Pepco_MD',
+                  'EversourceCT': 'Eversource_CT', 'UI_CT': 'UI_CT'}
 CAPITAL_CATEGORIES = ('growth', 'replacement', 'grid_modernisation', 'storm_resilience', 'it_other')
 STATUSES = ('sourced', 'derived', '_VERIFY', 'setting')
 BRIDGE_START, BRIDGE_MID, BRIDGE_END = '2021', '2025', '2026'
 
 
 def load_lookback(key, root=ROOT):
-    """utilities/<utility>_lookback.json for a utility key ('ConEd', 'RGE', 'DomVA', 'PepcoMD')."""
+    """utilities/<utility>_lookback.json for a utility key ('ConEd', 'RGE', 'DomVA', 'PepcoMD', 'EversourceCT', 'UI_CT')."""
     with open(os.path.join(root, 'utilities', f'{LOOKBACK_FILES[key]}_lookback.json')) as f:
         return json.load(f)
 

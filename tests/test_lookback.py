@@ -143,8 +143,8 @@ def test_bill_trend_like_for_like(key):
     kwh = lb['benchmark_kwh_month']
     for y, d in lb['bill']['eia_series'].items():
         assert t.loc[int(y), 'total'] == pytest.approx(d['bundled_cents_kwh']['value'] * kwh / 100, rel=1e-12)
-        # the series is the utility's own state (Virginia for Dominion, Maryland for Pepco)
-        st = {'DomVA': 'VA', 'PepcoMD': 'MD'}.get(key, 'NY')
+        # the series is the utility's own state (Virginia for Dominion, Maryland for Pepco, Connecticut)
+        st = {'DomVA': 'VA', 'PepcoMD': 'MD', 'EversourceCT': 'CT', 'UI_CT': 'CT'}.get(key, 'NY')
         assert f' {st} part' in d['bundled_cents_kwh']['source']
     if key == 'DomVA':
         assert t['delivery'].isna().all()

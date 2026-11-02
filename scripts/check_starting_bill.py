@@ -32,6 +32,8 @@ UTILITIES = {  # key -> (json file, notebook holding UTILITY_BILL_PARAMS if not 
     'RGE': ('RGE.json', 'GridDividend_NewYork.ipynb'),
     'DomVA': ('Dominion_VA.json', 'GridDividend_Virginia.ipynb'),
     'PepcoMD': ('Pepco_MD.json', 'GridDividend_Maryland.ipynb'),
+    'EversourceCT': ('Eversource_CT.json', 'GridDividend_Connecticut.ipynb'),
+    'UI_CT': ('UI_CT.json', 'GridDividend_Connecticut.ipynb'),
 }
 CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 'supply_energy',
               'capacity', 'transmission', 'taxes_and_fees')

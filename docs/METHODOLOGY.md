@@ -81,7 +81,7 @@ The range shows how much the outcome depends on choices regulators and utilities
 Each run projects two cases, year by year, from 2026 to 2050.
 
 - **Business as usual (BAU):** the utility invests as its published capital plan says (2.5). Program surcharges stay on the bill, and today's flexibility programs continue at their current size.
-- **Shared savings (SS):** from the **transition year** (2028 for all four utilities), core programs (programs that become utility business) leave the surcharges and become utility spending recovered in rates.
+- **Shared savings (SS):** from the **transition year** (2028 for all six utilities), core programs (programs that become utility business) leave the surcharges and become utility spending recovered in rates.
   - The utility grows flexible resources and efficiency along a target path.
   - Flexible headroom (grid space freed by flexibility) defers reinforcement or connects waiting load.
   - The resulting savings form a pool (the savings pool: the net saving before it is split). The utility keeps a share as shared savings earnings.
@@ -227,14 +227,14 @@ Each subsection below covers:
 - A percentage line is its rate x the subtotal it applies to (`delivery`, `supply` or `distribution_and_transmission`).
 - Lines marked `included_in_benchmark: false`, or with no rate, are left out.
 
-*Capacity carve-out* (RG&E, Dominion, Pepco): where capacity is embedded in a supply line, a capacity line is derived and moved out of the parent line(s). The total bill is unchanged.
+*Capacity carve-out* (RG&E, Dominion, Pepco, Eversource CT, United Illuminating): where capacity is embedded in a supply line, a capacity line is derived and moved out of the parent line(s). The total bill is unchanged.
 
 ```
 obligation_kw per customer = peak_mw x residential_share x obligation_scaling / residential_customers x 1000
 capacity $/month           = obligation_kw x price ($/MW-day) / 1000 x 365 / 12
 ```
 
-For Dominion the carved-out amount is split 91.5% from base generation and 8.5% from fuel.
+For Dominion the carved-out amount is split 91.5% from base generation and 8.5% from fuel. In Connecticut it comes out of the Standard Service Generation Service Charge at the FCA 17 price ($2.59/kW-month = $85.15/MW-day) and the ICR / reference-peak factor 1.151.
 
 *Temporary rates* (`revert` on a starting-bill line; Connecticut): a line whose 2026 rate is known to be temporary returns to a stated rate (2026 $, same unit) from `from_year`, with `first_year_share` of that year at the new rate, then grows like its category. It applies to program surcharge lines. Connecticut's public-benefits charges are a credit from May 2026 (PA 25-173 bonding and the Millstone / Seabrook contracts turning into a net benefit) until at least April 2027. NBFMCC + SBC return to 3.3¢/kWh, the pre-credit level of about 4¢ (OCC) less C&LM and renewable energy, from May 2027 (8/12 of 2027). Without it the model would project a temporary credit for 25 years. Lines without `revert` are unchanged (tested: the other utilities' exports are identical).
 
@@ -694,11 +694,13 @@ The six elements:
   - PJM (Dominion, Pepco): an LSE's UCAP obligation is its Peak Load Contribution (share of the 5 coincident peaks) x the Forecast Pool Requirement. `obligation_factor` 0.926 = (1 + IRM 20.0%) x pool-wide accredited UCAP factor 77.2% (2027/28 BRA planning parameters).
   - Con Edison: the NYC locational requirement, 86.4% of NYC peak (CHPE-in; 82.6% CHPE-out, the low level), at the NYC price. The rest of the NYCA requirement, (1 + 24.5%) - 86.4% = 0.381, is at the Rest of State price (`secondary_*`).
   - RG&E: the NYCA requirement, 124.5% of peak (IRM 24.5%, 2026-27).
+  - ISO-NE (Eversource CT, United Illuminating): a load-serving entity's Capacity Load Obligation is its share of the annual system peak × the Installed Capacity Requirement. `obligation_factor` 1.151 = ICR 31,591 MW / reference 50/50 peak 27,440 MW (FCA 18). Net of the Hydro-Québec interconnection capability credits (1,041 MW) it is 1.113; which one load bears is `_VERIFY`. Connecticut has no local sourcing requirement and clears at the Rest-of-Pool price.
 - **(b) Accreditation** by resource type, replacing the programs derates in this formulation.
   - PJM 2028/29 ELCC (effective load-carrying capability: how much a resource counts at peak) class ratings: Demand Resource 91%; storage 4-hr 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%; fixed-tilt solar 7%.
   - NYISO 2026-27 capacity accreditation factors (NYC Locality for Con Edison, Rest of State for RG&E; CHPE-In central and high, CHPE-Out low): Special Case Resources 70.2% / 74.2%; 4-hour storage 84.4% / 84.6%; solar 11.2% / 13.9%.
   - Storage is read from `accr_storage_by_duration` at `storage_duration_hr` (4).
   - Managed EV charging has no class in either market and keeps the programs derate (`_VERIFY`).
+  - ISO-NE: the PJM class ratings are used as a proxy (`_VERIFY`). ISO-NE moves to marginal-reliability-impact accreditation with the prompt auction (Capacity Auction Reforms; FERC accepted Phase 1 on 30-31 March 2026; seasonal accreditation, Phase 2, to be filed by end-2026). Connecticut class values were not located.
   - Efficiency: `accr_ee` 1.0 of its measured peak kW, because efficiency lowers the load forecast. PJM removed Energy Efficiency Resources from the supply side from the 2026/27 BRA (FERC, ER24-2995) and recognises efficiency in the forecast. `_VERIFY`.
 - **(c) Coincidence.** Distribution peak shaving is not automatically credited at system peak.
   - `system_coincidence` is the utility's zone peak at the RTO / NYCA coincident peak per MW of its own peak: Con Edison 0.976 (Zone J NCP/CP 1.0245), RG&E 0.968 (Zone B 1.0336), Dominion 0.975 (DOM 24,569 / 25,193 MW), Pepco 0.963 (PEPCO 5,778 / 6,003 MW).
@@ -768,6 +770,15 @@ The six elements:
   | RG&E | 0.03 | 0.02 |
 
   For Con Edison it is over a quarter of the capacity layer ($14.3B with suppression), which is why it stays out of every scenario.
+
+**ISO-NE (Connecticut).**
+- **Price:** FCA 17 (2026/27) $2.59/kW-month = $0.03108M per MW-year, the bill-line price. FCA 18 (2027/28) $3.58 = $0.04296M is a published price from 2027 (published-plan basis).
+- **Long-run price:** FCA 18 Net CONE, $9.078/kW-month = $0.1089M per MW-year (2027/28 $), reached by 2040.
+- **Auction lag:** 3 / 1 / 0 years. FCA 17 and 18 fix 2026/27 and 2027/28 forward; prompt annual auctions from 2028/29 react within the year. The engine applies one lag from 2026, so central is 1.
+- **Growth:** flat real (inflation). The ISO-NE 2026 CELT has the winter peak growing ~2.9% a year (2026-2035) against ~0.7% for summer. 3% a year real is the high level.
+- **Results:** capacity cost avoided, Central, is $1.47B (Eversource CT) and $0.45B (UI), undiscounted nominal. The 2026 price is about a quarter of PJM's, which limits the capacity value until the long-run price is reached.
+
+**Double-count guard: efficiency and demand response that clear in the FCM.** Connecticut's C&LM budget counts ISO-NE Forward Capacity Market revenue (~$15.2M a year statewide in 2025) as a funding source. That revenue comes from today's efficiency and active demand response, which are in BAU in both cases, so it is unchanged. Only efficiency and flexible MW above BAU earn the avoided-obligation value. ISO-NE reconstitutes FCM-cleared efficiency into the load forecast, so each MW either clears as a resource and is paid, or lowers the forecast; it is never both. The program cost per kWh (`ee_levelised_cost_kwh`) is gross: it is not net of any FCM revenue. So the incremental MW's capacity value is counted once. If the utility bid them into the FCM instead, the payment would replace this value rather than add to it.
 
 **Calibration.**
 
@@ -887,10 +898,18 @@ rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t 
 
   `allocation_in_headline` (setting, off by default) adds it to the bills and headline customer savings, for comparison only. It never enters the pool.
 - **New York** (`'none'`): the utility's transmission revenue requirement is recovered from its own delivery customers, so a lower peak reallocates it among them. (a) is 0.
+- **ISO-NE** (`'zonal_share'`, New England as the zone; Eversource CT, United Illuminating): Regional Network Service pools every transmission owner's PTF revenue requirement (FERC formula rates) and charges it by monthly network load at the 12 coincident peaks.
+  - RNS rate from 1 January 2026: $183.71/kW-year. Regional ATRR $3,331.2M; 2024 12CP load 18,133 MW (`zone_nspl_mw`, reference).
+  - Each utility's share: its 2026 peak / the ISO-NE 2026 CELT summer peak (25,228 MW). CL&P 0.183, UI 0.050 (`derived`; a proxy for the 12CP share, which was not located).
+  - The same formula as PJM. It is measured on the annual peak, so it overstates (a): the 12CP average is about 72% of the annual peak, and summer-only flexibility lowers only some of the 12 monthly peaks. (a) is reported only, never in savings or the pool.
+  - No engine change was needed: `'zonal_share'` is generic.
 
 **(b) Transmission upgrades deferred (avoided build).** This is the deferral of load-driven transmission investment.
 - **Investment base (`transmission_plan_capex()`):**
   - PJM: from the published transmission rate base path (`bau_plan.transmission_plan_rate_base_m`), with investment = RB_t − RB_{t−1} × (1 − 3.5% decay). That gives Dominion about $2.4–2.9B a year (2026–2030) and Pepco $325–400M a year. Beyond the plan it grows at `transmission_growth`.
+  - ISO-NE: from the utility's transmission rate base path, as for PJM.
+    - CL&P: ~$4.6B at YE 2025, rolled forward at its 2025 transmission capex ($398.6M). Its own investment is about its load share of regional investment, so CL&P investment × the CL&P deferral fraction approximates the regional deferral. CL&P customers keep share s of it; other New England customers get the rest.
+    - UI: UI customers pay the pooled rate, not UI's own cost, so its path is scaled to the 2026 RNS forecast. UI's own additions would grow the line ~13% a year.
   - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1: the annual financial report utilities file with FERC): Con Edison 0.304, RG&E 0.205 (derived).
 - **Load-driven share (`load_driven_share`, low / central / high).** Retirement, market efficiency, equipment condition and public policy projects are excluded.
 
@@ -899,6 +918,7 @@ rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t 
 | Dominion | 0.300 / 0.667 / 0.746 | derived | PJM 2024 RTEP (Regional Transmission Expansion Plan) Report (Fig. 1.9, Fig. 3.4): baseline $5.92B (deliverability $5.515B, driven by load growth in the Dominion zone and amplified by >2 GW of deactivations); supplemental $9.07B (customer service $4.49B, equipment condition $3.3B, operational flexibility $0.11B, multi-driver $1.17B). Low = customer service / total; central = (baseline deliverability + customer service) / total; high = also multi-driver. PJM-wide shares, dominated by the DOM zone. |
 | Pepco MD | 0 / 0 / 0.300 | derived | 2024 RTEP, Maryland/DC tables: no PEPCO-zone baseline projects, and its supplemental projects are all equipment-condition breaker replacements. High = the PJM-wide customer-service share. |
 | Con Edison | 0.25 / 0.5 / 0.75 | derived (count) | 2025 LTP (local transmission plan): NYC needs have four drivers (load, retirements, no new generation, loss-of-generation design basis), so low = 1 of 4. Three of four named projects are load-serving substations (Brooklyn Clean Energy Hub, Eastern Queens, Sunset Park), so high = 3 of 4. No project costs are published, so these are counts, not dollars. |
+| Eversource CT, UI | 0 / 0.05 / 0.20 | derived | ISO-NE 2026 RNS Rate Overview and Forecast: 2026 regional PTF additions ~$1,096M = $56M Regional System Plan (reliability), $847M asset condition, $193M other, so at most ~5% is load-driven. High allows for local system plan projects and winter-peak growth. |
 | RG&E | 0 / 0.25 / 0.5 | `_VERIFY` | Avangrid 2025 LTP, Rochester: the projects are reliability or CLCPA (New York's 2019 climate law: public policy). None is attributed to load, so the share is not derivable. |
 
 - **Deferral.** In proportion to the planning-peak reduction from the scenario's firm flexibility and flexible large-load connections, lagged by `planning_lag_years` (setting; 7, range 5–10):
@@ -914,7 +934,7 @@ avoided RB_t    = avoided RB_{t-1} x (1 - 3.5%) + avoided capex_t
 
 | Planner | Utilities | Cautious / Central / Ambitious | Status | Why |
 |---|---|---|---|---|
-| PJM (regional transmission, RTEP) | Dominion, Pepco | 0 / 0.5 / 1.0 | `_VERIFY` | The utility can only offer PJM a lower peak to count in its load forecast. Cautious: PJM doesn't count distribution-level flexibility. Central: half is credited (for example firm demand response and flexible connections accepted as load modifiers). Ambitious: fully credited. |
+| PJM (regional transmission, RTEP) or ISO-NE (Regional System Plan) | Dominion, Pepco, Eversource CT, UI | 0 / 0.5 / 1.0 | `_VERIFY` | The utility can only offer PJM a lower peak to count in its load forecast. Cautious: PJM doesn't count distribution-level flexibility. Central: half is credited (for example firm demand response and flexible connections accepted as load modifiers). Ambitious: fully credited. |
 | The utility (local transmission) | Con Edison, RG&E | 0.5 / 0.8 / 1.0 | setting | The utility plans its local transmission itself, in its local transmission plan and rate case, alongside distribution. It gets the same realisation as the distribution growth-capex addressable share (`bau_plan.addressable_growth`) in each scenario. |
 
 - **Planning lag (`planning_lag_years`, setting):** 7 years by default, range 5–10 (in the tornado). This is the time from a lower planning peak (load forecast) to the transmission investment it defers (plan, then in service). It applies to both kinds of planner.
@@ -942,6 +962,8 @@ The outputs are:
 | RG&E | 4.78 (2.90) | 0.61 | 0.73 | 0.00 | 0.00 | 0.00 | 48.96 |
 | Dominion VA | 18.90 (11.31) | 1.68 | 2.51 | 1.29 | 1.29 | 0.39 | 16.05 |
 | Pepco MD | 4.19 (2.60) | 0.00 | 0.00 | 0.36 | 0.36 | 0.00 | 23.58 |
+| Eversource CT | 4.65 (2.84) | 0.02 | – | 2.42 | 2.42 | – | 22.92 |
+| United Illuminating | 0.60 (0.37) | 0.00 | – | 0.91 | 0.91 | – | 10.46 |
 
 **All scenarios:** single (the earlier default) against split, (b) off and on (the default):
 
@@ -959,6 +981,12 @@ The outputs are:
 | Pepco MD | Cautious | 2.48 / 2.31 / 2.31 | 0.00 | 0.00 | 0.19 | 0.19 | 12.45 / 11.56 / 11.56 |
 | Pepco MD | Central | 4.49 / 4.19 / 4.19 | 0.00 | 0.00 | 0.36 | 0.36 | 25.10 / 23.58 / 23.58 |
 | Pepco MD | Ambitious | 6.24 / 5.72 / 5.72 | 0.00 | 0.00 | 0.64 | 0.64 | 34.26 / 31.78 / 31.78 |
+| Eversource CT | Cautious | 2.06 / 1.86 / 1.86 | 0.00 | – | 0.48 | 0.48 | 9.37 / 8.80 / 8.80 |
+| Eversource CT | Central | 5.65 / 4.64 / 4.65 | 0.02 | – | 2.42 | 2.42 | 25.36 / 22.85 / 22.92 |
+| Eversource CT | Ambitious | 12.31 / 10.33 / 10.38 | 0.07 | – | 4.78 | 4.78 | 48.66 / 44.16 / 44.35 |
+| United Illuminating | Cautious | 0.20 / 0.14 / 0.14 | 0.00 | – | 0.10 | 0.10 | 3.76 / 3.33 / 3.33 |
+| United Illuminating | Central | 0.96 / 0.59 / 0.60 | 0.00 | – | 0.91 | 0.91 | 12.93 / 10.44 / 10.46 |
+| United Illuminating | Ambitious | 2.50 / 1.87 / 1.87 | 0.00 | – | 1.73 | 1.73 | 30.44 / 26.10 / 26.14 |
 
 Reading the results:
 - **Con Edison:** (b) realises 0.5 / 0.8 / 1.0, like the distribution growth deferral it replaces in the overlap fix. Central customer savings are $39.73B against $40.39B under single: the overlap fix moves load-driven transmission out of the deferral layer, and (b) adds $10.62B. In Cautious, (b) realises less than the deferral layer did ($10.98B against $12.45B). In Ambitious it realises more ($62.89B against $60.16B).
@@ -968,6 +996,7 @@ Reading the results:
   - (b) adds $1.68B to customer savings, and other zone customers get a further $0.39B.
   - Customer savings are $18.90B against $19.97B under single, whose avoidable share counted part of the cost shift as a saving.
 - **Pepco:** (b) is 0 at a load-driven share of 0. The $0.36B of (a) is a cost shift to Pepco DC and SMECO customers, now outside customer savings ($4.19B against $4.49B).
+- **Connecticut:** (b) is small at a 5% load-driven share. (a) is large relative to customer savings because RNS pools the whole region's costs and (a) is measured on the annual peak (an overstatement; see above). It is reported only. Single counts half of it as a saving (avoidable share 0.5), so single is well above split.
 - **Shared savings earnings** fall for Pepco in every scenario, and for Dominion in Cautious and Central, because (a) left the pool. Con Edison's fall in Cautious and Central, where the overlap fix removes more deferral than (b) adds back. They rise where (b) adds more: Con Edison and Dominion Ambitious, and RG&E Central and Ambitious.
 
 ### 3.9 Avoided distribution losses (layer 8)
@@ -1240,7 +1269,7 @@ other O&M_t         = recalibrated O&M x (1 + inflation)^t + incremental O&M
   - 2026 growth capex does not exceed rate-case capex (asset-condition capex is floored at zero);
   - `wacc` equals `rate_case_wacc` where the latter is set.
 
-  All three hold for the four utilities.
+  All three hold for the six utilities. United Illuminating's recalibrated O&M is 59% of its delivery revenue requirement, above the 50% plausibility bound (as for RG&E and Dominion), which suggests its Form 1 rate base is understated relative to rate-case revenue.
 - Both cases are indexed to BAU 2026, so first-year differences show.
 - Sales are net of efficiency, waiting load and curtailed flexible-connection energy.
 
@@ -1398,13 +1427,14 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 
 ## 8. Validation
 
-`python -m pytest tests/` runs the full suite. The layered-model tests (`tests/test_layers.py`) check the following.
+`python -m pytest tests/` runs the full suite. The layered-model tests (`tests/test_layers.py`) check the following. Every test runs for all six utilities, except the fixture tests, which pin outputs at earlier commits and run for the four utilities that existed then (`PINNED_UTILS`). Three checks that need a positive pool (deferral earns a positive share; the dividend advance pays a credit when sized on the pool) also accept a pool that is never positive (United Illuminating, Cautious and Central), where there is nothing to attribute or recover.
 
 | Test | What it guarantees |
 |---|---|
 | `test_all_layers_off_equals_bau` | With every savings layer off, SS equals BAU |
 | `test_starting_total_equals_starting_bill` | Year zero equals the sum of the starting-bill lines (carve-out moves dollars, adds none) |
 | `test_pepco_order_adjustment` | The Order No. 92607 adjustment is applied (+$3.94 x (1 + gross receipts tax) on the bill) |
+| `test_temporary_rate_revert` | Connecticut's public-benefits credit returns to the pre-credit level from May 2027 (8/12 of 2027) and then grows like any program surcharge; without `revert` the credit is projected forward |
 | `test_bau_year_zero_rr_matches_rate_case_target` | 2026 BAU wires RR equals the rate-case delivery revenue requirement |
 | `test_placeholder_layers_cannot_be_enabled` | Older JSON placeholders raise an error if switched on |
 | `test_program_transfer_is_neutral_without_new_resources` | Moving today's programs into rates with no new resources leaves the bill unchanged (sub-band off) |
@@ -1520,6 +1550,7 @@ New analysis uses the layered model. The two models do not share results.
 - **Fixed customer charges scale with the wires revenue requirement per kWh**, like the volumetric lines.
 - **Efficiency energy** is valued at the residential supply rate for all classes.
 - **Not modelled yet:** resilience, capacity price suppression, the economic value of faster connections, emissions. These would be reported separately, not on the bill.
+- **Summer peak only.** The network, capacity and deferral layers use the summer peak. Connecticut (and ISO-NE) move toward winter peaks in the 2030s as heat pumps spread: ISO-NE's 2026 CELT has the 90/10 winter peak passing the 50/50 summer peak by 2034. That changes which flexible resources defer which capex (heating load control and storage over air-conditioning demand response). This is a candidate for a seasonal network and capacity layer; the engine is unchanged.
 - **No feedback** from bills to demand, and no utility behavioural response beyond the stated paths.
 
 ### 10.2 Code issues found and fixed
@@ -1643,9 +1674,9 @@ $/month nominal at the benchmark usage:
 | Dominion VA | 1000 | 121.30 (not separable) | 151.97 (not separable) | +30.67 |
 | Pepco MD | 900 | 125.85 (64.36 / 61.50) | 195.67 (82.86 / 112.81) | +69.82 (+18.50 / +51.31) |
 
-**The 2026 tariff bill (`bill_2026_tariff()`)** is shown separately. It is the forward model's starting bill at the benchmark usage, by category: `starting_lines()` with the capacity carve-out and the Pepco Order No. 92607 adjustment. Totals, $/month nominal: Con Edison 215.01, RG&E 159.45, Dominion VA 182.80, Pepco MD 231.63.
+**The 2026 tariff bill (`bill_2026_tariff()`)** is shown separately. It is the forward model's starting bill at the benchmark usage, by category: `starting_lines()` with the capacity carve-out and the Pepco Order No. 92607 adjustment. Totals, $/month nominal: Con Edison 215.01, RG&E 159.45, Dominion VA 182.80, Pepco MD 231.63, Eversource CT 174.44, United Illuminating 183.88 (both at 700 kWh, with the May 2026 public-benefits credit).
 
-**2021 by category.** No 2021 line-item tariff archive or rate-case bill comparison was located for any of the four utilities.
+**2021 by category.** No 2021 line-item tariff archive or rate-case bill comparison was located for any of the six utilities (for Connecticut, the OCC 2021-22 consumer alerts were not reached).
 - The 2021 levels (`bill_comparison()`; export `bill_levels_by_basis`) keep the EIA-derived 2021 totals.
 - The category lines are `null` (`_VERIFY`). The totals reconcile through an explicit unitemised remainder (tested).
 - The 2021 EIA averages and the 2026 tariff bill are on different bases, so the difference between them is **not presented as a change**. The like-for-like change is the EIA trend above.
@@ -1664,7 +1695,7 @@ The bridge runs 2021 → 2025 on a FERC Form 1 functional basis (costs sorted by
 
 **Scope.**
 - **Con Edison and RG&E:** distribution + transmission, because New York delivery rates recover both. This is the forward model's delivery revenue requirement.
-- **Dominion and Pepco:** distribution only.
+- **Dominion, Pepco, Eversource CT and United Illuminating:** distribution only.
 
 **Allocation.**
 - **Common costs:** general, intangible and common plant, working capital and ADIT (accumulated deferred income taxes) are allocated to the scope by its share of net plant. Customer accounts, customer service and sales O&M go to the scope. A&G (administrative and general costs) is allocated by the scope's share of direct O&M.
@@ -1703,6 +1734,8 @@ The items sum exactly from the 2021 to the 2026 revenue requirement (tested). $M
 | RG&E | 545 | +43 | +5 | +28 | +96 | +37 | 755 | +26 | 781 |
 | Dominion VA | 1,648 | +268 | +26 | +106 | +60 | +84 | 2,192 | +341 | 2,533 |
 | Pepco MD | 608 | +59 | -5 | +32 | +19 | +51 | 764 | +51 | 815 |
+| Eversource CT | 1,467 | +84 | 0 | +58 | +138 | +79 | 1,826 | 0 | 1,826 |
+| United Illuminating | 478 | +4 | -3 | +4 | +114 | +16 | 612 | +68 | 680 |
 
 **Reading the bridge.**
 - **Con Edison:** taxes other than income (mostly property taxes) are the largest driver, +$633M, consistent with the Commission's statement that property taxes are about 26% of the 2026 increase. Its reported O&M is flat because A&G fell from $557M to $115M between the two Form 1 years. Pension and retiree-benefit credits drive that fall; normalised O&M rises by $452M (grouped view below).
@@ -1758,8 +1791,15 @@ Grouped bridge, $M nominal:
 | RG&E | 545 | +102 (+43 / +28 / +16 / +15) | +5 | +102 (+96 / +6) | 0 | 755 | +26 | 781 |
 | Dominion VA | 1,648 | +445 (+268 / +106 / +9 / +62) | +26 | +73 (+60 / +13) | 0 | 2,192 | +341 | 2,533 |
 | Pepco MD | 608 | +129 (+59 / +32 / +7 / +31) | −5 | +32 (+19 / +13) | 0 | 764 | +51 | 815 |
+| Eversource CT | 1,467 | +187 (+84 / +58 / +18 / +27) | 0 | +173 (+138 / +34) | 0 | 1,826 | 0 | 1,826 |
+| United Illuminating | 478 | +12 (+4 / +4 / +3 / +2) | −3 | +125 (+114 / +11) | 0 | 612 | +68 | 680 |
 
-Capital is the largest driver for every utility. For Con Edison, normalising for the pension credit moves about $450M from "flat O&M" into operating growth.
+Capital is the largest driver for the four utilities above and, narrowly, for Eversource CT; for United Illuminating it is operating costs.
+- **Eversource CT:** no rate-case step in 2026 (base rates have not changed since May 2020; Docket 26-05-10 is pending). Capital-driven growth (+$187M, of which $84M is the return on rate-base growth) is just ahead of operating growth (+$173M). Customer service and information O&M (accounts 907-910) rises from $165M to $256M and includes C&LM programme costs recorded by the utility, so part of the operating group is public-benefits-funded programme growth, not distribution operations.
+- **United Illuminating:** capital barely moves (+$12M; UI's distribution net plant grew $205M over four years and it halved its capital budget after 2023). Operating costs drive the bridge (+$125M; customer accounts $63M → $140M). The 24-10-04 step (+$68.0M after reconsideration) follows. The $222.4M of capital excluded from return in 2023 sits inside Form 1 plant and cannot be separated.
+- Both have a jurisdictional share of 1.0 (single-state utilities) and the scope is distribution only (transmission is pooled through RNS). Neither shows a credit-driven fall in account 926 (CL&P $18.2M → $9.7M; UI $3.4M → $2.4M), so no normalisation applies.
+
+For Con Edison, normalising for the pension credit moves about $450M from "flat O&M" into operating growth.
 
 ### 12.5 Supply-side drivers (influenced, not controlled)
 
@@ -1767,12 +1807,19 @@ These are set by wholesale markets, FERC formula rates or fuel markets. The dist
 
 - **Capacity prices:**
   - PJM: Base Residual Auction clearing prices by delivery year, 2021/22–2027/28, for the DOM and PEPCO zones. A zone's price is that of the smallest constrained LDA containing it, from PJM's auction reports. PEPCO: $140.00, $95.79, $49.49, $49.49, $269.92, $329.17, $333.44/MW-day. DOM: $140.00, $50.00, $34.13, $28.92, $444.26, $329.17, $333.44.
+  - ISO-NE (Connecticut): FCA clearing prices by capability period, Rest-of-Pool, 2021/22–2027/28: $4.631 (`_VERIFY`), $3.80 (`_VERIFY`), $2.00, $2.61, $2.591, $2.59, $3.58/kW-month.
   - NYISO: average spot prices by capability year, 2021/22–2025/26, from the market monitor's State of the Market reports. NYC: $4.31, $3.34, $15.97, $11.76, $10.98/kW-month. NYCA: $4.18, $3.05, $4.11, $3.47, $4.28.
 - **Energy supply:** the implied supply component of the residential average price, EIA-861 2021–2025 (bundled minus delivery-only revenue per kWh; Con Edison, RG&E, Pepco MD; `derived`). For Dominion, the fuel factor and deferred fuel charge by year are in the rider bridge (12.6).
 - **Transmission:**
   - New York: recovered in delivery rates, so it is inside the bridge.
   - Pepco MD: $0.02101/kWh in 2026. The 2021 rate is `_VERIFY`.
   - Dominion: the Rider T1 history is in 12.6.
+  - Connecticut: the TAC in 2026 (CL&P 5.050¢, UI 4.8722¢/kWh) and the RNS rate ($185.28 → $183.71/kW-year, 2025 → 2026). The 2021 TAC is `_VERIFY`.
+- **Connecticut Standard Service and public benefits** (`standard_service_cents_kwh`, `public_benefits_cents_kwh`): CL&P 24.17¢ (Jan-Jun 2023, `_VERIFY`), 9.75¢ (Jul-Dec 2025), 12.64¢ (Jan-Jun 2026), 11.58¢ (Jul-Dec 2026); UI 11.68¢, 13.70¢, 11.95¢. Public benefits were about 4¢/kWh combined before May 2026, then about −1.5¢ (CL&P) and −1.3¢ (UI). The 2023 spike was not retrieved.
+- **Connecticut, what moved the bill.** EIA-861 at 700 kWh (nominal $/month):
+  - CL&P: $149.08 (2021) → $202.13 (2025). Supply peaked at $130.49 in 2023 and was $71.60 in 2025; delivery (distribution, transmission and public benefits) rose $95.27 → $130.53 while base distribution rates were frozen.
+  - UI: $176.36 → $247.82. Supply $62.27 → $106.65; delivery $114.08 → $141.18, including the 2023 and 2025 rate increases.
+  - The EIA split is delivery against supply only. The line-item 2021 bill by category was not located (`_VERIFY`), so the split of delivery growth between distribution, transmission and public benefits is not shown.
 
 ### 12.6 Dominion: Virginia riders and the bill bridge
 
@@ -1838,6 +1885,13 @@ Every base rate case filed 2021–2026 is listed, with Pepco's Case 9655 added: 
 | Pepco MD | Case 9655 | decided | 37.4/35.4/31.2 | 20.6/16.3/15.3 | 10.20% → 9.55% |
 | Pepco MD | Case 9702 | decided | 117.2/160.5/193.2/213.6 | 44.6 | 10.50% → 9.50% |
 | Pepco MD | Case 9820 | decided | 119.9 | 50.9 | 10.50% → 9.40% |
+| Eversource CT | Docket 17-10-46 | decided | 255.8/44.7/36.4 | 97.1/32.7/24.7 (`_VERIFY` split) | – → 9.25% |
+| Eversource CT | 2021 settlement | decided | – | −75.0 (one-time credits) | – → 9.25% |
+| Eversource CT | Docket 25-12-13 (storm costs) | decided | 974.2 (one-time) | 869.4 found prudent | – |
+| Eversource CT | Docket 26-05-10 | pending | 451.0 (base; 727 with storms) | – | 10.25% → – |
+| United Illuminating | Docket 16-06-04 | decided | not located | not located | – |
+| United Illuminating | Docket 22-08-08 | decided | 91.1/20.1/19.5 | 23.0 | 10.20% → 8.63% (9.10% less 47 bp) |
+| United Illuminating | Docket 24-10-04 | decided | 105.4 | 68.0 (after reconsideration) | 10.50% → 9.40% (derived) |
 
 **Totals (`asked_granted_totals()`).** Each proceeding carries a `comparison` pair of requested and approved annual amounts, `derived` from its own figures. The basis is usually the first rate year:
 - **Con Edison 22-E-0064:** the levelized amount the Commission compared the request with.
@@ -1853,6 +1907,10 @@ RG&E's $25.9M is **temporary rates**, pending the final order. It is excluded fr
 | RG&E (including temporary rates) | + 25-E-0379 | 314.0 | 76.8 | 24.5% |
 | Dominion VA | PUR-2021-00058, PUR-2023-00101, PUR-2025-00058, Rider OSW (PUR-2021-00142) | 900.7 | 594.4 | 66.0% |
 | Pepco MD | 9655, 9702, 9820 | 274.5 | 116.2 | 42.3% |
+| Eversource CT | 17-10-46 (first rate year; filed 2017, its rates applied throughout 2021-2026) | 255.8 | 97.1 | 38.0% |
+| United Illuminating | 22-08-08, 24-10-04 | 196.5 | 90.9 | 46.3% |
+
+Connecticut: the 2021 settlement (bill credits), the storm-cost docket (one-time amounts) and the pending Docket 26-05-10 are listed but not in the totals. The annual RAM dockets (21-01-03 / 21-01-04 to 26-01-03 / 26-01-04) were not reviewed for disallowances (`_VERIFY`).
 
 Dominion's base rate reviews alone: $822.0M requested against $515.7M approved (62.7%). PUR-2023-00101 is now resolved: the February 2024 order approved a settlement that kept base rates unchanged, with $15M of one-time credits and $45M of storm costs recovered through base rates (Dominion 2024 10-K).
 
@@ -1872,6 +1930,8 @@ For each rate case, the look-back records:
 | Pepco MD | 9655 | `_VERIFY` (Order No. 89868 has no class table) | – / 42.9% | 8.01 → 8.22 (year two) |
 | Pepco MD | 9702 | 59.67% Schedule R (68.70% with RTM; Order No. 91181, Table 8) | – / 41.0% | 8.21 → 8.43 |
 | Pepco MD | 9820 | `_VERIFY` | – / 41.0% | → 8.44 |
+| Eversource CT | 17-10-46; 26-05-10 (proposed) | `_VERIFY` | – / 49.2%; 49.8% | → 9.62; 9.62 → `_VERIFY` |
+| United Illuminating | 24-10-04; 22-08-08 | `_VERIFY` | – / 44.0%; 42.7% | → 13.02; `_VERIFY` |
 
 Notes:
 - **Con Edison's shares** use the T&D increase (column C1). With the low-income discount and the energy-efficiency transfer to a surcharge, SC 1 takes 33.8% (2026) and 27.7% (2023) of the total delivery change.

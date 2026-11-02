@@ -1,0 +1,1943 @@
+{
+  "_instructions": "The Connecticut Light and Power Company d/b/a Eversource Energy (CL&P), Connecticut. Distribution company in a restructured state (Standard Service supply procured under PURA rules; transmission a FERC formula rate pooled through ISO-NE Regional Network Service). Distribution parameters from the 2018 settlement (PURA Docket 17-10-46), the Eversource 2025 Annual Report / 10-K and FERC Form 1 2025 (via PUDL); load from the Eversource 2025 Forecast of Loads and Resources; customers and sales from EIA-861 2025. A new rate case (Docket 26-05-10, filed 14 Jul 2026) is pending. Fields marked _VERIFY are derived or estimated; the note explains the derivation. Dollar values are nominal $M unless stated.",
+  "name": "The Connecticut Light and Power Company d/b/a Eversource Energy (CL&P)",
+  "short_name": "Eversource CT (CL&P)",
+  "state": "Connecticut",
+  "territory": "149 cities and towns across Connecticut (all but the UI and municipal-utility areas); Eversource reports 157 towns including partial service",
+  "filing_case": "PURA Docket 17-10-46 (2018 settlement, approved 18 Apr 2018; rates in force May 2018 - 2026, base rates frozen to at least 1 Jan 2024 by the 2021 settlement); Docket 26-05-10 pending (filed 14 Jul 2026; decision expected mid-2027)",
+  "capacity_market": "ISONE",
+  "capacity_market_zone": "CT",
+  "_capacity_note": "Capacity cost read from shared/capacity_markets/ISONE.json zone CT: FCA 17 (2026/27) $2.59/kW-month x 12 / 1000 = $0.03108M/MW-yr (Rest-of-Pool; Connecticut not separately priced). FCA 18 (2027/28) $3.58. In Connecticut the capacity cost sits inside the Standard Service Generation Service Charge (suppliers buy it for customers), so it is carved out of that line in the layered model.",
+  "_supply_transmission_note": "Transmission is a FERC formula rate. ISO-NE Regional Network Service (RNS) pools the PTF revenue requirements of all New England transmission owners and charges them by monthly network load at the 12 coincident peaks (12CP); local network service is the utility's own. The Transmission Adjustment Clause (TAC) recovers both and sits in the delivery section of the Connecticut bill. The earlier model places TAC in supply_rate_kwh (a pass-through outside delivery_share_rr), as for Pepco MD; the layered model keeps it as its own transmission line. CL&P is also a transmission owner (own ATRR $847.9M, transmission rate base ~$4.6B at YE 2025); that is what CL&P recovers as an owner, not its load's share of the regional pool.",
+  "residential_kwh_month": 700,
+  "_residential_kwh_note": "700 kWh/month is the standard residential benchmark used by the Office of Consumer Counsel (OCC) and PURA for both Connecticut utilities (OCC RAM FAQ, 1 May 2026; PURA RAM release, 22 Apr 2026).",
+  "_rate_base_note": "Derived (not sourced): FERC Form 1 2025 (The Connecticut Light and Power Company (respondent 243)) distribution functional rate base = distribution net plant $6,783.9M + general and intangible plant x the distribution share of net plant (0.557) + (working capital $430.3M + net ADIT -$2,005.9M) x the same share = $6,174M (the engine/lookback.py functional basis). Docket 26-05-10 schedules (distribution rate base at the test year) were not reached in this build: _VERIFY. Not total assets.",
+  "rate_base_start_m": 6174,
+  "_capex_VERIFY": "Eversource 2025 financial review (as reported): CL&P distribution capex $549.1M (2025), $570.7M (2024); the table headers were garbled in the copy found, so the year mapping is _VERIFY. Cross-check, FERC Form 1 2021-2025 (distribution net plant change + distribution depreciation): $475M (2022), $615M (2023), $511M (2024), $621M (2025).",
+  "annual_capex_m": 549.1,
+  "_revenue_note": "Eversource 2025 Annual Report (CL&P): retail revenue $4,155.4M = supply $1,050.0M + local delivery $1,425.1M + public benefits $959.3M + transmission $721.0M. EIA-861 2025 reports the same total ($4,155.4M, Parts A + C).",
+  "total_revenue_m": 4155.4,
+  "_roe_note": "Eversource 2018 10-K: the Docket 17-10-46 settlement (approved 18 Apr 2018) set an authorised regulatory ROE of 9.25% and 53% common equity. The 2021 settlement (Oct 2021) left them unchanged (the 90 bp storm-decision and 45 bp draft reductions were not implemented). Requested in Docket 26-05-10: 10.25% ROE, ~54% equity (brief of 2 Nov 2026; _VERIFY against the filing).",
+  "roe": 0.0925,
+  "equity_ratio": 0.53,
+  "_customers_note": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: 1,309,946 customers in 2025 (1,193,581 residential). Eversource reports ~1.32M retail customers in 157 towns (2025 Annual Report).",
+  "electric_customers": 1309946,
+  "_peak_note": "Eversource, 2025 Forecast of Loads and Resources (CT Siting Council, 26 Feb 2025), Table 2-1: 2026 summer peak forecast 4,619 MW (50/50 reference). 2024 actual 4,521 MW; EIA-861 2025 actual summer peak 4,967 MW (hot summer). The 2026 FLR (filed ~Feb-Mar 2026) was not located in this build (_VERIFY: replace if it differs).",
+  "peak_demand_mw": 4619,
+  "_energy_note": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: retail sales 20,351 GWh in 2025. The FLR's 2026 net energy output forecast (20,178 GWh, includes losses) is a different basis; retail sales are used for kWh-based rates.",
+  "annual_energy_gwh": 20351,
+  "_tariff_VERIFY": "Rate 1 (residential), rates effective 1 May 2026 - 30 Apr 2027 (RAM Docket 26-01-03), from the OCC \"Understand your electric bill\" page and OCC RAM FAQ (1 May 2026). delivery_rate_kwh = local delivery per kWh: distribution 5.844 + Electric System Improvements 2.031 + Revenue Decoupling 0.011 + Competitive Transition Assessment 0.496 = 8.382 c/kWh (all inside local delivery revenue, the delivery_share_rr numerator). Public benefits (C&LM, SBC, FMCC, renewable energy) are excluded, as EmPOWER is for Pepco. Not re-read from the Eversource Rate 1 tariff sheet (_VERIFY).",
+  "delivery_rate_kwh": 0.08382,
+  "_supply_rate_note": "Generation Service Charge (Standard Service) 11.577 c/kWh (1 Jul - 31 Dec 2026; OCC consumer advisory 22 May 2026: 11.58 c) + Transmission Adjustment Clause 5.050 c/kWh (1 May 2026) = 16.627 c/kWh. Earlier: 12.641 c (Jan-Jun 2026), 9.75 c (Jul-Dec 2025).",
+  "supply_rate_kwh": 0.16627,
+  "basic_charge_month": 9.62,
+  "_delivery_share_note": "Derived: local delivery revenue $1,425.1M / retail revenue $4,155.4M (Eversource 2025 Annual Report, CL&P) = 0.3430. The 2025 local delivery revenue stands in for the 2026 rate-case target (no new base rates until Docket 26-05-10 decides, mid-2027).",
+  "delivery_share_rr": 0.343,
+  "_property_tax_note": "Derived: FERC Form 1 2025 (The Connecticut Light and Power Company (respondent 243)), page 262 property and real estate taxes charged, all departments, $238.2M / page 200 net utility plant $13,269.9M = 0.0180 (via PUDL).",
+  "property_tax_rate": 0.018,
+  "_income_tax_note": "Derived: federal 21% + Connecticut corporation business tax 7.5% with the 10% surtax (8.25%) x (1 - 0.21) = 27.52% combined.",
+  "income_tax_rate_combined": 0.2752,
+  "dc_load_growth_annual": 0.0,
+  "_dc_VERIFY": "Not data centres: Eversource 2025 FLR \"large customer additions\" (>0.5 MW) of 58 MW (2025) rising to 103 MW, flat from 2027, used as the large-load segment. Governor Lamont has said large data centres do not suit Connecticut (WSHU, 7 Sep 2026). Earlier model: the segment is held at 58 MW (growth 0), which leaves out the +45 MW by 2027; the layered model adds it (system_needs.dc_growth). Distribution-connected share 75% is an assumption.",
+  "dc_load_mw_start": 58,
+  "dc_load_growth_rate": 0.0,
+  "dc_distribution_share": 0.75,
+  "dc_flexibility_share": 0.2,
+  "_storage_VERIFY": "Derived: Energy Storage Solutions had 8 MW installed statewide and ConnectedSolutions batteries ~11 MW (ISO-NE DG Forecast Working Group, CT presentation, 8 Dec 2025) = ~19 MW x CL&P customer share 0.79 = 15 MW. ESS approved 174 MW (418 MWh) by Nov 2025 against a 580 MW target.",
+  "der_storage_mw_start": 15,
+  "_ev_VERIFY": "Derived: share of Connecticut electric customers (EIA-861 2025: CL&P 1,309,946; UI 348,263; municipal utilities ~60,000) = 0.76. The statewide EV curve is in the Connecticut notebook (2025 actual 73,156 registered, CT CEQ 2025 Annual Report).",
+  "ev_territory_share": 0.76,
+  "_ev_managed_note": "PLACEHOLDER 5% (Pepco MD proxy). The PURA EV Charging Program (Docket 17-12-03RE04) includes managed-charging incentives, but no enrolment figure for this utility was located.",
+  "ev_managed_charging_pct_bau": 0.05,
+  "_nws_VERIFY": "Proxy (Pepco MD values): start 18%, ceiling 30% of distribution capex NWS-eligible. Load growth is modest (peak forecast 0.69%/yr) and most spending is reliability, resilience and asset condition. PURA completed the first cycle of its non-wires solutions process (Docket 25-08-08); the Eversource CT NWS Program Manual (with a BCA reference manual) is in force and Eversource lists no open solicitations.",
+  "nws_eligible_capex_share_start": 0.18,
+  "_grid_utilization_VERIFY": "No Connecticut grid-utilisation dataset equivalent to Dominion's (SCC PUR-2026-00164) was found; the Dominion bands are used as a proxy (network block). Candidates to replace it: Eversource CT hosting-capacity map data; IDSP filings under PURA Docket 21-05-15RE03; the flexible-interconnection proceeding; the CT Siting Council Forecast of Loads and Resources. NEEDS REAL GRID UTILIZATION DATA.",
+  "nws_eligible_capex_share_max": 0.3,
+  "_dist_upgrade_VERIFY": "Placeholder $2.0M/MW: suburban and rural, mostly overhead; between RG&E (1.5) and Pepco MD (2.2). No CL&P cost per MW of capacity added was located.",
+  "dist_upgrade_cost_per_mw": 2.0,
+  "_notes": "Pending: Docket 26-05-10 (filed 14 Jul 2026), the first general rate case since 2017: revenue deficiency $451M base / $727M with storm costs (the May 2026 notice of intent said ~$503M); requested ROE 10.25%, equity ~54%; a four-year Performance-Based Multi-Year Rate Plan (PBMRP) with annual formula adjustments, the natural vehicle for a shared-savings mechanism; AMI of ~$1B capital + $300M O&M (PURA rescinded its earlier AMI cost-recovery decision, Docket 17-10-46RE04, on 1 Jul 2026); a ~$4/month 20-year securitisation charge; typical residential impact ~13% at 700 kWh (base) or ~18% / +$32.91 a month with storms; decision expected mid-2027 (all _VERIFY against the filing). Storm costs (Docket 25-12-13, 29 Jul 2026): $974.2M requested, $869.4M found prudent ($63.3M deferred, $41.5M excluded), $667.9M to be securitised (Docket 26-04-04), retrospective carrying charges ($396.7M) denied; kept outside the distribution rate base. ESI (Electric System Improvements) tracker recovers core capital up to $300M a year, resiliency and approved grid modernisation, with earnings; by statute it ends after the next rate case, which matters for the BAU path. The 2026/27 CTA includes a one-time $100M storm-fund contribution (~$3.50/month), not a recurring cost. Investment context: >$3.3B invested in CT electric distribution since 2018; Eversource says annual CT electric investment will exceed $800M by 2029; a $500M five-year spending cut was announced in 2024 and the CEO's \"shut the faucet off\" remark (call of late Sep 2026; WFSB, 5 Oct 2026) means recent capex may understate the forward run-rate (not built into BAU beyond the plan). PBR at PURA: framework decision Apr 2023 (Docket 21-05-15); Phase 2 reopeners RE01 (revenue adjustment), RE02 (performance mechanisms), RE03 (integrated distribution system planning); draft decisions summer 2025, finals paused by the commissioner changes; no 2026 final decision was located (_VERIFY).",
+  "report_context": {
+    "regulator": "Connecticut Public Utilities Regulatory Authority (PURA); five commissioners since 6 May 2026 (Chairman Thomas Wiehl, Vice Chairman David Arconti, Janice Beecher, Holly Cheeseman, Everett Smith)",
+    "case": "Docket 17-10-46 (2018 settlement, rates in force); Docket 26-05-10 pending",
+    "statutes": [
+      "Public Act 22-5 (zero-carbon electricity by 2040)",
+      "Public Act 25-125 (net-zero GHG by 2050 with a 2040 interim target; percentage _VERIFY)",
+      "Public Act 18-82 (45% below 2001 GHG by 2030)",
+      "Public Act 21-53 (1,000 MW energy storage by 2030; _VERIFY)",
+      "Public Act 25-173 (state bonding for public-benefits costs: $155M 2025-26, $145M 2026-27)",
+      "PURA PBR framework, Docket 21-05-15 (Apr 2023)"
+    ],
+    "note": "Connecticut distribution companies are wires companies: Standard Service supply and transmission (FERC, ISO-NE RNS) are pass-through charges outside the base rate case."
+  },
+  "_class_shares_note": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: residential sales 10,133,998 of 20,350,866 MWh = 49.8%; residential customers 1,193,581 of 1,309,946 = 91.1%.",
+  "residential_sales_share": 0.498,
+  "residential_customer_share": 0.9112,
+  "starting_bill": {
+    "_note": "Today's residential bill at residential_kwh_month, line by line. Year zero of the layered model. Validate with scripts/check_starting_bill.py. Schema: CLAUDE.md 'Starting-point bill (starting_bill)'.",
+    "as_of": "2026-11-02",
+    "benchmark_kwh_month": 700,
+    "location": "Connecticut (statewide), Rate 1 with Standard Service; no local energy tax",
+    "notes": "Rates effective 1 May 2026 (RAM) and 1 Jul 2026 (Standard Service). The public-benefits lines are credits until at least 30 Apr 2027 (see the NBFMCC note; the projection returns them to the pre-credit level from May 2027). Docket 26-05-10 (pending) would add ~13% (base request) at 700 kWh from 1 Jul 2027; not added here. Bill lines read from the OCC bill page, not the Eversource tariff sheets (_VERIFY).",
+    "published_check": {
+      "description": "OCC RAM FAQ (1 May 2026): at 700 kWh the May 2026 RAM lowers the Eversource Rate 1 bill by about $31/month (~15%), and the 1 Jul 2026 supply change by about $7 (May + July together about $38, 18%, OCC 22 May 2026). A published total typical bill was not located.",
+      "change_usd_month_may_2026": -31.0,
+      "change_usd_month_may_jul_2026": -38.0,
+      "source": "OCC FAQ on the 2026 RAM decision (1 May 2026; Dockets 26-01-03 / 26-01-04); OCC consumer advisory, 22 May 2026",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+    },
+    "lines": [
+      {
+        "id": "customer_charge",
+        "name": "Customer Service Charge",
+        "rate": 9.62,
+        "unit": "$/month",
+        "category": "distribution_base",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027); OCC FAQ on the 2026 RAM decision (1 May 2026; Dockets 26-01-03 / 26-01-04) ($9.62 fixed charge)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "id": "distribution_kwh",
+        "name": "Distribution Charge",
+        "rate": 0.05844,
+        "unit": "$/kWh",
+        "category": "distribution_base",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 5.844 c/kWh",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "id": "rider_esi",
+        "name": "Electric System Improvements (ESI)",
+        "rate": 0.02031,
+        "unit": "$/kWh",
+        "category": "distribution_rider",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 2.031 c/kWh",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Capital tracker from the Docket 17-10-46 settlement: core capital up to $300M a year, resiliency and approved grid modernisation, with earnings. By statute it ends after the next rate case (Docket 26-05-10)."
+      },
+      {
+        "id": "rider_rdm",
+        "name": "Revenue Decoupling Mechanism (RDM)",
+        "rate": 0.00011,
+        "unit": "$/kWh",
+        "category": "distribution_rider",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): listed as \"0.011 per kWh\" without a unit; read as 0.011 c/kWh",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY",
+        "notes": "Unit and sign to confirm against the Rate 1 tariff; at 700 kWh it is $0.08/month either way unless the unit is $/kWh."
+      },
+      {
+        "id": "rider_cta",
+        "name": "Competitive Transition Assessment (CTA)",
+        "rate": 0.00496,
+        "unit": "$/kWh",
+        "category": "distribution_rider",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.496 c/kWh; OCC FAQ on the 2026 RAM decision (1 May 2026; Dockets 26-01-03 / 26-01-04) (one-time $100M storm-fund contribution)",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Includes a one-time $100M storm-fund contribution for 2026/27 (~$3.50/month at 700 kWh), not a recurring cost; the pending ~$4/month securitisation charge (Docket 26-04-04 / 26-05-10) would follow it. Projected with the distribution revenue requirement like the other distribution lines."
+      },
+      {
+        "id": "tac",
+        "name": "Transmission Adjustment Clause (TAC)",
+        "rate": 0.0505,
+        "unit": "$/kWh",
+        "category": "transmission",
+        "bill_section": "delivery",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 5.050 c/kWh (effective 1 May 2026)",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "ISO-NE Regional Network Service (pooled, 12CP) plus local network service; FERC-set."
+      },
+      {
+        "id": "nbfmcc",
+        "name": "Non-Bypassable Federally Mandated Congestion Charge (NBFMCC)",
+        "rate": -0.02061,
+        "unit": "$/kWh",
+        "category": "program_surcharge",
+        "bill_section": "delivery",
+        "program_type": "nuclear_or_zec",
+        "run_by": "utility (state-mandated contracts)",
+        "core_business_under_shared_savings": false,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "revert": {
+          "from_year": 2027,
+          "rate": 0.033,
+          "first_year_share": 0.6666666666666666,
+          "status": "derived",
+          "source": "Derived: OCC RAM FAQ (1 May 2026): combined public benefits ~4 c/kWh before May 2026, less C&LM 0.6 c and RE investment 0.1 c; see notes"
+        },
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 2.061 c/kWh credit (1 May 2026 - 30 Apr 2027)",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Millstone / Seabrook contracts (a net benefit in 2025), renewables procurements, SCEF, Energy Storage Solutions incentives, GenConn peakers and the DER portal. The Energy Storage Solutions share (which would be core under shared savings) is not published separately, so the line is not split. Public benefits are a credit only until at least 30 Apr 2027: the May 2026 credit comes from PA 25-173 bonding ($145M for 2026-27) and from the Millstone and Seabrook contracts turning into a net benefit in 2025 (Eversource: from a $56M cost to a $160M benefit; UI: from a $15M expense to a $43M credit); the utilities warn it is temporary. Before May 2026 the combined public-benefits charges were about 4 c/kWh (OCC RAM FAQ). From May 2027 (8/12 of 2027, all of 2028 on) the projection returns NBFMCC + SBC together to that pre-credit level: 4 c less C&LM 0.6 c and RE investment 0.1 c = 3.3 c/kWh (2026 $, then program_surcharge_growth). The split between NBFMCC and SBC before May 2026 was not located, so the 3.3 c is put on the NBFMCC line and SBC returns to 0; both are non-core program surcharges, so only the total matters for the bill."
+      },
+      {
+        "id": "sbc",
+        "name": "Systems Benefits Charge (SBC)",
+        "rate": -0.00103,
+        "unit": "$/kWh",
+        "category": "program_surcharge",
+        "bill_section": "delivery",
+        "program_type": "low_income",
+        "run_by": "utility (PURA-directed)",
+        "core_business_under_shared_savings": false,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "revert": {
+          "from_year": 2027,
+          "rate": 0.0,
+          "first_year_share": 0.6666666666666666,
+          "status": "derived",
+          "source": "Derived: the pre-credit public-benefits level is put on the NBFMCC line (see its notes); SBC returns to 0"
+        },
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.103 c/kWh credit (1 May 2026 - 30 Apr 2027)",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Hardship protection, arrearage forgiveness and the low-income discount rate; partly offset by PA 25-173 state bonding. See the NBFMCC note on the temporary credit."
+      },
+      {
+        "id": "reif",
+        "name": "Renewable Energy Investment Charge",
+        "rate": 0.001,
+        "unit": "$/kWh",
+        "category": "program_surcharge",
+        "bill_section": "delivery",
+        "program_type": "public_purpose_other",
+        "run_by": "state agency (Connecticut Green Bank)",
+        "core_business_under_shared_savings": false,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): 0.1 c/kWh (statutory)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "id": "clm",
+        "name": "Conservation & Load Management (C&LM) charge + Conservation Adjustment Mechanism",
+        "rate": 0.006,
+        "unit": "$/kWh",
+        "category": "program_surcharge",
+        "bill_section": "delivery",
+        "program_type": "energy_efficiency",
+        "run_by": "utility (DEEP-approved C&LM Plan)",
+        "core_business_under_shared_savings": true,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC, \"Understand your electric bill\" (portal.ct.gov/occ, rates effective 1 May 2026 - 30 Apr 2027): statutory C&LM 0.3 c/kWh plus up to 0.3 c/kWh through the CAM; the combined value is not listed (0.6 c assumed)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY",
+        "notes": "Utility-administered energy efficiency and demand response (ConnectedSolutions) under the 2025-2027 C&LM Plan. Check: the OCC public-benefits total for Eversource (~1.5 c/kWh credit) implies C&LM + CAM = 0.56 c/kWh given the other public-benefits lines. Also funded by RGGI (~$29.9M statewide 2025) and ISO-NE Forward Capacity Market revenue (~$15.2M statewide 2025); annual_recovery_m left null (derived as rate x sales)."
+      },
+      {
+        "id": "gsc",
+        "name": "Generation Service Charge (Standard Service)",
+        "rate": 0.11577,
+        "unit": "$/kWh",
+        "category": "supply_energy",
+        "bill_section": "supply",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "OCC consumer advisory (22 May 2026): CL&P Standard Service 11.58 c/kWh from 1 Jul 2026 (approved by PURA 20 May 2026); OCC bill page 11.577 c",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Capacity is embedded (suppliers buy it on customers' behalf); carved out in forward_assumptions.capacity_carve_out. Effective Jul-Dec 2026; the Jan-Jun 2027 rate is set in late 2026."
+      },
+      {
+        "id": "bfmcc",
+        "name": "Bypassable FMCC",
+        "rate": null,
+        "unit": "$/kWh",
+        "category": "supply_energy",
+        "bill_section": "supply",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": false,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "Not published separately on the OCC bill page; assumed inside the Generation Service Charge",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      {
+        "id": "capacity",
+        "name": "Capacity (embedded in the Generation Service Charge)",
+        "rate": null,
+        "unit": "$/kWh",
+        "category": "capacity",
+        "bill_section": "supply",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": false,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "Carved out of the Generation Service Charge in the layered model (forward_assumptions.capacity_carve_out)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      {
+        "id": "taxes",
+        "name": "Taxes",
+        "rate": 0.0,
+        "unit": "$/month",
+        "category": "taxes_and_fees",
+        "bill_section": "tax",
+        "program_type": null,
+        "run_by": null,
+        "core_business_under_shared_savings": null,
+        "included_in_benchmark": true,
+        "annual_recovery_m": null,
+        "spend_capex_m": null,
+        "spend_opex_m": null,
+        "source": "Connecticut residential electricity carries no sales tax; the gross earnings tax is embedded in rates (Conn. Gen. Stat. 12-264)",
+        "as_of": "2026-11-02",
+        "status": "sourced",
+        "notes": "Zero-rate line so the taxes category is explicit."
+      }
+    ]
+  },
+  "forward_assumptions": {
+    "_note": "Forward assumptions for the layer engine (engine/layers.py). v1.0 / CORRECTED do not read this section. Levels: for layer assumptions 'low' gives customers a SMALLER shared-savings effect and 'high' a LARGER one. For growth assumptions (projection, system_needs, capacity price growth) low/high = lower/higher growth. Scenarios (Cautious / Central / Ambitious) set the programs, deferral and load_enabled layers together and hold growth assumptions and the utility share at central.",
+    "as_of": "2026-11-02",
+    "scenarios": {
+      "Cautious": {
+        "description": "Today's programs grown modestly, no flexible connections, high cost per kW-year, low locational match; growth and utility share central.",
+        "default_level": "central",
+        "levels": {
+          "programs": "low",
+          "deferral": "low",
+          "load_enabled": "low",
+          "bau_plan.addressable_growth": "low",
+          "bau_plan.addressable_replacement": "low",
+          "bau_plan.addressable_gridmod": "low",
+          "transmission.avoided_build_share": "low"
+        },
+        "network": {}
+      },
+      "Central": {
+        "description": "Every assumption at central; flexible MW anchored to the 2025-2027 C&LM Plan demand-response targets and the Energy Storage Solutions 580 MW target (by customer share).",
+        "default_level": "central",
+        "levels": {},
+        "network": {}
+      },
+      "Ambitious": {
+        "description": "DOE national range (20% of peak) or the state anchor if higher, low cost per kW-year, high locational match, more flexible connections; growth and utility share central.",
+        "default_level": "central",
+        "levels": {
+          "programs": "high",
+          "deferral": "high",
+          "load_enabled": "high",
+          "bau_plan.addressable_growth": "high",
+          "bau_plan.addressable_replacement": "high",
+          "bau_plan.addressable_gridmod": "high",
+          "transmission.avoided_build_share": "high"
+        },
+        "network": {}
+      }
+    },
+    "projection": {
+      "inflation_rate": {
+        "value": 0.025,
+        "unit": "per year",
+        "source": "notebooks/GridDividend_Connecticut.ipynb Section 1 INFLATION_RATE",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "supply_energy_growth": {
+        "low": 0.015,
+        "central": 0.025,
+        "high": 0.04,
+        "unit": "per year, nominal",
+        "source": "Assumption: central = INFLATION_RATE (flat real energy prices)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "transmission_growth": {
+        "low": 0.015,
+        "central": 0.025,
+        "high": 0.05,
+        "unit": "per year, nominal",
+        "source": "Assumption: central = INFLATION_RATE; high reflects transmission build-out",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "program_surcharge_growth": {
+        "low": 0.0,
+        "central": 0.025,
+        "high": 0.05,
+        "unit": "per year, nominal $/kWh",
+        "source": "Assumption: BAU surcharge rates grow with inflation (policy-driven)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      }
+    },
+    "layers": {
+      "system_needs": {
+        "enabled": true,
+        "label": "System needs: load, peak and forward capex",
+        "params": {
+          "baseline_energy_growth": {
+            "low": -0.012,
+            "central": -0.008,
+            "high": -0.004,
+            "unit": "per year",
+            "source": "Derived: Eversource 2025 Forecast of Loads and Resources (Reference Plan): net energy 20,233 GWh (2025) to 21,342 GWh (2034) = +0.59%/yr, of which EVs add 33 to 2,488 GWh and heat pumps 29 to 249 GWh (~1.47%/yr of 2025 energy together), so the rest (efficiency, behind-the-meter solar, underlying load) is about -0.88%/yr; central -0.8%, +/-0.4 pt. Matches notebooks/GridDividend_Connecticut.ipynb BASELINE_LOAD_GROWTH.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "electrification_growth": {
+            "low": 0.0068,
+            "central": 0.0136,
+            "high": 0.0204,
+            "unit": "per year, share of 2026 non-DC sales",
+            "source": "Derived: mean of notebooks/GridDividend_Connecticut.ipynb Section 1 ELECTRIFICATION_RAMP 2026-2050 = 0.0136 (EVs and buildings). 2026-2034 anchored to the Eversource 2025 FLR EV and heat-pump energy (~1.5%/yr of 2025 energy); 2035-2050 an assumption consistent with PA 25-125 (net zero 2050) and the DEEP EV Roadmap (500k EVs by 2030), _VERIFY; low/high x0.5 / x1.5.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "ev_share_of_electrification": {
+            "value": 0.8,
+            "unit": "share of electrification energy",
+            "source": "NREL Electrification Futures Study: transportation is 1,424 of 1,782 TWh (80%) of the 2050 increase in the High scenario and 810 of 932 TWh (87%) in Medium",
+            "as_of": "2026-11-02",
+            "status": "sourced",
+            "note": "Reconciliation: the notebook ramp is TOTAL electrification (its sources cite EVs and heat pumps). It is split 80% EVs / 20% buildings and other using the EFS High-scenario sector split, so both segments contribute and total electrification equals the v1.0 load forecast. The EV count curve is no longer used for energy (at 3,600 kWh/EV it implied more energy than the whole ramp for Con Edison, RG&E and Pepco)."
+          },
+          "dc_growth": {
+            "low": 0.0,
+            "central": {
+              "2026": 0,
+              "2027": 45
+            },
+            "high": {
+              "2026": 0,
+              "2027": 90
+            },
+            "unit": "per year, or {year: MW added since 2026}",
+            "source": "Eversource 2025 Forecast of Loads and Resources: large customer additions (>0.5 MW, not data centres) 58 MW (2025) rising to 103 MW, flat from 2027: +45 MW since the 58 MW start (dc_load_mw_start), flat after 2027. Low: none. High: double the additions (+90 MW), an upper case pending a Connecticut large-load forecast (Governor Lamont: large data centres do not suit Connecticut, WSHU 7 Sep 2026).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "dc_load_factor": {
+            "low": 0.6,
+            "central": 0.75,
+            "high": 0.9,
+            "unit": "fraction",
+            "source": "Assumption for data-centre energy from MW",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "peak_elasticity": {
+            "low": 0.8,
+            "central": 1.0,
+            "high": 1.2,
+            "unit": "peak growth / non-DC energy growth",
+            "source": "Assumption: v1.0 grows peak with load one-for-one (central)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "dist_upgrade_cost_per_mw": {
+            "low": 1.5,
+            "central": 2.0,
+            "high": 3.0,
+            "unit": "$M per MW",
+            "source": "utilities/Eversource_CT.json _dist_upgrade_VERIFY: placeholder $2.0M/MW (between RG&E 1.5 and Pepco MD 2.2); high = $3.0M/MW (urban substation work)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          }
+        }
+      },
+      "programs": {
+        "enabled": true,
+        "label": "Programs as core business: flexible MW and energy efficiency",
+        "params": {
+          "transition_year": {
+            "value": 2028,
+            "unit": "year",
+            "source": "Setting (default 2028)",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "amortisation_years": {
+            "value": 10,
+            "unit": "years",
+            "source": "notebooks/GridDividend_Connecticut.ipynb Section 1 NWS_AMORTISATION_YEARS",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "existing_capitalised": {
+            "value": 0.0,
+            "unit": "share of today's surcharge-funded spend capitalised",
+            "source": "Setting: today's programs are expensed through surcharges",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "split_dr": {
+            "value": 0.45,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split pending a utility potential study (thermostats, water heaters, C&I DR)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
+          },
+          "split_ev": {
+            "value": 0.25,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (managed EV charging)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
+          },
+          "split_storage": {
+            "value": 0.2,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (behind-the-meter and distribution-connected batteries)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
+          },
+          "split_der": {
+            "value": 0.1,
+            "unit": "share of flexible MW",
+            "source": "Illustrative split (distributed solar and other DER)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY",
+            "note": "Used only to split statewide/DOE totals across types where no type-specific source exists."
+          },
+          "cost_kw_yr_dr": {
+            "low": 80,
+            "central": 60,
+            "high": 40,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Proxy: Pepco MD values (Rider R-DLC pays $40-80 per controlled device per year; Brattle VPP study net cost ~$43/kW-yr). Connecticut ConnectedSolutions pays per kW of seasonal performance; its cost per kW-year was not derived here.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_ev": {
+            "low": 100,
+            "central": 60,
+            "high": 30,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for managed-charging incentives and platform",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_storage": {
+            "low": 250,
+            "central": 150,
+            "high": 100,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for distributed battery capacity payments",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "cost_kw_yr_der": {
+            "low": 100,
+            "central": 60,
+            "high": 40,
+            "unit": "$ per kW-yr (2026 $)",
+            "source": "Assumption for other DER dispatch payments",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "capitalised_dr": {
+            "low": 0.5,
+            "central": 0.0,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption: DR incentives are mostly OPEX",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "capitalised_ev": {
+            "low": 0.75,
+            "central": 0.5,
+            "high": 0.25,
+            "unit": "share capitalised",
+            "source": "Assumption: chargers/telemetry part capital",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "capitalised_storage": {
+            "low": 1.0,
+            "central": 0.75,
+            "high": 0.5,
+            "unit": "share capitalised",
+            "source": "Assumption: utility-owned or capitalised contracts",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "capitalised_der": {
+            "low": 0.5,
+            "central": 0.25,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "derate_dr": {
+            "low": 0.69,
+            "central": 0.92,
+            "high": 0.92,
+            "unit": "capacity accreditation",
+            "source": "Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028 BRA report (Dec 2025): Demand Resource class rating 92% (69% in 2026/27)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "derate_ev": {
+            "low": 0.3,
+            "central": 0.5,
+            "high": 0.7,
+            "unit": "capacity accreditation",
+            "source": "Assumption: no ELCC class for managed charging",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "derate_storage": {
+            "value": 0.59,
+            "unit": "capacity accreditation",
+            "source": "Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM ELCC class ratings for the 2028/2029 BRA: 4-hour storage 59%",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "derate_der": {
+            "value": 0.08,
+            "unit": "capacity accreditation",
+            "source": "Proxy (_VERIFY): PJM accreditation used for ISO-NE, whose marginal-reliability-impact accreditation values were not located. PJM 2027/2028 ELCC: fixed-tilt solar 7%, tracking 8% (as cited by NJ Rate Counsel, 5 Mar 2026)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ee_incremental_savings_pct": {
+            "low": 0.0025,
+            "central": 0.005,
+            "high": 0.01,
+            "unit": "first-year savings above BAU, share of sales per year",
+            "source": "Assumption (_VERIFY): BAU = today's pace, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): 125,243 MWh first-year savings = 0.62% of 2025 sales (the 2025-2027 C&LM Plan statewide electric savings are 83 / 76 / 74 GWh). Connecticut has no statutory percentage-of-sales target (unlike EmPOWER Maryland); central +0.5% a year above today, low +0.25%, high +1.0%.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ee_levelised_cost_kwh": {
+            "low": 0.109,
+            "central": 0.056,
+            "high": 0.028,
+            "unit": "$ per kWh saved (lifetime, undiscounted)",
+            "source": "Derived. Low (Cautious) = this utility's reported cost, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): incentives + other costs $135.4M / incremental life-cycle savings 1,240,891 MWh = $0.109/kWh. That is an upper bound for the cost of additional electric savings: the Connecticut C&LM portfolio also funds heat-pump conversions and weatherization whose benefits are partly in other fuels (the 2025-2027 C&LM Plan reports a benefit-cost ratio of ~3.3 counting them), while EIA counts electric savings only. Central $0.056 = twice the LBNL national program administrator cost of saved energy (Hoffman, Leventis, Goldman, 2017: $0.028/kWh), the Pepco MD low value; high = the LBNL $0.028.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "ee_measure_life": {
+            "value": 10,
+            "unit": "years",
+            "source": "Derived: EIA-861 2025 (Connecticut Light & Power Co) incremental life-cycle / first-year savings = 9.9 years",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "ee_capitalised": {
+            "low": 1.0,
+            "central": 0.5,
+            "high": 0.0,
+            "unit": "share capitalised",
+            "source": "Assumption (EE regulatory asset, e.g. EmPOWER amortisation)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_start_dr": {
+            "value": 118.3,
+            "unit": "MW",
+            "source": "EIA-861 2025 Demand_Response (Connecticut Light & Power Co): potential peak demand savings 118.3 MW (actual 109.1 MW; 30,448 customers enrolled). ConnectedSolutions (C&LM-funded).",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "mw_2035_dr": {
+            "low": 177.4,
+            "central": 186.0,
+            "high": 438.3,
+            "unit": "MW nameplate",
+            "source": "Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.79; the Eversource 2025 FLR plans 192 MW of active DR in its territory 2025-27 (check); 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "mw_2050_dr": {
+            "low": 204.5,
+            "central": 204.5,
+            "high": 482.0,
+            "unit": "MW nameplate",
+            "source": "Central: 2025-2027 C&LM Plan statewide active demand response by 2027 (residential ~97.5 MW, C&I ~137.9 MW = 235.4 MW) x customer share 0.79; the Eversource 2025 FLR plans 192 MW of active DR in its territory 2025-27 (check); 2050 scaled with BAU peak. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "mw_start_ev": {
+            "value": 0.0,
+            "unit": "MW",
+            "source": "Not found: no managed-charging MW published for this utility (PURA EV Charging Program, Docket 17-12-03RE04)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_2035_ev": {
+            "low": 0.0,
+            "central": 121.7,
+            "high": 243.5,
+            "unit": "MW nameplate",
+            "source": "Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_2050_ev": {
+            "low": 0.0,
+            "central": 133.8,
+            "high": 267.8,
+            "unit": "MW nameplate",
+            "source": "Central: no Connecticut managed-charging target: DOE low end (10% of peak) x EV split 0.25. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_start_storage": {
+            "value": 15.0,
+            "unit": "MW",
+            "source": "utilities JSON der_storage_mw_start: Energy Storage Solutions installed + ConnectedSolutions batteries statewide (~19 MW, ISO-NE DGFWG CT presentation, 8 Dec 2025) x customer share",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "mw_2035_storage": {
+            "low": 22.5,
+            "central": 458.2,
+            "high": 458.2,
+            "unit": "MW nameplate",
+            "source": "Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached by 2035; 2050 scaled with BAU peak. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "mw_2050_storage": {
+            "low": 30.0,
+            "central": 503.9,
+            "high": 503.9,
+            "unit": "MW nameplate",
+            "source": "Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached by 2035; 2050 scaled with BAU peak. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "mw_start_der": {
+            "value": 0.0,
+            "unit": "MW",
+            "source": "Not separately identified",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_2035_der": {
+            "low": 0.0,
+            "central": 48.7,
+            "high": 97.4,
+            "unit": "MW nameplate",
+            "source": "Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mw_2050_der": {
+            "low": 0.0,
+            "central": 53.6,
+            "high": 107.1,
+            "unit": "MW nameplate",
+            "source": "Central: no Connecticut target: DOE low end (10% of peak) x DER split 0.10. Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ev_hub_share": {
+            "value": 0.2,
+            "unit": "share of EV peak growth at large charging hubs",
+            "source": "Assumption",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "flex_conn_share": {
+            "low": 0.0,
+            "central": 0.1,
+            "high": 0.25,
+            "unit": "share of new distribution-connected DC and EV-hub MW on flexible connections",
+            "source": "Duke University Nicholas Institute, \"Rethinking Load Growth\" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk system with 0.25% / 0.5% / 1% of annual energy curtailed. Bulk-system study; evidence for distribution-level flexible connections is thinner. Central modest; Cautious zero.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "flex_conn_peak_depth": {
+            "value": 1.0,
+            "unit": "share of a flexible connection curtailable at network peak",
+            "source": "Assumption: flexible connections accept full curtailment in constrained hours",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "flex_conn_energy_curtailed": {
+            "low": 0.01,
+            "central": 0.005,
+            "high": 0.0025,
+            "unit": "share of the flexible load's annual energy curtailed",
+            "source": "Duke University Nicholas Institute, \"Rethinking Load Growth\" (Feb 2025): 76 / 98 / 126 GW of new large load could connect to the US bulk system with 0.25% / 0.5% / 1% of annual energy curtailed. Bulk-system study; evidence for distribution-level flexible connections is thinner",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "ramp_pct_peak_dr": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "ramp_pct_peak_ev": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ramp_pct_peak_storage": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ramp_pct_peak_der": {
+            "low": 0.004,
+            "central": 0.0137,
+            "high": null,
+            "unit": "maximum MW added per year, share of the utility's 2026 peak (null = no cap)",
+            "source": "Shared Pepco-derived ramp limit (no Connecticut build-out history derived). Observed ramp: Pepco Energy Wise Rewards direct load control added 50 MW in 2010 (EmPOWER Maryland 2011 report, Table 16) and 44 MW in 2011 (2012 report, Table 16), its fastest build-out = 50 / 3,644 MW Pepco MD peak = 1.37% of peak per year (central). Long-run 2009-2025: 0 to 247 MW (2026 EmPOWER report, Table 13) = 14.5 MW/yr = 0.40% of peak per year (low, Cautious). High (Ambitious): no cap, the target path applies. Expressed as a share of each utility's 2026 peak. No observed utility program ramp for this resource type in these territories; the Maryland DLC ramp is used as the closest analogue",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "ee_kw_per_mwh": {
+            "low": 0.0969,
+            "central": 0.1093,
+            "high": 0.1172,
+            "unit": "kW summer peak saved per MWh/yr of first-year savings",
+            "source": "Kept at the EmPOWER Maryland value (no Connecticut evaluation located). Check: EIA-861 2025 reports 40.1 MW / 125.2 GWh = 0.32 kW per MWh first-year savings, a reported (not evaluated) ratio. EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savings 861,804 MWh and 94.183 MW summer = 0.1093 kW per MWh (central); net 706,841 MWh and 68.514 MW = 0.0969 (low); reported (verified / realisation rates 0.89 energy, 0.83 demand) = 0.1172 (high). Replaces ee_peak_coincidence (central 1.0 = savings shaped like system load, ~2x higher)",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          }
+        }
+      },
+      "deferral": {
+        "enabled": true,
+        "label": "Deferral: flexible headroom counted by the network planner",
+        "params": {
+          "locational_match": {
+            "low": 0.2,
+            "central": 0.4,
+            "high": 0.6,
+            "unit": "share of new firm MW located where growth capex is needed",
+            "source": "Assumption; feeder-level constraint data (e.g. COMAR 20.50.15 plans, DSIPs) should replace it",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          }
+        }
+      },
+      "load_enabled": {
+        "enabled": true,
+        "label": "Load enabled: waiting load connects sooner without reinforcement",
+        "params": {
+          "enable_share": {
+            "low": 0.5,
+            "central": 1.0,
+            "high": 1.0,
+            "unit": "share of flexible headroom offered to waiting load first (rest to deferral)",
+            "source": "Setting: priority to connecting waiting load where the network is constrained",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "connection_cost_kw": {
+            "low": 300,
+            "central": 150,
+            "high": 50,
+            "unit": "$ per kW connected, not covered by CIAC (2026 $)",
+            "source": "Assumption: connection works not paid by the customer",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "incremental_om_mwh": {
+            "low": 5.0,
+            "central": 2.0,
+            "high": 0.0,
+            "unit": "$ per MWh served to enabled load (2026 $)",
+            "source": "Assumption",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "uplift_mode": {
+            "value": "derived",
+            "unit": "'derived' | 'direct'",
+            "source": "Setting. 'derived': headroom = firm flexible MW x locational match + flexible connections; 'direct': assumed % uplift in existing network capacity (what-if)",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "direct_uplift_pct": {
+            "low": 0.02,
+            "central": 0.05,
+            "high": 0.1,
+            "unit": "uplift in existing network capacity (direct mode)",
+            "source": "What-if lever, no source",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "customer_funded_share": {
+            "value": 1.0,
+            "unit": "share of network upgrade cost per MW counted as connection cost avoided by new customers",
+            "source": "Setting: upper bound (all upgrade cost for MW connected sooner, at dist_upgrade_cost_per_mw). The share new customers pay through CIAC is tariff-specific; access metric only, not on the bill Flexible connections are counted once, as network headroom, not here.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      },
+      "capacity": {
+        "enabled": true,
+        "label": "Capacity: avoided obligation at the long-run price",
+        "params": {
+          "price_m_per_mw_yr": {
+            "value": 0.03108,
+            "unit": "$M per MW-yr (2026)",
+            "source": "ISO-NE FCA 17 (2026/2027): $2.59/kW-month (Rest-of-Pool; Connecticut not separately priced) x 12 / 1000; shared/capacity_markets/ISONE.json zone CT",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "price_growth": {
+            "low": 0.0,
+            "central": 0.025,
+            "high": 0.0557,
+            "unit": "per year, nominal",
+            "source": "central = INFLATION_RATE (flat real; ISONE.json zone CT); low = flat nominal; high = 3%/yr real (1.03 x 1.025 - 1), the sensitivity for winter-peak-driven growth (ISO-NE 2026 CELT: winter 50/50 peak +2.9%/yr 2026-2035)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "price_path": {
+            "value": "today",
+            "unit": "'today' | 'long_run'",
+            "source": "Setting. 'today': the 2026 price grown at price_growth; 'long_run': linear ramp to the long-run cost of new entry by long_run_year (sensitivity).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "long_run_price_m_per_mw_yr": {
+            "value": 0.10894,
+            "unit": "$M per MW-yr",
+            "source": "ISO-NE, ICR and related values for FCA 18: Net CONE $9.078/kW-month x 12 / 1000 = $0.1089M/MW-yr (2027/28 $). No newer CONE / Net CONE study for the prompt market was located (_VERIFY).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "long_run_price_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Price year of long_run_price_m_per_mw_yr (FCA 18, 2027/28 capability period), inflated at inflation_rate.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "long_run_year": {
+            "value": 2040,
+            "unit": "year",
+            "source": "Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "published_prices": {
+            "value": {
+              "2027": 0.04296
+            },
+            "unit": "$M per MW-yr by year",
+            "source": "ISO-NE FCA 18 (2027/2028): $3.580/kW-month in all zones x 12 / 1000 = $0.04296M/MW-yr. ARA2 2027/28 ($3.935) is a reconfiguration price, not used. Prompt annual auctions from 2028/29 (Capacity Auction Reforms Phase 1, FERC acceptance 30-31 Mar 2026): no later prices yet.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "formulation": {
+            "value": "avoided_obligation",
+            "unit": "'embedded' | 'avoided_obligation'",
+            "source": "Setting. 'avoided_obligation' (default since 2 Nov 2026): avoided capacity obligation from the contribution to the RTO / NYCA peak, accredited by resource type, coincidence-adjusted, lagged by the auction cycle and priced on the long-run avoided capacity price path (METHODOLOGY 3.6a). 'embedded' (the earlier formulation, kept as an option): firm flexible MW (programs derates) + efficiency MW x the bill-line capacity price. The BAU capacity line is the same in both.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "obligation_factor": {
+            "value": 1.151,
+            "unit": "MW of obligation per MW of coincident peak",
+            "source": "Derived: ISO-NE ICR for FCA 18 31,591 MW / reference 50/50 peak 27,440 MW = 1.151. Net of HQICC (1,041 MW) the factor is 30,550 / 27,440 = 1.113; which peak ISO-NE uses to allocate Capacity Load Obligations (the annual system coincident peak) and whether HQICC credits reduce the cost borne by load were not confirmed (_VERIFY).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "system_coincidence": {
+            "value": 0.9625,
+            "unit": "utility load at the ISO-NE peak hour / utility non-coincident peak",
+            "source": "Proxy (_VERIFY): Pepco MD value (PJM 2026 load forecast). No utility load at the ISO-NE annual peak hour was located; Connecticut is ~23% of New England load and contiguous with it, so coincidence is likely high.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "local_coincidence": {
+            "low": 0.5,
+            "central": 0.75,
+            "high": 1.0,
+            "unit": "share",
+            "source": "Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locational_match share) that also falls in the system's peak hours. High 1.0 = full alignment (what the current formulation credits). Low 0.5 proxies the ~50% capacity credit Brattle finds when flexibility is used for a need other than the one its dispatch targets (New York's Grid Flexibility Potential, Vol. I, Jan 2025, p.30: ~50% ability of grid flexibility to reduce distribution loading, range across programs); central = midpoint. Brattle allocates generation capacity value to the top 50 hours of statewide net load and distribution value to the top 50 hours of utility-region load (p.31) and notes the two 'may not fully temporally align'; Brattle's Pepco DC study (Nov 2025) finds managed EV charging relieves mainly the summer-peaking locations of a winter-peaking system. Confirm with feeder load shapes against RTO/NYCA peak hours.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "accr_dr": {
+            "value": 0.91,
+            "unit": "share",
+            "source": "Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction Reforms (prompt auction from 2028/29); class values for Connecticut resources were not located. Active demand response and EE that clear in the FCM are paid as supply today. PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Demand Resource 91% (92% in 2027/28).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "accr_storage_by_duration": {
+            "value": {
+              "4": 0.59,
+              "6": 0.68,
+              "8": 0.71,
+              "10": 0.78
+            },
+            "unit": "{hours: share}",
+            "source": "Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction Reforms (prompt auction from 2028/29); class values for Connecticut resources were not located. Active demand response and EE that clear in the FCM are paid as supply today. PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: 4-hr Storage 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "storage_duration_hr": {
+            "value": 4,
+            "unit": "hours",
+            "source": "Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and derate inputs).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "accr_der": {
+            "value": 0.07,
+            "unit": "share",
+            "source": "Proxy (_VERIFY): PJM ELCC class ratings used for ISO-NE. ISO-NE moves to marginal-reliability-impact accreditation under Capacity Auction Reforms (prompt auction from 2028/29); class values for Connecticut resources were not located. Active demand response and EE that clear in the FCM are paid as supply today. PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Fixed-Tilt Solar 7% (Tracking 10%).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "accr_ee": {
+            "value": 1.0,
+            "unit": "share of measured peak kW",
+            "source": "Energy efficiency lowers the peak load forecast (ISO-NE reconstitutes FCM-cleared EE into the load forecast, so each EE MW either clears as a resource or lowers the forecast, not both). Double-count guard (METHODOLOGY 3.6a): the C&LM budget counts ~$15.2M/yr of statewide FCM revenue from today's EE as a funding source; that BAU revenue is the same in both cases, and only incremental EE above BAU earns the avoided-obligation value here. Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obligation one for one. PJM: FERC accepted removal of Energy Efficiency Resources from the supply side of RPM from the 2026/2027 BRA, with efficiency recognised on the demand side through the load forecast (Docket ER24-2995, order 5 Nov 2024; affirmed D.C. Cir. No. 25-1091, Feb 2026). NYISO: efficiency is netted in the Gold Book / ICAP peak forecast. _VERIFY: the forecast may not credit measured savings in full.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "auction_lag_years": {
+            "low": 3,
+            "central": 1,
+            "high": 0,
+            "unit": "years",
+            "source": "Derived: FCA 17 and FCA 18 already fix 2026/27 and 2027/28 prices (forward auctions ~3 years ahead, low); prompt annual auctions from 2028/29 react within the year (high 0); central 1 (the engine uses one lag from 2026).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "avoided_price_path": {
+            "value": "long_run",
+            "unit": "'long_run' | 'today'",
+            "source": "Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's clearing price (and published auction prices) trending to the long-run net cost of new entry (long_run_price_m_per_mw_yr) by long_run_year, then with inflation, whatever price_path the bill line uses. 'today': the bill-line price path (consistency check).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "suppression_enabled": {
+            "value": false,
+            "unit": "bool",
+            "source": "Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' formulation only. Off in every scenario; never in the central case.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "suppression_elasticity": {
+            "value": 16.7,
+            "unit": "% price change per 1% of requirement",
+            "source": "Proxy (_VERIFY): PJM VRR slope; ISO-NE's demand curve was not derived (sensitivity only, suppression off). Derived (_VERIFY): slope of PJM's proposed RTO VRR curve (PJM MRC, 23 Jul 2025, VRR curve comparison, informational): price falls from 0.5 x price cap at 101.5% of the Reliability Requirement to $0 at 104.5%, i.e. 0.5 / 0.03 = 16.7 x the cap price per unit of requirement. The curve in force for 2026/27-2027/28 has the cap and floor (Docket ER25-1357), under which the 2027/28 and 2028/29 auctions cleared at the cap, so the slope there is 0.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "suppression_start_year": {
+            "value": 2028,
+            "unit": "year",
+            "source": "Setting (_VERIFY): first prompt-auction capability period (2028/29) under Capacity Auction Reforms",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "market_peak_mw": {
+            "value": 25228,
+            "unit": "MW",
+            "source": "ISO-NE 2026 CELT (final draft): New England summer 50/50 peak 25,228 MW (2026), 26,849 MW (2035); winter 20,483 to 26,411 MW",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          }
+        }
+      },
+      "wholesale_energy": {
+        "enabled": true,
+        "label": "Wholesale energy: flexible load shifted from on-peak to off-peak hours",
+        "_note": "Values the MWh that incremental flexible resources move out of on-peak hours at the on/off-peak price spread (storage net of round-trip losses). Efficiency's lower energy purchases are already counted (lower usage on the bill; efficiency energy line in system_summary), so they are not added here.",
+        "params": {
+          "spread_mwh": {
+            "low": 11.24,
+            "central": 19.0,
+            "high": 38.68,
+            "unit": "$/MWh on-peak minus off-peak, 2026 (grows at supply_energy_growth)",
+            "source": "Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was not derived). Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57.08 / off peak $38.08 per MWh (spread $19.00); 2024 $37.32 / $26.08 ($11.24); Table 3-39: July 2025 load-weighted on peak $77.77 / off peak $39.08 ($38.68). Low 2024, central 2025, high July 2025.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "offpeak_price_mwh": {
+            "value": 38.08,
+            "unit": "$/MWh off-peak price, 2026 (grows at supply_energy_growth); prices storage round-trip losses",
+            "source": "Proxy (_VERIFY): PJM values used for ISO-NE (an ISO-NE on/off-peak spread from the Potomac Economics ISO-NE State of the Market report was not derived). Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57.08 / off peak $38.08 per MWh (spread $19.00); 2024 $37.32 / $26.08 ($11.24); Table 3-39: July 2025 load-weighted on peak $77.77 / off peak $39.08 ($38.68).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "storage_rte": {
+            "value": 0.85,
+            "unit": "battery round-trip efficiency",
+            "source": "Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85% for a 4-hour battery",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "mwh_per_mw_dr": {
+            "low": 61,
+            "central": 61,
+            "high": 74,
+            "unit": "MWh shifted per MW of demand response per year (event hours)",
+            "source": "Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 total 61 event-hours across Zones A-K (21-22 Jan, 23-25 Jun, 16 Jul, 28-30 Jul) and 74 in Zone J (adding 17 Jul G-K and 25 Jul J-K). Low and central statewide, high New York City. Used as a proxy for this utility (_VERIFY).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_ev": {
+            "low": 500,
+            "central": 900,
+            "high": 1460,
+            "unit": "MWh shifted per MW of managed EV charging per year",
+            "source": "Assumption: managed MW is evening-peak charging moved overnight; low 2 h x 250 days, central 3 h x 300 days, high 4 h x 365 days. No utility program reports shifted MWh per MW",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_storage": {
+            "low": 1000,
+            "central": 1200,
+            "high": 1460,
+            "unit": "MWh discharged per MW of distributed storage per year",
+            "source": "4-hour duration (the NYISO 2025 State of the Market reference battery) x cycles a year: low 250, central 300, high 365 (daily). Cycle counts are an assumption",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "mwh_per_mw_der": {
+            "low": 61,
+            "central": 61,
+            "high": 74,
+            "unit": "MWh shifted per MW of other DER per year",
+            "source": "Treated like demand response (event-based dispatch): Potomac Economics, 2025 State of the Market Report for the NYISO Markets (May 2026), Appendix Table A-24: SCR/EDRP activations in 2025 total 61 event-hours across Zones A-K (21-22 Jan, 23-25 Jun, 16 Jul, 28-30 Jul) and 74 in Zone J (adding 17 Jul G-K and 25 Jul J-K)",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      },
+      "transmission": {
+        "enabled": true,
+        "label": "Avoided transmission: transmission cost avoided by peak reduction",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (default; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), reported separately with the cost shifted to other zone customers, outside the pool and headline customer savings (allocation_in_headline off); (b) transmission upgrades deferred = load_driven_share x the published transmission investment, deferred by avoided_build_share (realisation: PJM 0 / 0.5 / 1.0; New York, which plans its own local transmission, 0.5 / 0.8 / 1.0 as the growth-capex addressable share) x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. 'single' formulation kept as an option. Transmission rates and returns are FERC-jurisdictional. Connecticut (ISO-NE): the Transmission Adjustment Clause recovers Regional Network Service (pooled across New England by 12CP network load) plus local network service; (a) uses New England as the zone.",
+        "params": {
+          "cost_kw_yr": {
+            "value": 183.71,
+            "unit": "$/kW-yr, 2026 (grows with the transmission line index)",
+            "source": "ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year (2025: $185.28); regional ATRR $3,331.2M; 2024 12CP RNS load 18,132,696 kW",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "avoidable_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of that cost avoided by each kW of peak reduction",
+            "source": "ISO-NE RNS is an average embedded rate pooled across New England: low 0 (cost shift within the pool), central 0.5, high 1.0. Assumption (single formulation only).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "bill_basis": {
+            "value": "transmission_lines",
+            "unit": "'transmission_lines' = lowers the transmission lines on the bill in proportion to peak reduction; 'delivery' = transmission is recovered in delivery rates, so the avoided cost lowers the delivery bill",
+            "source": "Starting bill structure (starting_bill)",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "formulation": {
+            "value": "split",
+            "unit": "single | split",
+            "source": "Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside the pool and headline, + (b) transmission upgrades deferred. 'single' (the earlier default): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share, one value for both effects; kept as an option.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_enabled": {
+            "value": true,
+            "unit": "bool",
+            "source": "Setting (split formulation only): include (b), the avoided build. Off = (a) only.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the load-driven investment deferral that planning realises",
+            "source": "Documented assumption by scenario: ISO-NE plans regional (pool-transmission-facility) transmission through the Regional System Plan, so the utility can only offer a lower peak for ISO-NE and the local system plan to count. Cautious 0, Central 0.5, Ambitious 1.0, as for the PJM utilities.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "planning_lag_years": {
+            "low": 5,
+            "central": 7,
+            "high": 10,
+            "unit": "years",
+            "source": "Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP / local plan -> in service). Default 7, range 5-10.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "allocation_effect": {
+            "value": "zonal_share",
+            "unit": "none | zonal_share",
+            "source": "Setting (split formulation only). 'zonal_share', with New England as the zone: ISO-NE Regional Network Service pools all transmission owners' PTF revenue requirements (FERC formula rates) and charges them by monthly network load at the 12 coincident peaks, so a lower peak lowers these customers' share and raises the regional rate for everyone else in New England (the cost shifted is reported). Same mechanism as PJM's zonal network service peak load shares, at regional scale.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "zone_nspl_mw": {
+            "value": 18133,
+            "unit": "MW (New England RNS network load, 12CP average, 2024)",
+            "source": "Derived: ISO-NE RNS rate effective 1 Jan 2026: regional ATRR $3,331.2M / $183.71 per kW-year = 18,133 MW (ISO-NE reports 2024 12CP RNS load 18,132,696 kW). Reference only: the engine uses utility_share_of_zone.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "utility_share_of_zone": {
+            "value": 0.1831,
+            "unit": "share of New England network load",
+            "source": "Derived (_VERIFY): utility 2026 summer peak forecast (4,619 MW) / ISO-NE 2026 CELT New England 50/50 summer peak (25,228 MW), as a proxy for the utility's share of 12CP network load (not located in the ISO-NE or utility TAC filings). Held constant. The engine values (a) on the annual peak at the RNS rate, which overstates the regional revenue requirement (peak / 12CP average ~1.39); (a) is reported separately and never in the pool or headline.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "load_driven_share": {
+            "low": 0.0,
+            "central": 0.05,
+            "high": 0.2,
+            "unit": "share of planned transmission investment that is load-driven",
+            "source": "Derived: ISO-NE 2026 RNS Rate Overview and Forecast (Eversource for the PTOs): 2026 regional PTF additions ~$1,096M = $56M Regional System Plan (reliability), $847M asset condition, $193M other, so at most ~5% is load-driven (central). Low 0; high 0.20 (allowing for local system plan projects and winter-peak growth). No CL&P / UI split by driver located.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "allocation_in_headline": {
+            "value": false,
+            "unit": "bool",
+            "source": "Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer savings. It is a cost shift to other customers in the zone, not a saving, so by default it is reported separately and never enters the shared-savings pool (the utility earns nothing on it), whatever this setting.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      },
+      "losses": {
+        "enabled": true,
+        "label": "Avoided distribution losses: marginal losses avoided by efficiency and peak reduction",
+        "_note": "Retail rates already price average losses into every kWh, so the energy value is efficiency GWh x average loss x (marginal multiplier - 1) at the supply rate. Capacity is priced at the meter, so peak losses are firm flexible + efficiency peak MW x average loss x peak multiplier at the capacity price.",
+        "params": {
+          "avg_loss_pct": {
+            "value": 0.0286,
+            "unit": "share of energy",
+            "source": "Proxy (_VERIFY): UI's 2.86% (UI 2025 Report on Loads and Resources, requirements vs sales). EIA-861 2025 Operational Data for CL&P (losses 214,501 MWh on 20.1 TWh of purchases, 1.1%) excludes wheeled delivery-only load and is not comparable; the FLR net energy output vs retail sales basis was not reconciled.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "marginal_mult_energy": {
+            "low": 1.0,
+            "central": 1.5,
+            "high": 2.0,
+            "unit": "marginal / average losses, energy",
+            "source": "Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), and Lazar, ACEEE 2011 slides: marginal resistive losses are 2x average resistive losses each hour; with ~25% no-load losses, avoided marginal energy losses are about 1.5x system-average losses; on-peak marginal losses about 3x average losses (resistive losses can be ~4x as great at the summer afternoon peak). Low 1.0 = no value above average losses; high 2.0 = all losses resistive",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "marginal_mult_peak": {
+            "low": 2.0,
+            "central": 3.0,
+            "high": 4.0,
+            "unit": "marginal / average losses at the system peak",
+            "source": "Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), and Lazar, ACEEE 2011 slides: marginal resistive losses are 2x average resistive losses each hour; with ~25% no-load losses, avoided marginal energy losses are about 1.5x system-average losses; on-peak marginal losses about 3x average losses (resistive losses can be ~4x as great at the summer afternoon peak). Low 2.0 (resistive rule at any hour), central 3.0 (on-peak), high 4.0",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "in_pool": {
+            "value": true,
+            "unit": "value counted in the shared-savings pool",
+            "source": "Model setting",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      },
+      "objective": {
+        "enabled": true,
+        "label": "Additional savings objective",
+        "_note": "Savings the utility commits to find by means the model does not specify, measured against this run's BAU (published-plan by default), net of cost to achieve. Additional to the other layers by assumption: the model cannot test for overlap. Default 0%, so results are unchanged. engine.layers.project_layers().",
+        "params": {
+          "objective_pct": {
+            "low": 0.0,
+            "central": 0.0,
+            "high": 0.1,
+            "unit": "share of the objective base",
+            "source": "Setting: savings objective as a share of the base, reached after the ramp. Default 0% (off); tornado low 0% / high 10%. Scenarios may set it through levels ('objective.objective_pct').",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "objective_base": {
+            "value": "dist_revenue_requirement",
+            "unit": "'dist_opex' | 'capex_plan' | 'dist_revenue_requirement'",
+            "source": "Setting: what the objective is a share of. 'dist_revenue_requirement' (default) and 'dist_opex' reduce the shared-savings distribution revenue requirement (other O&M) directly; 'capex_plan' reduces shared-savings distribution capex, so the reduction flows through rate base, depreciation, property tax and return, as deferral does.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "objective_start_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Setting: first year the objective applies.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "objective_ramp_years": {
+            "value": 3,
+            "unit": "years",
+            "source": "Setting: years over which the objective ramps linearly to its full level.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "objective_persistence": {
+            "value": "persistent",
+            "unit": "'persistent' or years",
+            "source": "Setting: 'persistent' keeps the full level once reached; a number of years fades it linearly to zero over that period after the ramp.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "objective_cost_to_achieve_pct": {
+            "value": 0.2,
+            "unit": "share of gross savings",
+            "source": "Setting: cost of achieving the savings (programmes, process change, staff, systems), as a share of gross savings, netted off before the savings reach the pool; expensed when the base is capex_plan.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      },
+      "mechanism": {
+        "enabled": true,
+        "label": "Shared savings mechanism and earnings opportunity",
+        "params": {
+          "utility_share": {
+            "low": 0.4,
+            "central": 0.3,
+            "high": 0.1,
+            "unit": "share of savings pool (shared savings earnings)",
+            "source": "notebooks/GridDividend_Connecticut.ipynb Section 1 UTILITY_SAVINGS_SHARE 0.30; guidance range 0.10-0.40 (low = larger utility share, i.e. a smaller customer effect)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "pool_basis": {
+            "value": "revenue_requirement",
+            "unit": "'revenue_requirement' (the only basis in the layered model)",
+            "source": "Setting. 'revenue_requirement' = reduction in distribution RR + program surcharges + capacity cost vs BAU, plus value streams in the pool (EE energy-purchase savings go wholly to customers). The v1.0-style 'capex' basis was removed from the layered model (it gave customers the capacity and value streams about 1.7 times over).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "fast_start": {
+            "value": false,
+            "unit": "true | false",
+            "source": "Setting (fast start): true makes 2027 the first savings year (programs as core business, flexible MW and efficiency, value streams, plan right-sizing) instead of programs.transition_year. Default off.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "near_term_ramp_capacity": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term ramp of the capacity credit (fraction of the credit in each listed year, 2026-2030); null = full credit from the first savings year. Lets capacity be brought forward or held back independently.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "near_term_ramp_programs_mw": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term programs MW, as the fraction of the way from today's MW to the 2035 target in each listed year (2026-2030), still subject to the ramp limit; null = the linear target path.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "near_term_ramp_addressable": {
+            "value": null,
+            "unit": "{year: fraction} for 2026-2030, or null",
+            "source": "Setting: near-term ramp of the published plan's addressable shares (replaces the addressable_ramp_years ramp, and scales the growth cap, in each listed year 2026-2030); null = the default ramp.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_enabled": {
+            "value": false,
+            "unit": "true | false",
+            "source": "Setting (customer dividend advance): true pays customers a level annual bill credit from advance_start_year, financed as a balance and recovered from the savings pool before sharing. Default off.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_start_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Setting: first year of the advance credit.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_sizing_fraction": {
+            "value": 0.5,
+            "unit": "fraction",
+            "source": "Setting: the advance as a fraction of the sizing scenario's recoverable savings, PV at the financing rate (advance_sizing_basis 'recoverable', default 0.5), or of the NPV at 3% of its customer savings ('customer_savings' basis, the earlier sizing).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_sizing_scenario": {
+            "value": "Cautious",
+            "unit": "'Cautious' | 'Central'",
+            "source": "Setting: the scenario whose customer-savings NPV sizes the advance. Default Cautious.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_credit_years": {
+            "value": 5,
+            "unit": "years",
+            "source": "Setting: years over which the level credit is paid (the model's choice; not specified in the request).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_financing": {
+            "value": "securitized",
+            "unit": "'securitized' | 'utility_regulatory_asset'",
+            "source": "Setting: securitized (default) = the balance accrues at advance_securitized_rate (4%), interest paid to bondholders; utility_regulatory_asset = it accrues at the utility's after-tax WACC and that return is the utility's, reported separately from shared savings earnings.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_securitized_rate": {
+            "value": 0.04,
+            "unit": "per year",
+            "source": "Setting: financing rate when the advance is securitized.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_cap": {
+            "value": true,
+            "unit": "true | false",
+            "source": "Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared-savings bill exceeds BAU because of the advance.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_recovery_source": {
+            "value": "bill_savings",
+            "unit": "'bill_savings' | 'pool'",
+            "source": "Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (efficiency energy and value streams included, after shared savings earnings); pool = recovered from the positive savings pool before sharing (the earlier behaviour, which also reduces shared savings earnings).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "advance_sizing_basis": {
+            "value": "recoverable",
+            "unit": "'recoverable' | 'customer_savings'",
+            "source": "Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving for bill_savings, positive pool for pool), PV at the financing rate; customer_savings = NPV at 3% of the sizing scenario's customer savings (the earlier sizing, which the pool cannot repay).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "customer_allocation": {
+            "value": "by_sales",
+            "unit": "'by_sales' | 'per_customer' | 'custom'",
+            "source": "Setting: how the customers' share of the shared savings pool is split between residential and non-residential customers. Costs follow the benefits they buy; only savings are reallocated: the network (distribution) revenue-requirement reduction net of shared savings earnings, in years it is positive, goes to residential customers at the option's share. Program costs (flexible and efficiency spend, including capitalised amortisation and return), supply, capacity, transmission, losses and efficiency energy savings, and any year's negative network remainder, stay allocated by sales. 'by_sales' (default, the earlier method): residential share of sales (residential_sales_share, EIA-861). 'per_customer': equal per customer, by the class customer counts below. 'custom': custom_residential_share. The setting drives the engine's residential bill (an allocation adjustment line in the delivery rider category), headlines and the dividend advance's bill cap (METHODOLOGY 3.10b).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "custom_residential_share": {
+            "value": 0.5,
+            "unit": "share (0-1)",
+            "source": "Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "residential_customers": {
+            "value": 1193581,
+            "unit": "customers",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: residential customers, 2025",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "nonresidential_customers": {
+            "value": 116365,
+            "unit": "customers",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: total minus residential customers, 2025",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
+        }
+      },
+      "roe": {
+        "enabled": true,
+        "label": "ROE: allowed return on equity in the shared-savings case relative to BAU (separate lever)",
+        "_note": "Applies from the transition year to the wires rate base and the program regulatory asset. Outside the shared-savings pool, so it changes the equity return, not shared savings earnings. Central 0: the reform rewards through shared savings earnings with the allowed ROE unchanged.",
+        "params": {
+          "roe_delta": {
+            "low": -0.006,
+            "central": 0.0,
+            "high": 0.006,
+            "unit": "change in allowed ROE, shared savings vs BAU (0.006 = 60 basis points)",
+            "source": "Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren, Illinois Energy Legislation slides, 13 Sep 2021); Ameren Illinois electric multi-year rate plan (ICC order Dec 2023): seven metrics, +/- 24 basis points in total. Low / high = the CEJA maximum penalty / incentive; central 0 (no ROE change)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "roe_in_pool": {
+            "value": false,
+            "unit": "count the ROE change inside the shared-savings pool (false keeps it a separate lever)",
+            "source": "Model setting",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          }
+        }
+      }
+    },
+    "network": {
+      "label": "Network: existing headroom, planning limit, constrained sub-band, reinforcement, flexibility targeting",
+      "_note": "Every headroom input. Set at three levels, highest wins: notebook NETWORK_OVERRIDES (Section 13) > scenarios[name]['network'] (value or low/central/high level) > these values. Dominion PUR-2026-00164 proxy throughout (_VERIFY) until this utility's feeder-loading data is found. Constrained sub-band on in every scenario.",
+      "params": {
+        "band_mode": {
+          "value": "explicit",
+          "unit": "'explicit' = the bands list; 'generated' = n_bands equal-capacity bands from mean_utilisation and utilisation_spread",
+          "source": "Model setting",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "bands": {
+          "value": [
+            {
+              "name": "Most loaded",
+              "capacity_share": 0.2,
+              "loading": 1.0
+            },
+            {
+              "name": "High",
+              "capacity_share": 0.2,
+              "loading": 0.88
+            },
+            {
+              "name": "Middle",
+              "capacity_share": 0.2,
+              "loading": 0.78
+            },
+            {
+              "name": "Low",
+              "capacity_share": 0.2,
+              "loading": 0.7
+            },
+            {
+              "name": "Least loaded",
+              "capacity_share": 0.2,
+              "loading": 0.63
+            }
+          ],
+          "unit": "bands of substation loading, most to least loaded: share of firm capacity, starting loading (network peak / firm capacity); growth_share and flex_share optional (default pro rata to load)",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder. No published utility-wide loading distribution found: Eversource CT publishes a hosting-capacity map; no aggregate loading distribution found in PURA filings (IDSP, Docket 21-05-15RE03, not reviewed); Dominion's measured distribution (the only US utility-wide figure found) is used as a proxy. Replace with utility data.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "n_bands": {
+          "value": 5,
+          "unit": "number of bands (generated mode)",
+          "source": "Same count as the explicit bands (quintiles of firm capacity)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "mean_utilisation": {
+          "value": null,
+          "unit": "capacity-weighted mean starting planning utilisation (network peak / planning capacity); null = bands as given (79.8%). Set a number to shift every band by one amount to that mean, each capped at 1.0 (load above the planning limit goes in the sub-band); generated mode uses it as the centre (null = the explicit bands' mean)",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3, Metric (i): substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general utilisation) Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "utilisation_spread": {
+          "value": 0.37,
+          "unit": "most minus least loaded band (generated mode; linear spread)",
+          "source": "Derived from the explicit bands (1.00 - 0.63); the filing reports only the mean and the count of feeders above 100%, so the shape is assumed Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "planning_limit_factor": {
+          "value": 0.8,
+          "unit": "planning capacity / feeder rating (planning utilisation = load / (factor x rating - contract reserves))",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): planning utilisation = (SCADA net load + DER generation + flexibility) / (0.80 x applicable feeder rating - contract reserves); the 0.80 factor reserves 20% of the rating for contingencies and distribution-automation transfers (not applied to data-centre, industrial or grouped single-customer feeders) Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "operating_limit": {
+          "value": null,
+          "unit": "operating limit as a multiple of planning capacity; null = 1 / planning_limit_factor (1.25 at 0.80). Existing load is served up to it",
+          "source": "Derived: the full feeder rating relative to 0.80 x rating (contract reserves ignored) Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "subband_enabled": {
+          "value": true,
+          "unit": "per-utility switch: carve a constrained sub-band (load above the planning limit) out of the most loaded bands; on in every scenario (a scenario's network values or NETWORK_OVERRIDES can switch it off)",
+          "source": "Model setting",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "subband_load_share": {
+          "value": 0.043,
+          "unit": "share of network load in the constrained sub-band",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iv): 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation at their local peak. Feeder share used as a proxy for load share Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "subband_utilisation": {
+          "value": 1.125,
+          "unit": "starting planning utilisation of the constrained sub-band",
+          "source": "Midpoint of the planning limit (1.00) and the operating limit (1.25); the filing gives only the count of feeders above 100%, not their loading Dominion value used as a proxy until this utility's own feeder data is found.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "upgrade_delay_ordinary_years": {
+          "low": 0.5,
+          "central": 1.5,
+          "high": 3.0,
+          "unit": "Upgrade Delay for Interconnection, ordinary new load (EVs, heat pumps, small business) in constrained areas: years from request to connection (fractional years split between the two whole years)",
+          "source": "No Eversource CT interconnection timeline for new load found. Con Edison guide used as proxy. Con Edison, E-Mobility Interconnection Guide: New & Upgraded Electric Service Overview (coned.com, rev. 30 Apr 2026): project timeline from service determination to energization, including any upstream utility modifications and transformer or feeder reinforcement: <300 kW overhead / <500 kW underground 4-6 months; 300-2,000 kW 12-18 months; 500-5,000 kW network and 2,000-10,000 kW 24-36 months; >8,000 kW high-tension 36+ months. Low 0.5 / central 1.5 / high 3.0 yr",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "upgrade_delay_large_years": {
+          "low": 2.0,
+          "central": 3.0,
+          "high": 6.0,
+          "unit": "Upgrade Delay for Interconnection, large loads (data centres on the distribution system, fleet hubs) in constrained areas: years from request to connection",
+          "source": "No Eversource CT interconnection timeline for new load found. Con Edison guide used as proxy. Large loads: Con Edison guide low 2.0 yr (24 months), central 3.0 yr (36+ months, >8 MW); high 6.0 yr from Dominion Energy Virginia, Application for approval of large-load connection queue process standards, SCC Case No. PUR-2026-00011 (filed 2 Feb 2026), para. 5-6: ~25,000 MW of large-load delivery-point requests (>= ~100 MW, data centres) assigned projected connection dates through 31 Dec 2031; a further ~45,000 MW batched and still being studied; ~10 new requests (2,000-3,000 MW) a month",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "backlog_clearance_pct": {
+          "low": 0.06,
+          "central": 0.2,
+          "high": 0.33,
+          "unit": "share of the outstanding constrained backlog (existing load above the planning limit) the utility clears per year, in service the following year; replaces clearing as soon as lead time and build rate allow",
+          "source": "No utility publishes a clearance rate for constrained feeders. Low 6%/yr: Dominion Energy Virginia, Application for approval of large-load connection queue process standards, SCC Case No. PUR-2026-00011 (filed 2 Feb 2026), para. 5-6: ~25,000 MW of large-load delivery-point requests (>= ~100 MW, data centres) assigned projected connection dates through 31 Dec 2031; a further ~45,000 MW batched and still being studied; ~10 new requests (2,000-3,000 MW) a month - about 25 of 70 GW given dates over the ~6 years to 2031, ~6% of the backlog a year (large loads, transmission). Central 20%/yr (backlog cleared in about 5 years) is an assumption between that and high 33%/yr (cleared within the 3-year central reinforcement lead time, close to the earlier model assumption)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "constrained_build_priority": {
+          "value": true,
+          "unit": "constrained areas get build-rate priority: their upgrades are not capped by max_build_pct (false = backlog clearance and new-load upgrades together capped at max_build_pct of the band capacity per year)",
+          "source": "Model setting (overloaded feeders are relieved first for reliability)",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "planning_headroom": {
+          "low": 0.05,
+          "central": 0.1,
+          "high": 0.15,
+          "unit": "firm network capacity above network peak, share",
+          "source": "No published system-wide figure. Con Edison publishes feeder hosting/load-capacity maps (coned.com/en/business-partners/hosting-capacity); Pepco must file feeder-level constraint data under COMAR 20.50.15. Neither is aggregated to a system headroom %.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "reinforcement_lead_years": {
+          "low": 2,
+          "central": 3,
+          "high": 5,
+          "unit": "years from order to in service",
+          "source": "Assumption: distribution feeder and substation reinforcement typically takes 2-5 years",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "max_build_pct": {
+          "low": 0.02,
+          "central": 0.035,
+          "high": 0.05,
+          "unit": "maximum reinforcement ordered per year, share of capacity",
+          "source": "Assumption (supply chain, outages, crews)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "seed_pipeline": {
+          "value": "derived",
+          "unit": "projects under way at 2026: 'derived' = the next lead-time years of network growth with planning headroom, allocated to bands by growth share (keeps the 2026 growth / asset-condition capex split independent of the bands); 'none'; or [{year, mw}]",
+          "source": "Model calibration; no utility publishes its in-flight distribution capacity pipeline in MW",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "constrained_loading": {
+          "value": 1.0,
+          "unit": "loading above which a band counts as constrained",
+          "source": "Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Section 4.3: substation-transformer zones at their own local peak average 79.8% planning utilisation (78.3% general; capacity net of a 0.70 x largest-transformer N-1 reserve); 82 of ~1,900 feeders (4.3%) exceed 100% planning utilisation (load / (0.80 x rating - contract reserves)), the filing's definition of a constrained feeder (constrained = above 100% planning utilisation)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "flex_targeting_enabled": {
+          "value": false,
+          "unit": "site flexible headroom first in bands above their planning limit; false = pro rata (flex_share)",
+          "source": "Model setting (policy lever: locational targeting of flexibility)",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "flex_targeting_share": {
+          "value": 1.0,
+          "unit": "maximum share of flexible headroom sited in bands above their planning limit when targeting is on (never more than the load above the limit); 1.0 = those bands first",
+          "source": "Model setting (policy lever)",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    },
+    "bau_plan": {
+      "label": "Published-plan BAU",
+      "_note": "BAU distribution capex from the utility's published capital plan, split by category, with addressable shares; transmission from its own plan where it is a separate bill line. engine.layers.plan_paths().",
+      "params": {
+        "basis": {
+          "value": "published_plan",
+          "unit": "'published_plan' | 'model'",
+          "source": "Setting. 'published_plan': BAU distribution capex follows the utility's published capital plan, and the network model estimates how much of the plan's growth-driven spending flexibility could defer. 'model': BAU capex generated by the network model (reinforcement for load growth + asset-condition capex), the basis before this change.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "plan_years": {
+          "value": [
+            2026,
+            2027,
+            2028,
+            2029,
+            2030
+          ],
+          "unit": "years",
+          "source": "Years covered by the plan path (see plan_dist_capex_m).",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "plan_dist_capex_m": {
+          "value": [
+            611.8,
+            674.5,
+            737.3,
+            800.0,
+            800.0
+          ],
+          "unit": "$M nominal per year (distribution)",
+          "source": "Derived (_VERIFY): linear from CL&P 2025 distribution capex $549.1M (Eversource 2025 financial review) to $800M in 2029 (Eversource: annual Connecticut electric investment to exceed $800M by 2029, whose scope may include transmission), flat in 2030. The Docket 26-05-10 capital budget by year and driver (preferred) and a CL&P line in Eversource's $11.2B 2026-30 electric distribution plan were not located. AMI (~$1B capital in the rate case) would sit in grid modernisation if approved.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "beyond_path": {
+          "value": "taper",
+          "unit": "'continue' | 'taper' | 'policy'",
+          "source": "Setting. Distribution capex beyond the plan horizon: 'continue' = plan CAGR; 'taper' = growth tapers linearly from the plan CAGR to load growth (BAU network peak growth, nominal) by taper_year; 'policy' = nominal network peak growth with electrification at its high level (state electrification and clean energy plans).",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "taper_year": {
+          "low": 2032,
+          "central": 2035,
+          "high": 2040,
+          "unit": "year",
+          "source": "Setting: year by which capex growth has tapered to load growth (taper path).",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "category_shares": {
+          "value": [
+            0.2584,
+            0.5304,
+            0.083,
+            0.1282
+          ],
+          "unit": "shares of distribution capex: growth, replacement, grid modernisation / resilience, other",
+          "source": "Proxy: RG&E's 2026 split (growth 25.8%, replacement 53.0%, grid modernisation 8.3%, other 12.8%; NYSEG/RG&E Q1 2026 variance report), as for Pepco MD. No CL&P split by driver located; AMI (~$1B, not addressable) and storm resilience would raise the grid-modernisation share if the Docket 26-05-10 plan is approved.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "addressable_growth": {
+          "low": 0.5,
+          "central": 0.8,
+          "high": 1.0,
+          "unit": "share of growth-driven capex",
+          "source": "Setting. Cap on the share of the plan's growth-driven capex that flexibility, efficiency and better planning could defer; the share actually deferred each year is the network model's cumulative reinforcement avoided vs BAU, up to this cap. Central 0.80 = the earlier model's NWS_AVOIDANCE_OF_ELIGIBLE_MATURE (Brattle, Value of Using DERs for Distribution System Services in Ontario, 2026: NWS cost-effective in 95% of feeder scenarios); low 0.5 / high 1.0 bracket it.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "addressable_replacement": {
+          "low": 0.1,
+          "central": 0.2,
+          "high": 0.3,
+          "unit": "share of asset-replacement capex",
+          "source": "Setting: share of asset-replacement capex right-sized when assets are replaced (smaller transformers, cables and substation equipment where flexibility and efficiency lower the load the replacement must serve). Range 10% / 20% / 30% as specified for the sensitivity; no utility publishes a right-sizing share.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "addressable_gridmod": {
+          "low": 0.0,
+          "central": 0.05,
+          "high": 0.1,
+          "unit": "share of grid modernisation / resilience capex",
+          "source": "Setting: share of grid modernisation and resilience capex that better planning could avoid or right-size (most of it is reliability-driven and stays). 0% / 5% / 10%.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "addressable_other": {
+          "value": 0.0,
+          "unit": "share of other capex",
+          "source": "Setting: other capex (public works relocations, environmental, compliance, safety) is not addressable.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "addressable_ramp_years": {
+          "value": 5,
+          "unit": "years",
+          "source": "Setting: years from the transition year over which right-sizing of replacement, grid modernisation and other capex ramps in (programmes and planning practice take time to reach full effect).",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "transmission_plan_years": {
+          "value": [
+            2025,
+            2026,
+            2027,
+            2028,
+            2029,
+            2030
+          ],
+          "unit": "years",
+          "source": "Years of the transmission rate base path.",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "transmission_plan_rate_base_m": {
+          "value": [
+            4600.0,
+            4837.6,
+            5066.9,
+            5288.2,
+            5501.7,
+            5707.7
+          ],
+          "unit": "$M (end of year)",
+          "source": "Derived (_VERIFY): CL&P transmission rate base ~$4.6B at YE 2025 (Eversource 2025 Annual Report), rolled forward with CL&P's 2025 transmission capex $398.6M a year (Eversource 2025 financial review) at the model's 3.5%/yr rate-base decay. CL&P's share of Eversource's $7.2B 2026-30 transmission plan and the PTO forecast (NEPOOL RC/TC, 15 Jul 2026) were not located. Cross-check: the path gives the TAC line ~4.6%/yr nominal growth per MW of peak 2026-2030, against the 2026 RNS forecast $184 / $186 / $197 / $210 / $220 per kW-year (2026-30, ~4.6%/yr).",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "link_growth_to_load": {
+          "value": true,
+          "unit": "true | false",
+          "source": "Setting. True (central): the growth-driven category of plan capex is scaled, year by year in the plan years, by the model's cumulative system peak growth since 2026 relative to the load growth the plan assumes (plan_load_growth). False: plan capex fixed regardless of load. Replacement, grid modernisation and other categories stay on plan either way.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "plan_load_growth": {
+          "value": 0.0069,
+          "unit": "per year (summer peak)",
+          "source": "Derived: Eversource 2025 Forecast of Loads and Resources (Reference Plan, 50/50): summer peak 4,563 MW (2025) to 4,856 MW (2034) = 0.69%/yr (weather-normalised 2024-2034 CAGR 1.3%)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "electrification_pace": {
+          "value": "utility_forecast",
+          "unit": "'utility_forecast' | 'state_policy'",
+          "source": "Setting (electrification pace). 'utility_forecast' (central): BAU load is calibrated to the load forecast behind the utility's published plan (plan_load_growth over the plan years) by scaling electrification growth (kept >= 0) and, if needed, lowering baseline growth; the growth-capex scale factor is then 1.0 in the last plan year. 'state_policy': the model's electrification assumptions (notebook ELECTRIFICATION_RAMP, state policy pace), which grow load faster than most utility forecasts.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    },
+    "capacity_carve_out": {
+      "parents": [
+        {
+          "line": "gsc",
+          "share": 1.0
+        }
+      ],
+      "price_usd_per_mw_day": 85.15,
+      "peak_mw": 4619,
+      "residential_share": 0.498,
+      "residential_customers": 1193581,
+      "obligation_scaling": 1.151,
+      "source": "Price: ISO-NE FCA 17 (2026/27) $2.59/kW-month x 12 / 365 x 1000 = $85.15/MW-day. Peak: utility JSON peak_demand_mw. Residential share and customers: EIA-861 2025. Scaling: ICR / reference 50/50 peak for FCA 18 = 1.151 (capacity.obligation_factor). Standard Service prices include ISO-NE capacity, bought by the suppliers for customers.",
+      "status": "_VERIFY",
+      "method": "Residential capacity obligation per customer = peak_mw x residential_share x obligation_scaling / residential_customers; $/month = obligation (kW) x price ($/kW-day) x 365/12. Assumes the residential share of the obligation equals its share of sales (residential load is peakier, so this likely understates it). The amount is moved out of the Generation Service Charge; the total bill is unchanged.",
+      "as_of": "2026-11-02"
+    },
+    "starting_adjustments": []
+  }
+}

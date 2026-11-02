@@ -6,6 +6,67 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Connecticut: Eversource (CL&P) and United Illuminating (this commit)
+
+**Effect on results:** none for the four existing utilities. Their exports regenerate identical apart from the metadata stamps (`source_commit`, `source_modified_since_commit`), checked field by field against 582d744. Two new utilities are added. v1.0, CORRECTED, the three pins and every layer fixture are unchanged.
+
+**Added.**
+- **Forward models:** `utilities/Eversource_CT.json` (key `EversourceCT`) and `utilities/UI_CT.json` (`UI_CT`). Each has:
+  - earlier-model fields;
+  - `starting_bill` at 700 kWh (OCC benchmark; rates of 1 May and 1 July 2026);
+  - `forward_assumptions` with every value's source, as-of date and status.
+- **Rate bases:** derived from FERC Form 1 2025 via PUDL (distribution functional basis): CL&P $6,174M, UI $1,430M. The rate-case schedules were not reached (`_VERIFY`).
+- **Look-backs:** `utilities/Eversource_CT_lookback.json` and `UI_CT_lookback.json`:
+  - EIA-861 2021-2025 bill trend;
+  - Form 1 2021 → 2025 revenue-requirement bridge, with the 2026 step (CL&P 0, no base-rate change; UI +$68.0M, Docket 24-10-04 after reconsideration);
+  - ISO-NE capacity prices, Standard Service and public-benefits series;
+  - asked against granted:
+    - CL&P: Docket 17-10-46 first rate year $255.8M → $97.1M, 38%. The 2021 settlement, storm costs (25-12-13) and pending 26-05-10 are listed, not totalled.
+    - UI: 22-08-08 and 24-10-04, $196.5M → $90.9M, 46%.
+  - class allocation.
+- **Notebook:** `notebooks/GridDividend_Connecticut.ipynb`, a copy of the Maryland notebook with Section 12 dropped, the Connecticut setup and prose, and Section 9 comparing the two utilities. Executed headlessly; HTML reports written to `reports/`.
+- **Data notes:** `docs/utilities/Eversource_CT.md` and `UI_CT.md`.
+- **Registered in:**
+  - `scripts/check_starting_bill.py`, `build_assumptions_register.py` and `export_results.py`;
+  - `engine/lookback.py` (`LOOKBACK_FILES`);
+  - the test utility lists;
+  - README, CLAUDE.md and `docs/EXPLORER_PROMPT.md` (ISO-NE capacity prices, the Connecticut supply-side series).
+- **Export note:** `metadata.transmission_note` gains an ISO-NE sentence in the Connecticut exports only (`TX_NOTE_MARKET`).
+
+**Tests** (597 → 599 with the revert test; the earlier count of 421 grows with the six-utility parametrisation):
+- The fixture tests pin outputs at earlier commits, so they run for the four utilities that existed then (`PINNED_UTILS`).
+- Three checks that need a positive pool also accept a pool that is never positive, where there is nothing to attribute or recover: deferral earns a positive share; the advance pays a credit when sized on the pool. That is UI in Cautious and Central. They stay strict for the four pinned utilities.
+- The ISO-NE utilities join the Cautious transmission-realisation check (0, as for PJM).
+
+**Results** (layered model, utility-forecast pace; Cautious–Ambitious in brackets; $ nominal, average residential bill):
+
+| | Eversource CT | United Illuminating |
+|---|---|---|
+| Starting bill, $/month (700 kWh) | 174.44 | 183.88 |
+| Customer savings 2026–2050, $B undiscounted | 4.65 (1.86–10.38) | 0.60 (0.14–1.87) |
+| Customer savings, $B NPV 3% (2026 $) | 2.84 (1.16–6.37) | 0.37 (0.10–1.16) |
+| Monthly saving 2035 / 2050 | 7.96 / 22.92 | 5.65 / 10.46 |
+| Shared savings earnings, $B undiscounted (NPV 3%) | 0.63 (0.35) | 0.00 (0.00); Ambitious 0.19 (0.11) |
+| MW connected sooner (peak year) | 4.1 | 1.1 |
+| (a) lower share of regional transmission costs, $B, reported separately | 2.42 | 0.91 |
+
+At the state-policy pace, Central customer savings are $4.93B (CL&P) and $0.71B (UI).
+
+**Choices to review:**
+- **Efficiency cost.** EIA-861 reports Connecticut's cost per lifetime electric kWh at $0.109 (CL&P) and $0.128 (UI). That portfolio includes heat-pump and weatherization measures with other-fuel benefits, so it is used as the Cautious level. Central is $0.056 (twice the LBNL national figure).
+- **UI's transmission path.** It is scaled to the ISO-NE RNS forecast, because UI customers pay the pooled rate. With UI's own additions the line would grow about 13% a year.
+- **Placeholders.** Central demand-response and storage paths are the C&LM Plan and Energy Storage Solutions targets × customer share. Network, upgrade-delay, accreditation, coincidence and wholesale inputs are proxies (`_VERIFY`).
+
+**Docs.**
+- **METHODOLOGY:**
+  - 3.1: Connecticut carve-out and the `revert` lines;
+  - 3.6a: ISO-NE obligation factor, accreditation, prices and lag; the FCM double-count guard;
+  - 3.8a: RNS as the zone; CL&P and UI investment bases; load-driven share; Connecticut rows in the results tables;
+  - 10.1: winter peaking as a limitation and candidate;
+  - 12: Connecticut bridge, supply side, asked against granted and class allocation rows;
+  - 8: the validation notes above.
+- **README:** a Connecticut results table and note. The `_VERIFY` shares now match `docs/ASSUMPTIONS.md` (Dominion 45%, Pepco 51%; the README had 46% / 52%).
+
 ## 2026-11-02: Engine: temporary starting-bill rates; ISO-NE market file (this commit)
 
 **Effect on results:** none. No existing utility uses the new field. Their outputs and exports are unchanged, and every test passes.

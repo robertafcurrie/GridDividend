@@ -1,0 +1,1302 @@
+{
+  "_note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted. Revised 2 Nov 2026: grouped bridge inputs (property tax attribution, O&M normalisation), Dominion riders, like-for-like EIA bill trend, asked-against-granted comparisons, class allocation from the joint proposals and MD PSC orders.",
+  "utility": "EversourceCT",
+  "name": "The Connecticut Light and Power Company, distribution, Connecticut",
+  "as_of": "2026-11-02",
+  "period": [
+    2021,
+    2026
+  ],
+  "benchmark_kwh_month": 700,
+  "bill": {
+    "2021": {
+      "basis": "EIA-861 2021 average revenue per kWh at the benchmark usage (no 2021 line-item tariff archive was located; per the fallback rule, marked derived)",
+      "categories": {
+        "distribution_base": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "distribution_rider": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "program_surcharge": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "supply_energy": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "capacity": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "transmission": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "taxes_and_fees": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category (OCC consumer alerts for 2021-22 not reached in this build)",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      },
+      "unitemised": {
+        "delivery": {
+          "value": 95.27,
+          "unit": "$/month",
+          "source": "Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part C delivery-only revenue per kWh: distribution, distribution riders, transmission and public benefits)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "supply": {
+          "value": 53.81,
+          "unit": "$/month",
+          "source": "Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part A bundled minus Part C delivery-only: Standard Service supply)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "total": {
+        "value": 149.08,
+        "unit": "$/month",
+        "source": "Derived: EIA Form 861, 2021, EversourceCT residential average revenue per kWh x 700 kWh (Part A bundled)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      }
+    },
+    "2026": {
+      "basis": "utilities/Eversource_CT.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out"
+    },
+    "eia_series": {
+      "2021": {
+        "bundled_cents_kwh": {
+          "value": 21.2971,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part A (bundled service: Standard Service customers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 13.6097,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 20501333.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.4919,
+          "unit": "share",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), CT part of the utility: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2022": {
+        "bundled_cents_kwh": {
+          "value": 25.475,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part A (bundled service: Standard Service customers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 14.0523,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 20560885.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.4937,
+          "unit": "share",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), CT part of the utility: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2023": {
+        "bundled_cents_kwh": {
+          "value": 31.6294,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part A (bundled service: Standard Service customers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 12.9875,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 19576770.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.4889,
+          "unit": "share",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), CT part of the utility: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2024": {
+        "bundled_cents_kwh": {
+          "value": 28.5075,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part A (bundled service: Standard Service customers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 16.2619,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 20151389.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.489,
+          "unit": "share",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), CT part of the utility: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2025": {
+        "bundled_cents_kwh": {
+          "value": 28.876,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part A (bundled service: Standard Service customers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 18.6476,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility (Connecticut Light & Power Co, EIA 4176): residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 20350866.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.498,
+          "unit": "share",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), CT part of the utility: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change."
+  },
+  "rr_bridge": {
+    "scope": {
+      "functions": [
+        "distribution"
+      ],
+      "note": "Distribution only (transmission is a FERC formula rate pooled through ISO-NE Regional Network Service and billed through the Transmission Adjustment Clause). Single-state utility: jurisdictional share 1.0.",
+      "jurisdiction_share": {
+        "2021": {
+          "value": 1.0,
+          "unit": "share",
+          "source": "The Connecticut Light and Power Company serves Connecticut only",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "2025": {
+          "value": 1.0,
+          "unit": "share",
+          "source": "The Connecticut Light and Power Company serves Connecticut only",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    "allowed_return": {
+      "2021": {
+        "roe": {
+          "value": 0.0925,
+          "unit": "share",
+          "source": "Eversource 2018 10-K: Docket 17-10-46 settlement (approved 18 Apr 2018), authorised regulatory ROE 9.25%; unchanged by the 2021 settlement",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.53,
+          "unit": "share",
+          "source": "Eversource 2018 10-K: Docket 17-10-46 settlement, 53% common equity",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "cost_of_debt": {
+          "value": 0.05,
+          "unit": "share",
+          "source": "Forward-model default COST_OF_DEBT; Docket 17-10-46 cost of debt not located",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      },
+      "2025": {
+        "roe": {
+          "value": 0.0925,
+          "unit": "share",
+          "source": "Docket 17-10-46 settlement ROE 9.25%, still in force in 2025 (no base-rate case until Docket 26-05-10)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.53,
+          "unit": "share",
+          "source": "Docket 17-10-46 settlement, 53% common equity (still in force)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "cost_of_debt": {
+          "value": 0.05,
+          "unit": "share",
+          "source": "Forward-model default COST_OF_DEBT; not located",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    },
+    "form1": {
+      "2021": {
+        "dep_distribution": {
+          "value": 178.223,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 29.245,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_intangible": {
+          "value": 2.461,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 354.844,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 144.915,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 121.302,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -1562.102,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 335.596,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 5372.969,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 416.808,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 150.479,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 4454.333,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 218.117,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 126.656,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 164.608,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 197.265,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 1377.777,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 1377.661,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_regional_market": {
+          "value": 3.142,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_sales": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 80.113,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 3612.256,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 365.493,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_ag_employee_pensions_benefits": {
+          "value": 18.184,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company (respondent 243), electric O&M account 926 (employee pensions and benefits), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "property_tax_total_company": {
+          "value": 203.77,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real estate taxes charged, all departments, via PUDL raw XBRL table x_taxes_accrued_prepaid_and_charged_during_year_262_duration (The_Connecticut_Light_and_Power_Company_form1_Q4_1650031519)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_plant_total_company": {
+          "value": 10682.661,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_ferc1__yearly_utility_plant_summary_sched200",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      },
+      "2025": {
+        "dep_distribution": {
+          "value": 229.927,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 41.555,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 461.611,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 190.129,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 167.128,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -2005.888,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 430.294,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 6783.946,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 480.933,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 5387.466,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 189.716,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 131.651,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 255.698,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 275.02,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 1805.054,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 1754.027,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_regional_market": {
+          "value": 5.122,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_sales": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 112.284,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 5243.27,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 452.959,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_ag_employee_pensions_benefits": {
+          "value": 9.733,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company (respondent 243), electric O&M account 926 (employee pensions and benefits), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "property_tax_total_company": {
+          "value": 238.249,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company, page 262 (Taxes Accrued, Prepaid and Charged During Year), property and real estate taxes charged, all departments, via PUDL raw XBRL table x_taxes_accrued_prepaid_and_charged_during_year_262_duration (The_Connecticut_Light_and_Power_Company_form1_Q4_1776429457)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_plant_total_company": {
+          "value": 13269.877,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company, page 200 (Summary of Utility Plant), net utility plant, total, via PUDL core_ferc1__yearly_utility_plant_summary_sched200",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      }
+    },
+    "step_2026": {
+      "value": 0.0,
+      "unit": "$M a year",
+      "source": "No base-rate change in 2026: base rates have not changed since the May 2020 step of the Docket 17-10-46 settlement; Docket 26-05-10 (filed 14 Jul 2026) is pending, rates proposed from 1 Jul 2027. Tracker changes (ESI, RDM, CTA) in the May 2026 RAM (Docket 26-01-03) are not quantified here (_VERIFY).",
+      "as_of": "2026-11-02",
+      "status": "derived"
+    },
+    "capital_categories": {
+      "method": "Distribution (and, in New York, transmission) net plant growth split by the forward model's bau_plan.category_shares for this utility (growth / replacement / gridmod / other; status as in the utility JSON). Storm and resilience spending is not separable in Form 1 and sits inside replacement; IT and other = general and intangible plant (Form 1) plus the \"other\" share.",
+      "shares_from": "forward_assumptions.bau_plan.params.category_shares"
+    },
+    "note": "Revenue requirement on a Form 1 functional basis for 2021 and 2025 (return on functional rate base at the allowed after-tax WACC, depreciation, O&M, taxes other than income, income taxes; general, intangible and A&G costs allocated to the scope by plant or O&M share; jurisdictional share applied), then the approved 2026 rate-case step. Computed in engine/lookback.py with the forward model's revenue-requirement structure. Customer service and information O&M (Form 1 accounts 907-910) includes C&LM programme costs recorded by the utility, so the operating group carries public-benefits-funded programme growth as well as distribution operations.",
+    "property_tax_attribution": {
+      "method": "Plant-related property tax = the property tax / net plant ratio (Form 1 page 262 property and real estate taxes charged, all departments, / Form 1 page 200 net utility plant, all departments) x the scope's functional rate-base plant (scope net plant + allocated general and intangible plant, after the jurisdictional share). Property tax is assessed on plant value, so a uniform ratio attributes it to plant in proportion to net book value; assessed values, local rates and special-franchise valuation differ by plant type and locality, so this is an attribution, not a measured split. Non-plant taxes = the scope's taxes other than income (as in the detailed bridge) - plant-related property tax (payroll, gross receipts, franchise, sales and use and other taxes).",
+      "ratio": {
+        "2021": {
+          "value": 0.019075,
+          "unit": "share of net plant a year",
+          "source": "Derived: Form 1 2021 property_tax_total_company $203.8M / net_plant_total_company $10,682.7M",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "2025": {
+          "value": 0.017954,
+          "unit": "share of net plant a year",
+          "source": "Derived: Form 1 2025 property_tax_total_company $238.2M / net_plant_total_company $13,269.9M",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    "om_normalisation": {
+      "applied": false,
+      "check": "Not driven by pension or retiree-benefit credits: Form 1 account 926 (employee pensions and benefits) is $18.2M in 2021 and $9.7M in 2025 (positive in both years), against administrative and general costs of $218.1M and $189.7M. Reported and normalised O&M are the same.",
+      "method": "Normalised O&M = reported O&M (Form 1 functional basis) - non-service pension and retiree-benefit costs in administrative and general, allocated to the scope by the same O&M share as the rest of A&G and then by the jurisdictional share. The detailed bridge keeps reported O&M; the grouped view uses normalised O&M and shows the non-service change as its own reconciling line.",
+      "non_service_benefits_electric": {
+        "2021": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "Check: Form 1 account 926 is 18.2 (2021) and 9.7 (2025) $M; not credit-driven, so no normalisation is applied",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "2025": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "Check: Form 1 account 926 is 18.2 (2021) and 9.7 (2025) $M; not credit-driven, so no normalisation is applied",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    }
+  },
+  "supply_side": {
+    "influence": "Influenced, not controlled, by the distribution utility: set by wholesale markets (PJM / NYISO / ISO-NE auctions), FERC formula rates or fuel markets; the utility affects them only through its load, procurement and the resources it connects.",
+    "capacity_prices": {
+      "pjm": null,
+      "nyiso": null,
+      "isone": [
+        {
+          "capability_period": "2021/2022",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 4.631,
+          "unit": "$/kW-month",
+          "source": "FCA 12: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        {
+          "capability_period": "2022/2023",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 3.8,
+          "unit": "$/kW-month",
+          "source": "FCA 13: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        {
+          "capability_period": "2023/2024",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 2.0,
+          "unit": "$/kW-month",
+          "source": "FCA 14: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_period": "2024/2025",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 2.61,
+          "unit": "$/kW-month",
+          "source": "FCA 15: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_period": "2025/2026",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 2.591,
+          "unit": "$/kW-month",
+          "source": "FCA 16: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_period": "2026/2027",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 2.59,
+          "unit": "$/kW-month",
+          "source": "FCA 17: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_period": "2027/2028",
+          "zone": "Rest-of-Pool (Connecticut)",
+          "value": 3.58,
+          "unit": "$/kW-month",
+          "source": "FCA 18: shared/capacity_markets/ISONE.json fca_sources",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      ],
+      "note": "ISO-NE Forward Capacity Auction clearing prices, Rest-of-Pool (Connecticut is not separately priced). Capability period June-May."
+    },
+    "energy_supply_cents_kwh": [
+      {
+        "year": 2021,
+        "value": 7.6874,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2021, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied Standard Service supply component of the average residential price (energy and capacity). Averages, not tariffs."
+      },
+      {
+        "year": 2022,
+        "value": 11.4227,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2022, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied Standard Service supply component of the average residential price (energy and capacity). Averages, not tariffs."
+      },
+      {
+        "year": 2023,
+        "value": 18.6419,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2023, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied Standard Service supply component of the average residential price (energy and capacity). Averages, not tariffs."
+      },
+      {
+        "year": 2024,
+        "value": 12.2456,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2024, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied Standard Service supply component of the average residential price (energy and capacity). Averages, not tariffs."
+      },
+      {
+        "year": 2025,
+        "value": 10.2284,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2025, EversourceCT: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied Standard Service supply component of the average residential price (energy and capacity). Averages, not tariffs."
+      }
+    ],
+    "transmission": [
+      {
+        "year": 2026,
+        "value": 0.0505,
+        "unit": "$/kWh",
+        "source": "OCC \"Understand your electric bill\": Transmission Adjustment Clause from 1 May 2026",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "year": 2025,
+        "value": 185.28,
+        "unit": "$/kW-year (ISO-NE RNS rate)",
+        "source": "ISO-NE, RNS Rate Effective January 1, 2026 (prior-year rate $185.28/kW-year)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "year": 2026,
+        "value": 183.71,
+        "unit": "$/kW-year (ISO-NE RNS rate)",
+        "source": "ISO-NE, RNS Rate Effective January 1, 2026: $183.71/kW-year",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "year": 2021,
+        "value": null,
+        "unit": null,
+        "source": "Not located: CL&P residential TAC rate in 2021",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      }
+    ],
+    "standard_service_cents_kwh": [
+      {
+        "period": "2023-01/2023-06",
+        "value": 24.17,
+        "unit": "cents/kWh nominal",
+        "source": "OCC (brief of 2 Nov 2026): CL&P Standard Service peak, Jan-Jun 2023",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      {
+        "period": "2025-07/2025-12",
+        "value": 9.75,
+        "unit": "cents/kWh nominal",
+        "source": "OCC consumer advisory (22 May 2026): CL&P Standard Service 9.75 c from 1 Jul 2025",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "period": "2026-01/2026-06",
+        "value": 12.64,
+        "unit": "cents/kWh nominal",
+        "source": "OCC consumer advisory (22 May 2026): 12.64 c from 1 Jan 2026 (12.641 c)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "period": "2026-07/2026-12",
+        "value": 11.58,
+        "unit": "cents/kWh nominal",
+        "source": "OCC consumer advisory (22 May 2026): 11.58 c from 1 Jul 2026 (11.577 c)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    ],
+    "public_benefits_cents_kwh": [
+      {
+        "period": "to 2026-04",
+        "value": 4.0,
+        "unit": "cents/kWh nominal (combined public-benefits components, approximate)",
+        "source": "OCC FAQ on the 2026 RAM decision (1 May 2026): \"from approximately 4 cents per kilowatt hour\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "period": "from 2026-05",
+        "value": -1.5,
+        "unit": "cents/kWh nominal (combined, a credit)",
+        "source": "OCC FAQ on the 2026 RAM decision (1 May 2026): \"to a credit of about 1.5 cents per kilowatt hour\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "period": "2023",
+        "value": null,
+        "unit": null,
+        "source": "Not located: the 2023 public-benefits spike (pre-2024 FMCC/SBC levels) was not retrieved in this build",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      }
+    ],
+    "note": "Connecticut 2021-2025: much of the bill swing was supply (Standard Service peaked in early 2023) and public benefits (the 2023 spike, then the May 2026 credit from PA 25-173 bonding and the nuclear contracts), not base distribution, which was frozen under the 2021 settlement."
+  },
+  "proceedings": [
+    {
+      "docket": "Docket 17-10-46",
+      "type": "base rate case, three-year settlement (filed 2017; rates in force 2018-2026)",
+      "filed": {
+        "value": "2017-11-22",
+        "unit": "date",
+        "source": "Eversource 8-K (11 Jan 2018); brief of 2 Nov 2026",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": "2018-04-18",
+        "unit": "date",
+        "source": "Eversource 2018 10-K: PURA approved the settlement on 18 Apr 2018",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "May 2018 - (three steps May 2018 / 2019 / 2020)",
+      "revenue_requested_m": {
+        "value": [
+          255.8,
+          44.7,
+          36.4
+        ],
+        "unit": "$M incremental by rate year (total $336.9M)",
+        "source": "OCC, New rates in effect for Eversource electric customers May 1, 2018 (three-year request $336.9M); split by rate year from the brief of 2 Nov 2026",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": [
+          97.1,
+          32.7,
+          24.7
+        ],
+        "unit": "$M incremental by rate year (total $154.5M)",
+        "source": "Derived: OCC (request $336.9M reduced by $182.4M = $154.5M); split by rate year from the brief of 2 Nov 2026 (_VERIFY). The Eversource 2018 10-K reports settlement increases of $64.3M / $31.1M / $29.2M (May 2018 / 2019 / 2020), which may net out amounts moved to or from trackers",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: ROE requested in Docket 17-10-46",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_granted": {
+        "value": 0.0925,
+        "unit": "share",
+        "source": "Eversource 2018 10-K: authorised regulatory ROE 9.25%, 53% equity",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [],
+      "notes": "Filed before 2021; included because its rates applied throughout 2021-2026 (base rates frozen to at least 1 Jan 2024 by the 2021 settlement and unchanged since). The settlement created the ESI capital tracker (core capital up to $300M a year, resiliency, approved grid modernisation).",
+      "comparison": {
+        "basis": "first rate year (May 2018) of the settlement: requested against approved increment",
+        "included_in_totals": true,
+        "temporary": false,
+        "requested_m": {
+          "value": 255.8,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Docket 17-10-46",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": 97.1,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_approved_m of Docket 17-10-46 (_VERIFY split)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    {
+      "docket": "2021 settlement (interim rate decrease proceeding; docket _VERIFY)",
+      "type": "settlement (bill credits and base-rate freeze)",
+      "filed": {
+        "value": null,
+        "unit": null,
+        "source": "Not located",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "decided": {
+        "value": "2021-10-01",
+        "unit": "date",
+        "source": "CL&P 8-K, 1 Oct 2021 (settlement announced; PURA approved Oct 2021)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "Oct 2021 - (credits); base rates frozen to at least 1 Jan 2024",
+      "revenue_requested_m": {
+        "value": null,
+        "unit": null,
+        "source": "Not a revenue request",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "revenue_approved_m": {
+        "value": -75.0,
+        "unit": "$M one-time bill credits and assistance ($65M credits + $10M assistance)",
+        "source": "CL&P 8-K, 1 Oct 2021: $65M bill credits + $10M customer assistance, on top of the $28.4M Isaias performance penalty already credited ($103.4M pre-tax in total)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": null,
+        "source": "Not applicable",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_granted": {
+        "value": 0.0925,
+        "unit": "share",
+        "source": "Unchanged: the 90 bp (Apr 2021 storm decision) and 45 bp (Sep 2021 draft) ROE reductions were not implemented",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [],
+      "comparison": {
+        "basis": "not comparable (one-time credits, no revenue request)",
+        "included_in_totals": false,
+        "temporary": false,
+        "requested_m": {
+          "value": null,
+          "unit": "$M a year (nominal)",
+          "source": "Not applicable",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "approved_m": {
+          "value": null,
+          "unit": "$M a year (nominal)",
+          "source": "Not applicable",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    },
+    {
+      "docket": "Docket 25-12-13",
+      "type": "storm-cost recovery (catastrophic storms 2018-2023)",
+      "filed": {
+        "value": null,
+        "unit": null,
+        "source": "Not located",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "decided": {
+        "value": "2026-07-29",
+        "unit": "date",
+        "source": "PURA final decision, 29 Jul 2026 (brief of 2 Nov 2026)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "one-time; $667.9M to be securitised (Docket 26-04-04)",
+      "revenue_requested_m": {
+        "value": 974.2,
+        "unit": "$M (one-time)",
+        "source": "PURA Docket 25-12-13 final decision (29 Jul 2026), as summarised in the brief of 2 Nov 2026",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "revenue_approved_m": {
+        "value": 869.4,
+        "unit": "$M found prudent (one-time; $63.3M deferred, $41.5M excluded; retrospective carrying charges $396.7M denied; prospective at 7.09% pre-tax WACC)",
+        "source": "PURA Docket 25-12-13 final decision (29 Jul 2026), as summarised in the brief of 2 Nov 2026",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": null,
+        "source": "Not applicable",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_granted": {
+        "value": null,
+        "unit": null,
+        "source": "Not applicable",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [],
+      "notes": "Kept outside the distribution rate base and the revenue-requirement bridge.",
+      "comparison": {
+        "basis": "not in the annual totals (one-time cost recovery, not $M a year)",
+        "included_in_totals": false,
+        "temporary": false,
+        "requested_m": {
+          "value": 974.2,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Docket 25-12-13",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": 869.4,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_approved_m of Docket 25-12-13",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    {
+      "docket": "Docket 26-05-10",
+      "type": "base rate case with a four-year Performance-Based Multi-Year Rate Plan (pending)",
+      "filed": {
+        "value": "2026-07-14",
+        "unit": "date",
+        "source": "Brief of 2 Nov 2026; notice of intent (20 May 2026, \"Docket No. 26-05-XX\") gave ~14 Jul 2026",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": null,
+        "unit": null,
+        "source": "Pending; decision expected mid-2027",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "status": "pending",
+      "rate_years": "proposed from 1 Jul 2027",
+      "revenue_requested_m": {
+        "value": 451.0,
+        "unit": "$M a year (base; $727M including storm costs)",
+        "source": "Brief of 2 Nov 2026 (AARP CT on Docket 26-05-10, Oct 2026); the May 2026 notice of intent gave ~$503M",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "revenue_approved_m": {
+        "value": null,
+        "unit": null,
+        "source": "Pending",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_requested": {
+        "value": 0.1025,
+        "unit": "share",
+        "source": "Brief of 2 Nov 2026 (requested ROE 10.25%, equity ~54%)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_granted": {
+        "value": null,
+        "unit": null,
+        "source": "Pending",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [],
+      "notes": "Excluded from totals. Also proposes AMI (~$1B capital + $300M O&M) and a ~$4/month, 20-year securitisation charge.",
+      "comparison": {
+        "basis": "pending: requested only",
+        "included_in_totals": false,
+        "temporary": false,
+        "requested_m": {
+          "value": 451.0,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Docket 26-05-10",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": null,
+          "unit": "$M a year (nominal)",
+          "source": "Pending",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    }
+  ],
+  "class_allocation": [
+    {
+      "docket": "Docket 17-10-46",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: revenue allocation settlement (filed 2 Feb 2018) class percentages",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": 0.4919,
+        "unit": "share",
+        "source": "EIA Form 861, 2021, CT: residential / total retail sales, Parts A + C",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_before": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: Rate 1 customer charge before May 2018",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "customer_charge_after": {
+        "value": 9.62,
+        "unit": "$/month",
+        "source": "OCC RAM FAQ (1 May 2026): Eversource fixed charge $9.62 (in force since the settlement; date of the step _VERIFY)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    },
+    {
+      "docket": "Docket 26-05-10 (proposed)",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: proposed class allocation in the filing",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": 0.498,
+        "unit": "share",
+        "source": "EIA Form 861, 2025, CT: residential / total retail sales, Parts A + C",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_before": {
+        "value": 9.62,
+        "unit": "$/month",
+        "source": "OCC RAM FAQ (1 May 2026)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "customer_charge_after": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: proposed customer charge",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      }
+    }
+  ],
+  "proceedings_note": "Annual RAM dockets 21-01-03 to 26-01-03 (ESI, RDM, CTA, TAC, SBC, NBFMCC reconciliations): disallowances or deferrals not reviewed in this build (_VERIFY)."
+}

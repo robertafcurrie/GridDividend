@@ -23,7 +23,7 @@ from collections import Counter, OrderedDict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UTILITIES = OrderedDict([('ConEd', 'ConEd.json'), ('RGE', 'RGE.json'), ('DomVA', 'Dominion_VA.json'),
-                         ('PepcoMD', 'Pepco_MD.json')])
+                         ('PepcoMD', 'Pepco_MD.json'), ('EversourceCT', 'Eversource_CT.json'), ('UI_CT', 'UI_CT.json')])
 STATUSES = ('sourced', 'derived', '_VERIFY', 'setting')
 COLUMNS = ['utility', 'section', 'layer', 'input', 'name', 'value', 'low', 'central', 'high', 'unit', 'status',
            'source', 'source_link', 'as_of', 'notes']
@@ -193,7 +193,7 @@ def build_md(rows):
     if untagged:
         out += ['', f'Inputs without a status: {len(untagged)} (' +
                 ', '.join(f"{r['utility']} {r['layer']}.{r['input']}" for r in untagged) + ').']
-    out += ['', '## Status counts by layer', '', 'All four utilities together.', '',
+    out += ['', '## Status counts by layer', '', 'All six utilities together.', '',
             '| Layer | ' + ' | '.join(STATUSES) + ' | Total |', '|---|' + '---:|' * (len(STATUSES) + 1)]
     layers = list(OrderedDict.fromkeys(r['layer'] for r in tagged))
     for l in layers:
