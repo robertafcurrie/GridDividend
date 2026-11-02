@@ -6,6 +6,20 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Explorer guide (this commit)
+
+**Effect on results:** none. Docs only.
+
+- **`docs/EXPLORER_PROMPT.md` (new):** a prompt for an AI coding assistant to build an interactive explorer from `exports/<utility>.json`, with the views, plain names and rules for honesty. It is linked from the README's Documentation list.
+- **Checked against the current exports:** every field name and option.
+- **Corrections to the draft:**
+  - **Metadata notes:** `objective_sweep_run_note`, `fast_start_note`, `transmission_note` and `lookback_note` are added to the notes list.
+  - **Exact field names:** the metadata, yearly, headline, sweep, tornado and look-back fields are given as exported, including the separately reported `lower_share_of_zonal_transmission_costs_*` and `cost_shifted_to_other_zone_customers_*`.
+  - **Combinations:** the objective sweep exists only at planned timing and by sales, and the households' share only at planned timing and with no objective. The draft allowed objective and households' share together, which is not exported.
+  - **Advance blocks:** named (`advance`, `advance_fast_start`, `advance_stress`, `advance_fast_start_stress`, `advance_note`).
+  - **Riders:** in Dominion's file only.
+  - **Plain names:** a plain name added for `system_needs`, which appears in the waterfall.
+
 ## 2026-11-02: Customer allocation counts New York deferred transmission as network saving (this commit)
 
 **Changed.** In `customer_allocation`, the network saving that a non-default option reallocates now includes New York's transmission upgrades deferred (Con Edison, RG&E). That transmission is in the utility's rate base and recovered in its delivery rates, alongside distribution. PJM's transmission upgrades deferred (Dominion, Pepco) are recovered through the separate transmission lines, so they stay with the load-following savings, split by sales.
