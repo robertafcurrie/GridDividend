@@ -129,6 +129,12 @@ def starting_lines(utility_json, carve_out=True, adjustments=True):
             d['month'] = ln['rate'] * kwh
         else:
             d['month'] = ln['rate']
+        if ln.get('revert') and ln['unit'] != 'pct':
+            # temporary rate: from revert.from_year the line returns to revert.rate (2026 $, same unit),
+            # first_year_share of that year at the new rate (program surcharge lines only)
+            rv = ln['revert']
+            d['revert'] = dict(from_year=int(rv['from_year']), first_year_share=float(rv.get('first_year_share', 1.0)),
+                               month=rv['rate'] * kwh if ln['unit'] == '$/kWh' else rv['rate'])
         out.append(d)
     if carve_out and fa.get('capacity_carve_out'):
         co = fa['capacity_carve_out']
@@ -151,6 +157,20 @@ def starting_lines(utility_json, carve_out=True, adjustments=True):
                             volumetric=adj.get('volumetric', True)))
     _apply_pct(out)
     return out
+
+
+def _reverted(d, y):
+    """
+    A line's year-zero $/month in year y (2026 $): d['month'], or for a temporary rate
+    (starting_bill line 'revert': from_year, rate, first_year_share) the reverted level
+    from from_year on, blended by first_year_share in from_year. Lines without 'revert'
+    return d['month'] unchanged.
+    """
+    rv = d.get('revert')
+    if not rv or y < rv['from_year']:
+        return d['month']
+    w = rv['first_year_share'] if y == rv['from_year'] else 1.0
+    return d['month'] + (rv['month'] - d['month']) * w
 
 
 def capacity_carve_out_month(co):
@@ -1491,7 +1511,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                         e['month'] = dist_bill * d['month'] / dist0 if dist0 else 0.0
                     elif c == 'program_surcharge':
                         e['month'] = (0.0 if (d['core'] and active)
-                                      else d['month'] * _infl(pj['program_surcharge_growth'], t))
+                                      else _reverted(d, y) * _infl(pj['program_surcharge_growth'], t))
                     elif c == 'supply_energy':
                         e['month'] = d['month'] * _infl(pj['supply_energy_growth'], t)
                         if f_sup:

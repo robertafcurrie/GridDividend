@@ -236,6 +236,8 @@ capacity $/month           = obligation_kw x price ($/MW-day) / 1000 x 365 / 12
 
 For Dominion the carved-out amount is split 91.5% from base generation and 8.5% from fuel.
 
+*Temporary rates* (`revert` on a starting-bill line; Connecticut): a line whose 2026 rate is known to be temporary returns to a stated rate (2026 $, same unit) from `from_year`, with `first_year_share` of that year at the new rate, then grows like its category. It applies to program surcharge lines. Connecticut's public-benefits charges are a credit from May 2026 (PA 25-173 bonding and the Millstone / Seabrook contracts turning into a net benefit) until at least April 2027. NBFMCC + SBC return to 3.3¢/kWh, the pre-credit level of about 4¢ (OCC) less C&LM and renewable energy, from May 2027 (8/12 of 2027). Without it the model would project a temporary credit for 25 years. Lines without `revert` are unchanged (tested: the other utilities' exports are identical).
+
 *Starting adjustments* (Pepco): the residential increase authorised by Order No. 92607 (+$3.94/month) is added, because the tariff in effect at the as-of date was pre-case.
 
 **Inputs.** The `starting_bill` lines (rate, unit, category, section, core flag, source, status); `capacity_carve_out` (capacity split out of the line it is hidden in); `starting_adjustments` (known changes not yet on the bill).

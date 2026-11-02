@@ -1,0 +1,41 @@
+{
+  "name": "ISO New England",
+  "zones": {
+    "CT": {
+      "capacity_cost_start_m_per_mw_yr": 0.03108,
+      "capacity_cost_growth": "INFLATION_RATE",
+      "capacity_cost_growth_note": "Zone override: capacity price flat in real terms (grows at the model's INFLATION_RATE). ISO-NE load growth is winter-driven (2026 CELT: winter 50/50 peak +2.9%/yr 2026-2035 against summer +0.7%/yr; the 90/10 winter peak passes the 50/50 summer peak by 2034), which is the upside risk; 3%/yr real is run as a sensitivity (capacity.price_growth high). PJM's 5%/yr (data-centre driven) is not used.",
+      "source": "ISO-NE FCA 17 (2026/2027 capability period, 1 Jun 2026 - 31 May 2027): $2.59/kW-month (Rest-of-Pool; Connecticut was not a separately priced zone). $2.59 x 12 / 1000 = $0.03108M/MW-yr.",
+      "notes": "Connecticut cleared at the Rest-of-Pool price in FCA 15-18 (no import-constrained zone; no Connecticut local sourcing requirement in FCA 18). FCA 18 (2027/28) $3.580/kW-month = $0.04296M/MW-yr. ARA2 2027/28 $3.935/kW-month (posted 2 Sep 2026) is a reconfiguration price, reference only. Capacity Auction Reforms (FERC accepted Phase 1, 30-31 Mar 2026): a prompt annual auction about one month before each June-May period starting 2028/29, with seasonal accreditation (Phase 2) to be filed by end-2026; whether Phase 1 also brings marginal-reliability-impact accreditation was not confirmed from the FERC order in this build (_VERIFY).",
+      "fca_history_usd_per_kw_month": {
+        "2021/2022": 4.631,
+        "2022/2023": 3.8,
+        "2023/2024": 2.0,
+        "2024/2025": 2.61,
+        "2025/2026": 2.591,
+        "2026/2027": 2.59,
+        "2027/2028": 3.58
+      },
+      "fca_sources": {
+        "2021/2022": "FCA 12: ISO-NE FCA 12 results (Feb 2018): system-wide clearing price $4.631/kW-month (all zones). Not re-read from the ISO-NE results filing in this build (status _VERIFY)",
+        "2022/2023": "FCA 13: ISO-NE FCA 13 results (Feb 2019): $3.80/kW-month (all zones; ISO-NE FCA 15 results report, table of auctions 11-15, as reported); not re-read from the results filing (status _VERIFY)",
+        "2023/2024": "FCA 14: ISO-NE FCA 15 results report (Feb 2021), table of auctions 11-15: FCA 14 cleared at $2.00/kW-month in all zones (status sourced)",
+        "2024/2025": "FCA 15: ISO-NE FCA 15 final results press release (26 Feb 2021): Rest-of-Pool $2.61/kW-month (Southeast New England $3.98, Northern New England / Maine $2.48) (status sourced)",
+        "2025/2026": "FCA 16: ISO-NE FCA 16 initial results press release (9 Mar 2022): Rest-of-Pool $2.591/kW-month (Southeast New England $2.639, Northern New England / Maine $2.531) (status sourced)",
+        "2026/2027": "FCA 17: ISO-NE FCA 17 results filing (Mar 2023) and FCA 18 results deck (price comparison: FCA 17 $2.59/kW-month, Rest-of-Pool; all zones cleared within $2.55-2.59) (status sourced)",
+        "2027/2028": "FCA 18: ISO-NE FCA 18 results (Feb 2024): $3.580/kW-month in all zones and interfaces (auction closing price $3.579, rounding); 31,556 MW acquired (status sourced)"
+      },
+      "ara2_2027_2028_usd_per_kw_month": 3.935,
+      "icr_fca18": {
+        "icr_mw": 31591,
+        "hqicc_mw": 1041,
+        "net_icr_mw": 30550,
+        "reference_peak_50_50_mw": 27440,
+        "net_cone_usd_per_kw_month": 9.078,
+        "source": "ISO-NE, ICR and related values for FCA 18 (as summarised in the brief of 2 Nov 2026; _VERIFY against the FERC filing)"
+      }
+    }
+  },
+  "capacity_cost_growth_real": 0.025,
+  "notes": "Market-wide default 2.5%/yr nominal (flat real at the model's 2.5% inflation); the CT zone uses INFLATION_RATE explicitly. Capacity obligations: each load-serving entity's Capacity Load Obligation is its share of the annual coincident peak x the Installed Capacity Requirement (net of HQICC), priced at the auction clearing price."
+}

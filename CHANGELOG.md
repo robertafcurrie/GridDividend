@@ -6,6 +6,22 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Engine: temporary starting-bill rates; ISO-NE market file (this commit)
+
+**Effect on results:** none. No existing utility uses the new field. Their outputs and exports are unchanged, and every test passes.
+
+- **`revert` on a starting-bill line** (`engine/layers.py`: `starting_lines()`, `_reverted()`): an optional `{from_year, rate, first_year_share, source, status}`.
+  - From `from_year` a program surcharge line returns to `rate` (2026 $, same unit), with `first_year_share` of that year at the new rate, then grows at `program_surcharge_growth`.
+  - It is for temporary rates such as Connecticut's public-benefits credit (May 2026 to at least April 2027), which would otherwise be projected for 25 years.
+  - Lines without it are handled exactly as before.
+- **`shared/capacity_markets/ISONE.json`** (zone CT):
+  - FCA 12-18 Rest-of-Pool prices (FCA 12 and 13 `_VERIFY`);
+  - 2026 anchor FCA 17, $2.59/kW-month = $0.03108M/MW-yr;
+  - growth at inflation;
+  - FCA 18 ICR values (ICR 31,591 MW, HQICC 1,041 MW, reference peak 27,440 MW, Net CONE $9.078/kW-month);
+  - Capacity Auction Reforms notes.
+- **METHODOLOGY 3.1:** the `revert` field.
+
 ## 2026-11-02: Housekeeping: stale references fixed (this commit)
 
 **Effect on results:** none. Docs only; the exports are regenerated so they record this commit.
