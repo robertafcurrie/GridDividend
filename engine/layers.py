@@ -1450,6 +1450,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 loss_e = (ee_gwh * lo['avg_loss_pct'] * (lo['marginal_mult_energy'] - 1)) * sup_kwh
                 mw_loss = min(mw_firm * lo['avg_loss_pct'] * lo['marginal_mult_peak'], max(0.0, sys_peak - mw_red))
                 loss_p = mw_loss * price
+            # New York transmission upgrades deferred are in the utility's rate base and recovered in
+            # delivery rates: customer_allocation reallocates them with the network saving (PJM's
+            # stay with the load-following savings, split by sales)
+            tx_net = tx_build if (tx_split and not tx_on_lines) else 0.0
             vpool = (whl * bool(we.get('in_pool', True)) + (tx_build if tx_split else tx_av) * bool(tx.get('in_pool', True))
                      + (loss_e + loss_p) * bool(lo.get('in_pool', True)))
             # ── Mechanism ────────────────────────────────────────────────────
@@ -1471,7 +1475,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 if alloc_on and ss:
                     # residential share of the positive network RR reduction net of earnings moves
                     # from the sales share to alloc_share (credit < 0 lowers the bill)
-                    p_net = max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist - adj_val)
+                    p_net = max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist + tx_net - adj_val)
                     extra.append(dict(id='customer_allocation_adjustment',
                                       name='Customer allocation of the shared savings pool (per kWh)',
                                       category='distribution_rider', bill_section='delivery', unit='$/kWh',
@@ -1582,7 +1586,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # ── Bills ────────────────────────────────────────────────────────
             bench, avg, usage = _bills(adj)
             cb, ca = by_category(bench), by_category(avg)
-            alloc_pool = (max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist - adj) if ss else 0.0)
+            alloc_pool = (max(0.0, res['bau']['rr_dist_m'].iloc[t] - rr_dist + tx_net - adj) if ss else 0.0)
             alloc_adj = sum(d['month'] for d in avg if d.get('id') == 'customer_allocation_adjustment')
             rows.append(dict(
                 year=y, **{f'bill_{c}': v for c, v in cb.items()}, bill_total=sum(cb.values()),

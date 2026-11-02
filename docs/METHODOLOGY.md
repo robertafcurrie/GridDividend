@@ -1127,9 +1127,13 @@ true-up     = if the year-end balance is above schedule, next year's credit is p
 - `'per_customer'`: equal per customer, by EIA-861 2024 class customer counts (`residential_customers`, `nonresidential_customers`). The residential share is Con Edison 84.0%, RG&E 89.6%, Dominion 89.5% and Pepco 91.7%.
 - `'custom'`: a residential share between 0 and 1 (`custom_residential_share`; the export uses 0.5).
 
-**What moves and what does not.** Only the savings are reallocated: the network (distribution) revenue-requirement reduction net of shared savings earnings, in years when it is positive. Everything else stays allocated by sales under every option:
+**What moves and what does not.** Only the savings are reallocated: the network revenue-requirement reduction net of shared savings earnings, in years when it is positive.
+- **The network saving** is the distribution reduction plus, in New York (Con Edison, RG&E), the **transmission upgrades deferred** (3.8a). New York transmission is in the utility's own rate base and recovered in its delivery rates, alongside distribution, so the commission sets its class allocation in the same rate case.
+- **PJM deferred transmission** (Dominion, Pepco) is recovered through the separate transmission lines (PJM network service rates), so it stays with the load-following savings.
+
+Everything else stays allocated by sales under every option:
 - **Program costs:** flexible and efficiency spend, including the amortisation of and return on capitalised amounts. The efficiency energy savings those costs buy are allocated by usage, so the costs are too.
-- **Load-following savings:** capacity, transmission, losses, wholesale energy and efficiency energy. They follow load through existing rates (capacity per kW of peak contribution, transmission by load, supply and losses per kWh). Moving them would mean redesigning those rates, not the shared-savings mechanism.
+- **Load-following savings:** capacity, PJM transmission, losses, wholesale energy and efficiency energy. They follow load through existing rates (capacity per kW of peak contribution, PJM transmission by network service peak load, supply and losses per kWh). Moving them would mean redesigning those rates, not the shared-savings mechanism.
 - **A negative network remainder:** in a year where the network reduction net of earnings is negative, the shortfall is allocated by sales.
 
 The network saving net of the utility's earnings is the part that a shared-savings mechanism returns through delivery rates and riders whose class allocation the commission sets. That is the part it could choose to return differently.
@@ -1137,7 +1141,8 @@ The network saving net of the utility's earnings is the part that a shared-savin
 **Calculation.**
 
 ```
-network net of earnings N_t = (BAU - SS) distribution RR - shared savings earnings (incl. any advance)   ($M)
+network net of earnings N_t = (BAU - SS) distribution RR + transmission upgrades deferred (New York only)
+                              - shared savings earnings (incl. any advance)   ($M)
 reallocated P_t             = max(0, N_t)
 residential_t               = (customer savings_t - P_t) x sales share + P_t x residential share (option)
 non-residential_t           = customer savings_t - residential_t
@@ -1160,11 +1165,11 @@ non-residential $/month     = non-residential_t / (non-residential customers x 1
 | Utility | Scenario | Option | Residential share of reallocated savings | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
 |---|---|---|---|---|---|---|---|
 | Con Edison | Central | by sales (default) | 0.260 | 10.34 (6.09) | 29.39 (17.30) | 14.64 / 112.09 | 68.80 / 469.64 |
-| Con Edison | Central | per customer | 0.840 | 20.84 (12.20) | 18.89 (11.18) | 20.36 / 152.70 | 46.14 / 292.47 |
-| Con Edison | Central | custom 0.5 | 0.500 | 14.68 (8.61) | 25.05 (14.77) | 17.00 / 128.88 | 59.44 / 396.41 |
+| Con Edison | Central | per customer | 0.840 | 27.00 (15.67) | 12.73 (7.72) | 20.93 / 180.43 | 43.89 / 171.45 |
+| Con Edison | Central | custom 0.5 | 0.500 | 17.23 (10.05) | 22.50 (13.34) | 17.24 / 140.34 | 58.51 / 346.38 |
 | RG&E | Central | by sales (default) | 0.414 | 1.98 (1.20) | 2.80 (1.70) | 11.65 / 48.96 | 144.93 / 504.88 |
-| RG&E | Central | per customer | 0.896 | 3.15 (1.92) | 1.62 (0.98) | 19.15 / 75.13 | 78.34 / 296.77 |
-| RG&E | Central | custom 0.5 | 0.500 | 2.19 (1.33) | 2.59 (1.57) | 13.00 / 53.65 | 133.00 / 467.60 |
+| RG&E | Central | per customer | 0.896 | 3.45 (2.08) | 1.33 (0.82) | 19.27 / 84.59 | 77.27 / 221.53 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.24 (1.36) | 2.54 (1.54) | 13.02 / 55.35 | 132.81 / 454.12 |
 | Dominion | Central | by sales (default) | 0.307 | 5.81 (3.48) | 13.09 (7.84) | 5.63 / 16.05 | 77.11 / 372.46 |
 | Dominion | Central | per customer | 0.895 | 10.20 (6.05) | 8.70 (5.26) | 7.68 / 26.46 | 57.78 / 228.79 |
 | Dominion | Central | custom 0.5 | 0.500 | 7.25 (4.32) | 11.65 (6.99) | 6.30 / 19.46 | 70.78 / 325.39 |
@@ -1174,12 +1179,13 @@ non-residential $/month     = non-residential_t / (non-residential customers x 1
 
 **Reading the results.**
 - **Per-customer allocation raises residential savings for every utility.** Residential customers' share of customers exceeds their share of sales, and only positive savings move.
-  - Con Edison Central: $10.3B → $20.8B, and the 2050 residential bill saving $112 → $153/month.
+  - Con Edison Central: $10.3B → $27.0B, and the 2050 residential bill saving $112 → $180/month.
   - Dominion: $5.8B → $10.2B.
-  - RG&E: $2.0B → $3.2B.
+  - RG&E: $2.0B → $3.5B.
   - Pepco: $1.7B → $2.1B.
+- **Counting New York's deferred transmission as network saving** raises Con Edison's Central per-customer residential savings from $20.8B to $27.0B and RG&E's from $3.2B to $3.5B. By-sales results, totals and the PJM utilities are unchanged.
 - **Non-residential customers still save in every case.** Their per-customer saving is lower, since they keep their sales share of the load-following savings and pay their sales share of program costs.
-- **What moves is the network saving net of earnings,** Central 2026–2050: Con Edison $18.1B, RG&E $2.4B, Dominion $7.5B, Pepco $0.78B. Program costs ($8.6B, $1.1B, $8.6B and $1.5B) stay by sales. Transmission upgrades deferred count as a load-following saving (by sales), so in New York the overlap fix (3.8a) moves load-driven transmission out of the reallocated network saving.
+- **What moves is the network saving net of earnings,** Central 2026–2050: Con Edison $28.7B (of which $10.6B transmission upgrades deferred), RG&E $3.1B ($0.6B), Dominion $7.5B, Pepco $0.78B. Program costs ($8.6B, $1.1B, $8.6B and $1.5B) stay by sales.
 - **No year has a negative network remainder** at Central.
 
 **Limitations.**

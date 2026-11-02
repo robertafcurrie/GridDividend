@@ -385,3 +385,30 @@ def test_per_customer_never_below_by_sales_for_residential(key):
             assert (np.array(pc['yearly']['residential_savings_m']) >= np.array(bs['yearly']['residential_savings_m']) - 1e-3).all()
             assert (np.array(pc['yearly']['residential_saving_usd_month'])
                     >= np.array(bs['yearly']['residential_saving_usd_month']) - 1e-3).all(), (pace, sc)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_new_york_deferred_transmission_reallocated_with_network_saving(key):
+    """New York transmission upgrades deferred (in the utility's rate base, recovered in delivery rates) are part of
+    the network saving that customer_allocation reallocates; PJM's stay load-following (split by sales). The engine's
+    reallocated pool equals the export's network_net_of_earnings under every option."""
+    uj, p = E.load_utility(key)
+    ny = key in ('ConEd', 'RGE')
+    for opt in LY.CUSTOMER_ALLOCATIONS:
+        r = LY.project_layers(uj, p, overrides=LY.allocation_overrides(opt, 0.5 if opt == 'custom' else None))
+        f = E.value_flows(r, p)
+        s = r['ss']
+        if ny:
+            assert np.allclose(f['transmission_network'], s['transmission_build_avoided_m'])
+            assert np.allclose(f['transmission_load_following'], 0.0)
+            assert f['transmission_network'].sum() > 0
+        else:
+            assert np.allclose(f['transmission_network'], 0.0)
+            assert np.allclose(f['transmission_load_following'], f['transmission'])
+        assert np.allclose(f['network_net_of_earnings'], s['allocation_pool_m']), opt
+        # the class split still sums: load-following by sales + reallocated pool = each class's total
+        rs = p['residential_sales_share']
+        a = LY.customer_allocation(r, p)['residential_pool_share']
+        lf = sum(f[k] for k in E.LOAD_FOLLOWING)
+        assert np.allclose(lf * rs + f['network_net_of_earnings'] * a, f['residential'])
+        assert np.allclose(lf * (1 - rs) + f['network_net_of_earnings'] * (1 - a), f['business'])

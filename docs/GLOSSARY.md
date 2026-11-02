@@ -219,7 +219,7 @@ Where the model or the data use an internal name, it is shown in `code` after th
 | **Customer dividend advance** (`advance_*`) | An early, level bill credit paid before the savings arrive, financed (securitised, or as a regulatory asset) and recovered later from the savings, with a true-up and a cap that keeps customers' net saving at or above zero. |
 | **Recoverable savings** | The savings the advance can be repaid from. |
 | **Stress case** | The advance sized on Central but realised on Cautious. |
-| **Customer allocation** (`customer_allocation`: `by_sales`, `per_customer`, `custom`) | How customers' share of the pool is split between residential and non-residential customers: by sales (default), equally per customer, or a set share. Costs follow the benefits they buy; only savings are reallocated. |
+| **Customer allocation** (`customer_allocation`: `by_sales`, `per_customer`, `custom`) | How customers' share of the savings is split between households (residential customers) and businesses (non-residential customers): by sales (default), equally per customer, or a set share. Costs follow the benefits they buy; only savings are reallocated. What is reallocated is the network saving net of the utility's earnings: lower distribution costs and, in New York (Con Edison, RG&E), transmission upgrades deferred, because that transmission is in the utility's own rate base and recovered in its delivery rates. PJM transmission upgrades deferred (Dominion, Pepco) are recovered through separate transmission rates, so they stay split by sales, with capacity, losses, energy and program costs. |
 
 ### Outputs
 

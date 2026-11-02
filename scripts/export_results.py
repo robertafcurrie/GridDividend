@@ -69,7 +69,7 @@ SHARE_SWEEP = (0.20, 0.30, 0.40)                 # utility share of the savings 
 OBJECTIVE_SWEEP = (0.0, 0.025, 0.05, 0.10)       # additional savings objective (default 0%)
 ALLOCATION_CUSTOM_SHARE = 0.5                    # residential share of the pool's customer share, 'custom' option
 # Customer allocation: costs follow the benefits they buy; only savings are reallocated
-LOAD_FOLLOWING = ('capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy', 'program_costs',
+LOAD_FOLLOWING = ('capacity', 'transmission_load_following', 'losses', 'wholesale', 'efficiency_energy', 'program_costs',
                   'network_negative_remainder')                       # stay allocated by sales
 POOL_PARTS = ('network_net_of_earnings',)                              # reallocated (positive years)
 # Tornado driver type: a choice regulators or utilities make (policy) or a condition they do not control (external)
@@ -145,7 +145,10 @@ def value_flows(run, params):
     customers = sum of sources + program_costs - earnings = customer savings;
     residential / business split by the residential share of sales (EIA-861), except
     that under mechanism.customer_allocation the positive network RR reduction net of
-    earnings (network_net_of_earnings) is split at the option's residential share.
+    earnings (network_net_of_earnings) is split at the option's residential share. In New
+    York the transmission upgrades deferred (transmission_network: in the utility's rate
+    base, recovered in delivery rates) count with the network saving; the rest of the
+    transmission source (transmission_load_following, PJM) stays split by sales.
     """
     b, s = run['bau'], run['ss']
     t = np.arange(len(YEARS))
@@ -165,7 +168,13 @@ def value_flows(run, params):
     rs = params['residential_sales_share']
     # customer allocation (METHODOLOGY 3.10b): the network RR reduction net of earnings, where
     # positive, is reallocated; everything else (and negative years) stays by sales
-    net = f['deferral'] + f['additional_objective'] - f['earnings']
+    # New York transmission upgrades deferred (split formulation, transmission in delivery rates and the
+    # utility's rate base) count with the network saving; PJM's stay load-following (by sales)
+    tx = run['assumptions'].get('transmission', {})
+    ny_tx = (tx.get('formulation') == 'split' and tx.get('bill_basis') == 'delivery')
+    f['transmission_network'] = col(s, 'transmission_build_avoided_m') if ny_tx else np.zeros(len(s))
+    f['transmission_load_following'] = f['transmission'] - f['transmission_network']
+    net = f['deferral'] + f['additional_objective'] + f['transmission_network'] - f['earnings']
     f['network_net_of_earnings'] = np.maximum(net, 0.0)
     f['network_negative_remainder'] = np.minimum(net, 0.0)
     mech = run['assumptions']['mechanism']

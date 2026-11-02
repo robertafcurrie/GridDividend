@@ -6,6 +6,40 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Customer allocation counts New York deferred transmission as network saving (this commit)
+
+**Changed.** In `customer_allocation`, the network saving that a non-default option reallocates now includes New York's transmission upgrades deferred (Con Edison, RG&E). That transmission is in the utility's rate base and recovered in its delivery rates, alongside distribution. PJM's transmission upgrades deferred (Dominion, Pepco) are recovered through the separate transmission lines, so they stay with the load-following savings, split by sales.
+- **Engine:** the reallocated pool (`allocation_pool_m`) and the residential allocation adjustment line add New York's `transmission_build_avoided_m`.
+- **Exports:** `value_flows` splits the transmission source into `transmission_network` (reallocated with the network saving: New York) and `transmission_load_following` (by sales: PJM). `LOAD_FOLLOWING` uses the latter, so the class value flows in `allocation_sweep` still sum to each class's total.
+- **Docs:** METHODOLOGY 3.10b (the rule, the formula, the regenerated Central table, the figures), the glossary's customer allocation entry (the households' share), the README and CLAUDE.md.
+
+**Effect on results.**
+- **Unchanged:** the default (`by_sales`), every headline, totals under every option, the pool and earnings, and Dominion and Pepco under every option.
+- **New York per-customer and custom options:** more is reallocated, so residential savings and residential bill savings rise and non-residential savings fall by the same amount.
+
+*Per-customer residential savings, New York; before → after:*
+
+| Utility | Pace | Scenario | Per-customer residential $B undiscounted (NPV 3%): before → after | Residential 2050 bill saving $/month: before → after | By-sales residential $B (unchanged) |
+|---|---|---|---|---|---|
+| Con Edison | utility forecast | Cautious | 6.96 (4.12) → 7.53 (4.44) | 39.48 → 42.03 | 2.86 |
+| Con Edison | utility forecast | Central | 20.84 (12.20) → 27.00 (15.67) | 152.70 → 180.43 | 10.34 |
+| Con Edison | utility forecast | Ambitious | 28.74 (16.93) → 39.17 (22.83) | 207.66 → 252.50 | 16.37 |
+| Con Edison | state policy | Cautious | 8.87 (5.21) → 9.33 (5.47) | 46.24 → 48.09 | 3.44 |
+| Con Edison | state policy | Central | 29.39 (17.13) → 34.42 (19.95) | 181.72 → 202.08 | 12.72 |
+| Con Edison | state policy | Ambitious | 48.72 (28.36) → 57.87 (33.52) | 302.20 → 337.75 | 22.35 |
+| RG&E | utility forecast | Cautious | 1.23 (0.75) → 1.26 (0.77) | 28.36 → 30.41 | 0.66 |
+| RG&E | utility forecast | Central | 3.15 (1.92) → 3.45 (2.08) | 75.13 → 84.59 | 1.98 |
+| RG&E | utility forecast | Ambitious | 4.68 (2.86) → 5.07 (3.08) | 105.39 → 117.50 | 3.05 |
+| RG&E | state policy | Cautious | 1.65 (0.99) → 1.65 (0.99) | 31.38 → 31.42 | 0.86 |
+| RG&E | state policy | Central | 4.94 (2.92) → 5.12 (3.01) | 108.90 → 113.66 | 2.79 |
+| RG&E | state policy | Ambitious | 7.26 (4.32) → 7.52 (4.46) | 151.59 → 158.38 | 4.27 |
+
+Custom 0.5, Central: Con Edison $14.68B → $17.23B, RG&E $2.19B → $2.24B.
+
+**Tests** (4 new, 421 in total). New York's transmission upgrades deferred are in the reallocated pool and PJM's are not. The engine's pool equals the export's network saving under every option, and the class split still sums. The existing tests are kept: by_sales unchanged, totals equal under every option, per_customer residential at least by_sales.
+
+**Notebooks.** The New York notebook was re-run without errors (Section 13, 3d).
+
 ## 2026-11-02: Split transmission is the default; realisation by planner; allocation effect outside the pool and headline (this commit)
 
 **Changed.**
