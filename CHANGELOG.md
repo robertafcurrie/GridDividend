@@ -6,6 +6,52 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Look-back module, the starting point 2021-2026 (this commit)
+
+**Added.**
+- **Data:** `utilities/<utility>_lookback.json` for Con Edison, RG&E, Dominion VA and Pepco MD. Every figure has a source, an as-of date and a status; figures not located are `null` and `_VERIFY`.
+- **Code:** `engine/lookback.py`.
+- **Export:** a `lookback` block in `exports/<utility>.json`.
+- **Docs:** METHODOLOGY section 12, "Starting point: 2021–2026" (the narrative introduction heading is a placeholder). Register entries are under section `lookback` in `docs/assumptions_register.csv` and a new section of `docs/ASSUMPTIONS.md`; they are not counted in the forward model's status shares.
+
+**What each part covers.**
+- **Residential bill, 2021 against 2026, by category:**
+  - 2026 is the forward model's starting bill.
+  - 2021 is EIA-861 average revenue per kWh × the benchmark kWh (derived), split into delivery and supply where delivery-only customers exist.
+  - No 2021 line-item tariff archive was located, so the 2021 category lines are `_VERIFY`.
+  - Also included: an EIA-861 2021–2025 series on one basis.
+- **Distribution revenue-requirement bridge, 2021 → 2026:**
+  - FERC Form 1 (via PUDL), 2021 and 2025, on a functional basis: distribution, plus transmission in New York. Jurisdictional share for Dominion VA and Pepco MD.
+  - Allowed returns from the orders and 10-Ks, through the forward model's revenue-requirement structure (`revenue_requirement()`).
+  - Then the approved 2026 rate-case step.
+  - Items: rate base growth by capital category, return (ROE, equity ratio, cost of debt), depreciation, O&M, taxes.
+- **Supply side (influenced, not controlled):**
+  - PJM BRA prices by delivery year, DOM and PEPCO zones, 2021/22–2027/28.
+  - NYISO average spot prices, NYC and NYCA, 2021/22–2025/26 (market monitor's State of the Market reports).
+  - Implied energy supply rate (EIA-861).
+  - Transmission.
+- **Asked against granted:** every base rate case filed 2021–2026, plus Pepco Case 9655 (filed 2020, rates from 2021) and Dominion Rider OSW. Each has the docket, dates, revenue and ROE requested and granted, capital disallowed, deferred or reduced, and the Commission's reasons quoted. RG&E Case 25-E-0379 is marked pending.
+- **Class allocation:** residential share of sales, and the residential customer charge before and after. Residential shares of the increases are `_VERIFY`.
+
+**Tests** (16 new; 373 in total):
+- The bridge sums to the change in the revenue requirement, with rate base growth = Δ rate base × the 2021 WACC.
+- Bill categories (plus the 2021 unitemised remainder) sum to the total.
+- Every figure has a source, an as-of date and a status label.
+- The export carries the block.
+
+**Effect on results:** none. The forward model, its inputs and every existing export field are unchanged.
+
+**Bridge** ($M nominal):
+
+| Utility | RR 2021 | Rate base growth | Return (ROE, equity, debt) | Depreciation | O&M | Taxes | RR 2025 | 2026 rate-case step | RR 2026 |
+|---|---|---|---|---|---|---|---|---|---|
+| Con Edison | 6,593 | +285 | +56 | +320 | -5 | +873 | 8,121 | +234 | 8,355 |
+| RG&E | 545 | +43 | +5 | +28 | +96 | +37 | 755 | +26 | 781 |
+| Dominion VA | 1,648 | +268 | +26 | +106 | +60 | +84 | 2,192 | +341 | 2,533 |
+| Pepco MD | 608 | +59 | -5 | +32 | +19 | +51 | 764 | +51 | 815 |
+
+---
+
 ## 2026-11-02: Customer allocation revised; drives the engine (this commit)
 
 **Changed.**

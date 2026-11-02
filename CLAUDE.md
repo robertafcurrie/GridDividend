@@ -39,9 +39,12 @@ engine/
                        headroom_sweep_figure(), TIGHT_NETWORK
   roe_sweep.py         ROE sweep for the earlier model (Section 8b)
   markets.py           loader for shared/capacity_markets/*.json
+  lookback.py          look-back 2021-2026: bill comparison, Form 1 revenue-requirement bridge, supply side,
+                       asked against granted, class allocation (reads utilities/*_lookback.json; METHODOLOGY 12)
 utilities/
   ConEd.json, RGE.json, Dominion_VA.json, Pepco_MD.json   one file per utility
   TEMPLATE.json        structure for a new utility (earlier-model fields only)
+  ConEd_lookback.json, RGE_lookback.json, Dominion_VA_lookback.json, Pepco_MD_lookback.json   look-back data (not read by the forward model)
   calibration/Pepco_MD.csv   2026 reconciliation against Pepco's Case 9820 record
 shared/capacity_markets/NYISO.json, PJM.json   capacity prices and sources
 notebooks/
@@ -51,11 +54,12 @@ notebooks/
 GridDividend_v1.0.ipynb  self-contained earlier model (inline engine; kept for compatibility)
 scripts/check_starting_bill.py   validates starting_bill (python scripts/check_starting_bill.py [--json])
 scripts/build_assumptions_register.py   writes docs/assumptions_register.csv and docs/ASSUMPTIONS.md from the JSON
-scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; savings-objective sweep 0/2.5/5/10% with a full run block per level; dividend advance per scenario and a Central-sized/Cautious-realized stress case; fast-start blocks; allocation_sweep (pool's customer share by_sales / per_customer / custom 0.5: bills, class savings, class value flows); earnings per rate base; tornado; metadata)
+scripts/export_results.py  writes exports/<utility>.json for the web explorer (scenario x electrification pace: yearly bills by category, customer savings, rate base, earnings; waterfalls; Sankey value flows; utility-share sweep 0.20/0.30/0.40; savings-objective sweep 0/2.5/5/10% with a full run block per level; dividend advance per scenario and a Central-sized/Cautious-realized stress case; fast-start blocks; allocation_sweep (pool's customer share by_sales / per_customer / custom 0.5: bills, class savings, class value flows); earnings per rate base; tornado; lookback (2021-2026 starting point); metadata)
 tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
 tests/test_export.py       exports balance and match the headline figures (regenerate exports after any model or JSON change)
+tests/test_lookback.py     look-back: bridge sums, bill categories sum, every figure has source and status, export block
 tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json, layers_23fec60_model_bau.json, layers_212efce_capacity.json (pinned layer outputs)
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
@@ -70,7 +74,7 @@ exports/                   generated JSON for the web explorer (do not edit by h
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (357 tests)
+python -m pytest tests/                       # full suite (373 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \

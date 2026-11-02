@@ -1,0 +1,1032 @@
+{
+  "_note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted.",
+  "utility": "ConEd",
+  "name": "Consolidated Edison Company of New York (CECONY), electric",
+  "as_of": "2026-11-02",
+  "period": [
+    2021,
+    2026
+  ],
+  "benchmark_kwh_month": 600,
+  "bill": {
+    "2021": {
+      "basis": "EIA-861 2021 average revenue per kWh at the benchmark usage (no 2021 line-item tariff archive was located; per the fallback rule, marked derived)",
+      "categories": {
+        "distribution_base": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "distribution_rider": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "program_surcharge": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "supply_energy": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "capacity": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "transmission": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "taxes_and_fees": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      },
+      "unitemised": {
+        "delivery": {
+          "value": 104.06,
+          "unit": "$/month",
+          "source": "Derived: EIA Form 861, 2021, ConEd residential average revenue per kWh x 600 kWh (Part C delivery-only revenue per kWh)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "supply": {
+          "value": 59.89,
+          "unit": "$/month",
+          "source": "Derived: EIA Form 861, 2021, ConEd residential average revenue per kWh x 600 kWh (Part A bundled minus Part C delivery-only)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "total": {
+        "value": 163.95,
+        "unit": "$/month",
+        "source": "Derived: EIA Form 861, 2021, ConEd residential average revenue per kWh x 600 kWh (Part A bundled)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      }
+    },
+    "2026": {
+      "basis": "utilities/ConEd.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments"
+    },
+    "eia_series": {
+      "2021": {
+        "bundled_cents_kwh": {
+          "value": 27.3253,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), ConEd: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 17.3428,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), ConEd: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 51327036.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2021, ConEd: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.2722,
+          "unit": "share",
+          "source": "EIA Form 861, 2021, ConEd: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2022": {
+        "bundled_cents_kwh": {
+          "value": 28.762,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), ConEd: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 18.0487,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), ConEd: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 53020172.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2022, ConEd: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.2652,
+          "unit": "share",
+          "source": "EIA Form 861, 2022, ConEd: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2023": {
+        "bundled_cents_kwh": {
+          "value": 31.5809,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), ConEd: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 19.3954,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), ConEd: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 52265256.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2023, ConEd: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.2605,
+          "unit": "share",
+          "source": "EIA Form 861, 2023, ConEd: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2024": {
+        "bundled_cents_kwh": {
+          "value": 35.6616,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), ConEd: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 24.6105,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), ConEd: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 52425970.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2024, ConEd: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.2603,
+          "unit": "share",
+          "source": "EIA Form 861, 2024, ConEd: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2025": {
+        "bundled_cents_kwh": {
+          "value": 36.7353,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), ConEd: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "delivery_only_cents_kwh": {
+          "value": 24.2867,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), ConEd: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 53798135.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2025, ConEd: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.262,
+          "unit": "share",
+          "source": "EIA Form 861, 2025, ConEd: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    }
+  },
+  "rr_bridge": {
+    "scope": {
+      "functions": [
+        "distribution",
+        "transmission"
+      ],
+      "note": "New York delivery rates recover distribution and the utility's transmission, so the functional scope is distribution + transmission (the forward model's delivery revenue requirement).",
+      "jurisdiction_share": {
+        "2021": {
+          "value": 1.0,
+          "unit": "share",
+          "source": "CECONY electric is a single New York jurisdiction",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "2025": {
+          "value": 1.0,
+          "unit": "share",
+          "source": "CECONY electric is a single New York jurisdiction",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    },
+    "allowed_return": {
+      "2021": {
+        "roe": {
+          "value": 0.088,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table (Jan 2020 - Dec 2022, Case 19-E-0065): authorized return on common equity 8.8 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.48,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: common equity ratio 48 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "cost_of_debt": {
+          "value": 0.0463,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: cost of long-term debt Yr. 1 to Yr. 3 - 4.63 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "rate_case_rate_base": {
+          "value": 22783,
+          "unit": "$M",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: average rate base Yr. 2 (2021) $22,783 million",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      },
+      "2025": {
+        "roe": {
+          "value": 0.0925,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table (Jan 2023 - Dec 2025, Case 22-E-0064): authorized return on common equity 9.25 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.48,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: common equity ratio 48 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "cost_of_debt": {
+          "value": 0.0464,
+          "unit": "share",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: cost of long-term debt Yr. 3 - 4.64 percent",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "rate_case_rate_base": {
+          "value": 29362,
+          "unit": "$M",
+          "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: average rate base Yr. 3 (2025) $29,362 million",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      }
+    },
+    "form1": {
+      "2021": {
+        "dep_common": {
+          "value": 245.952,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_distribution": {
+          "value": 879.281,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 7.604,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_production": {
+          "value": 32.131,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 1292.592,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 127.624,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 150.723,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -4335.084,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 1148.873,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 20306.496,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 87.61,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 250.993,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_production": {
+          "value": 606.925,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 3452.346,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 556.76,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 233.589,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 365.532,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 628.034,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 1927.559,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 1634.477,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 163.227,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 8870.485,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 2054.757,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      },
+      "2025": {
+        "dep_common": {
+          "value": 339.356,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_distribution": {
+          "value": 1066.905,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 18.255,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_production": {
+          "value": 47.661,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 1631.128,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 158.951,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 397.762,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -6046.822,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 1338.346,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 24430.346,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 177.248,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 7.884,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_production": {
+          "value": 775.531,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 5251.136,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 115.363,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 322.81,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 497.481,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 702.458,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 2900.335,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 2479.982,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 190.047,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 11730.932,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 2705.108,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Consolidated Edison Company of New York, Inc. (respondent 159), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      }
+    },
+    "step_2026": {
+      "value": 234.0,
+      "unit": "$M a year",
+      "source": "NY DPS, Consolidated Edison Electric Rate Case Summary (Case 25-E-0072, Jan 2026): RY1 (2026) electric revenue increase $234 million",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+    },
+    "capital_categories": {
+      "method": "Distribution (and, in New York, transmission) net plant growth split by the forward model's bau_plan.category_shares for this utility (growth / replacement / gridmod / other; status as in the utility JSON). Storm and resilience spending is not separable in Form 1 and sits inside replacement; IT and other = general and intangible plant (Form 1) plus the \"other\" share.",
+      "shares_from": "forward_assumptions.bau_plan.params.category_shares"
+    },
+    "note": "Revenue requirement on a Form 1 functional basis for 2021 and 2025 (return on functional rate base at the allowed after-tax WACC, depreciation, O&M, taxes other than income, income taxes; general, intangible and A&G costs allocated to the scope by plant or O&M share; jurisdictional share applied), then the approved 2026 rate-case step. Computed in engine/lookback.py with the forward model's revenue-requirement structure."
+  },
+  "supply_side": {
+    "influence": "Influenced, not controlled, by the distribution utility: set by wholesale markets (PJM / NYISO auctions), FERC formula rates or fuel markets; the utility affects them only through its load, procurement and the resources it connects.",
+    "capacity_prices": {
+      "nyiso": [
+        {
+          "capability_year": "2021/22",
+          "locality": "NYC",
+          "value": 4.31,
+          "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+          "source": "Potomac Economics, 2021 State of the Market Report for the NYISO Markets (May 2022), Table 14",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_year": "2022/23",
+          "locality": "NYC",
+          "value": 3.34,
+          "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+          "source": "Potomac Economics, 2022 State of the Market Report for the NYISO Markets (May 2023), Table 14",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_year": "2023/24",
+          "locality": "NYC",
+          "value": 15.97,
+          "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+          "source": "Potomac Economics, 2023 State of the Market Report for the NYISO Markets, Table 9",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_year": "2024/25",
+          "locality": "NYC",
+          "value": 11.76,
+          "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+          "source": "Potomac Economics, 2024 State of the Market Report for the NYISO Markets, Table 11",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "capability_year": "2025/26",
+          "locality": "NYC",
+          "value": 10.98,
+          "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+          "source": "Potomac Economics, 2025 State of the Market Report for the NYISO Markets (2026), Table 9",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      ],
+      "pjm": null,
+      "note": "NYC Locality; Con Edison also buys the rest of the NYCA requirement at the NYCA (Rest of State) price."
+    },
+    "capacity_prices_nyca": [
+      {
+        "capability_year": "2021/22",
+        "locality": "NYCA",
+        "value": 4.18,
+        "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+        "source": "Potomac Economics, 2021 State of the Market Report for the NYISO Markets (May 2022), Table 14",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "capability_year": "2022/23",
+        "locality": "NYCA",
+        "value": 3.05,
+        "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+        "source": "Potomac Economics, 2022 State of the Market Report for the NYISO Markets (May 2023), Table 14",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "capability_year": "2023/24",
+        "locality": "NYCA",
+        "value": 4.11,
+        "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+        "source": "Potomac Economics, 2023 State of the Market Report for the NYISO Markets, Table 9",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "capability_year": "2024/25",
+        "locality": "NYCA",
+        "value": 3.47,
+        "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+        "source": "Potomac Economics, 2024 State of the Market Report for the NYISO Markets, Table 11",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      {
+        "capability_year": "2025/26",
+        "locality": "NYCA",
+        "value": 4.28,
+        "unit": "$/kW-month (UCAP, average spot price, full capability year)",
+        "source": "Potomac Economics, 2025 State of the Market Report for the NYISO Markets (2026), Table 9",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    ],
+    "energy_supply_cents_kwh": [
+      {
+        "year": 2021,
+        "value": 9.9825,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2021, ConEd: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied supply component of the average residential price (energy, capacity and, where billed in supply, transmission). Averages, not tariffs."
+      },
+      {
+        "year": 2022,
+        "value": 10.7134,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2022, ConEd: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied supply component of the average residential price (energy, capacity and, where billed in supply, transmission). Averages, not tariffs."
+      },
+      {
+        "year": 2023,
+        "value": 12.1855,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2023, ConEd: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied supply component of the average residential price (energy, capacity and, where billed in supply, transmission). Averages, not tariffs."
+      },
+      {
+        "year": 2024,
+        "value": 11.0511,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2024, ConEd: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied supply component of the average residential price (energy, capacity and, where billed in supply, transmission). Averages, not tariffs."
+      },
+      {
+        "year": 2025,
+        "value": 12.4486,
+        "unit": "cents/kWh nominal",
+        "source": "EIA Form 861, 2025, ConEd: residential bundled average revenue per kWh (Part A) minus delivery-only average revenue per kWh (Part C)",
+        "as_of": "2026-11-02",
+        "status": "derived",
+        "notes": "Implied supply component of the average residential price (energy, capacity and, where billed in supply, transmission). Averages, not tariffs."
+      }
+    ],
+    "transmission": [
+      {
+        "note": {
+          "value": null,
+          "unit": null,
+          "source": "Con Edison recovers its transmission revenue requirement in delivery rates (New York); there is no separate residential transmission line, so it is inside the revenue-requirement bridge.",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    ]
+  },
+  "proceedings": [
+    {
+      "docket": "Case 22-E-0064",
+      "type": "base rate case (multi-year joint proposal)",
+      "filed": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: filing date (January 2022 filing; exact date not confirmed)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "decided": {
+        "value": "2023-07-20",
+        "unit": "date",
+        "source": "NY DPS press release 23072 (20 Jul 2023): Commission adopted the joint proposal",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "Jan 2023 - Dec 2025",
+      "revenue_requested_m": {
+        "value": 1200,
+        "unit": "$M, first rate year",
+        "source": "NY DPS press release 23072 (20 Jul 2023): \"sought a first-year electric revenue increase of $1.2 billion, or 11.2 percent increase in total revenues\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": [
+          442,
+          518,
+          382
+        ],
+        "unit": "$M by rate year (unlevelized; levelized $457.5M each year)",
+        "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: base rate changes Yr. 1 $442M, Yr. 2 $518M, Yr. 3 $382M; NY DPS press release 23072: \"levelized electric rate increase of $457.5 million for each of the three rate years\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": 0.1,
+        "unit": "share",
+        "source": "Con Edison joint proposal summary slide (company column 10.00%) as reported in search results; not opened",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_granted": {
+        "value": 0.0925,
+        "unit": "share",
+        "source": "Con Edison 2022 Form 10-K, CECONY electric rate plan table: 9.25 percent",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [
+        {
+          "quote": "increases in the property tax burden representing more than 30 percent of the increased cost over the three-year period",
+          "source": "NY DPS press release 23072 (20 Jul 2023)"
+        }
+      ]
+    },
+    {
+      "docket": "Case 25-E-0072",
+      "type": "base rate case (multi-year joint proposal)",
+      "filed": {
+        "value": "2025-01-31",
+        "unit": "date",
+        "source": "NY DPS Consolidated Edison Electric Rate Case Summary (Jan 2026)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": "2026-01-22",
+        "unit": "date",
+        "source": "NY DPS Consolidated Edison Electric Rate Case Summary (Jan 2026): PSC adopted the terms of the JP",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "Jan 2026 - Dec 2028",
+      "revenue_requested_m": {
+        "value": [
+          1611,
+          932,
+          880
+        ],
+        "unit": "$M by rate year",
+        "source": "NY DPS Con Edison Rate Case Visual Supplement (Jan 2026), Table IV: initial electric revenue requirement $1,611M / $932M / $880M",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": [
+          234.0,
+          409.7,
+          421.1
+        ],
+        "unit": "$M by rate year",
+        "source": "NY DPS Consolidated Edison Electric Rate Case Summary (Jan 2026)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": 0.101,
+        "unit": "share",
+        "source": "NY DPS Consolidated Edison Electric Rate Case Summary: \"Con Edison proposed a Return on Equity (ROE) of 10.1%\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_granted": {
+        "value": 0.094,
+        "unit": "share",
+        "source": "NY DPS Consolidated Edison Electric Rate Case Summary: \"The PSC approved a ROE of 9.4%\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [
+        {
+          "item": "Non-essential capital projects deferred",
+          "amount_m": null,
+          "effect": "deferred",
+          "quote": "defers non-essential capital projects",
+          "source": "NY DPS press release (22 Jan 2026), PSC dramatically reduces Con Edison's rate request nearly 90 percent",
+          "status": "sourced"
+        }
+      ],
+      "commission_reasons": [
+        {
+          "quote": "Property taxes account for approximately 26% of the revenue increase.",
+          "source": "NY DPS Consolidated Edison Electric Rate Case Summary (Jan 2026)"
+        },
+        {
+          "quote": "a reasonable outcome given the current economic environment",
+          "source": "NY DPS press release (22 Jan 2026), on the 9.40% ROE"
+        }
+      ]
+    }
+  ],
+  "class_allocation": [
+    {
+      "docket": "Case 25-E-0072",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: residential share of the approved electric increase (revenue allocation appendix of the JP)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": 0.2603,
+        "unit": "share",
+        "source": "EIA Form 861, 2024: residential / total retail sales, Parts A + C (also residential_sales_share in ConEd.json)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_before": {
+        "value": 20.0,
+        "unit": "$/month",
+        "source": "Derived: $21.00 (PSC No. 10, Leaf 388, SC 1 Rate I, the 2026 starting bill) less the $1 RY1 increase",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_after": {
+        "value": 21.0,
+        "unit": "$/month",
+        "source": "Con Edison PSC No. 10, Leaf 388, SC 1 Rate I (ConEd.json starting_bill); NY DPS rate case summary: \"$1 increases in residential customer charges for each rate year\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    },
+    {
+      "docket": "Case 22-E-0064",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: residential share of the approved electric increase",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": null,
+        "unit": "share",
+        "source": "See eia_series residential_mwh_share for 2022-2023",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "customer_charge_before": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: SC 1 customer charge before the 2023 rate plan",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "customer_charge_after": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: SC 1 customer charge after the 2023 rate plan",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      }
+    }
+  ]
+}

@@ -28,6 +28,9 @@ from the layered model as it stands (no model changes here):
     custom (0.5): yearly residential bills and savings by class, value flows split
     by class, and headline savings by class;
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
+  - lookback: the starting point 2021-2026 (engine/lookback.py): bill comparison,
+    revenue-requirement bridge, supply-side series, asked against granted, class
+    allocation;
   - metadata: source commit, date, dollar basis, pool setting.
 
     python scripts/export_results.py            # all four utilities
@@ -51,6 +54,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from engine import layers as LY  # noqa: E402
+from engine import lookback as LB  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, 'exports')
 UTILITIES = {'ConEd': 'GridDividend_NewYork.ipynb', 'RGE': 'GridDividend_NewYork.ipynb',
@@ -461,9 +465,11 @@ def build_export(key):
                         'advance_note': 'advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.',
                         'fast_start_note': 'fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.',
                         'allocation_sweep_note': "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
+                        'lookback_note': 'lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_comparison: 2021 (EIA-861 average revenue per kWh at the benchmark usage where line items were not located) against the 2026 starting bill by category. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal). supply_side: influenced, not controlled, by the distribution utility.',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}
+    out['lookback'] = LB.lookback_export(key, uj0)
     for pace in LY.PACES:
         uj = with_pace(uj0, pace)
         out['runs'][pace] = {sc: run_export(uj, params, sc) for sc in LY.SCENARIOS}

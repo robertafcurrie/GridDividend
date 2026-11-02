@@ -1,0 +1,1018 @@
+{
+  "_note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted.",
+  "utility": "DomVA",
+  "name": "Virginia Electric and Power Company (Dominion Energy Virginia), distribution, Virginia jurisdiction",
+  "as_of": "2026-11-02",
+  "period": [
+    2021,
+    2026
+  ],
+  "benchmark_kwh_month": 1000,
+  "bill": {
+    "2021": {
+      "basis": "EIA-861 2021 average revenue per kWh at the benchmark usage (no 2021 line-item tariff archive was located; per the fallback rule, marked derived)",
+      "categories": {
+        "distribution_base": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "distribution_rider": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "program_surcharge": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "supply_energy": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "capacity": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "transmission": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        },
+        "taxes_and_fees": {
+          "value": null,
+          "unit": "$/month",
+          "source": "No 2021 line-item tariff or rate-case bill comparison located for this category",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      },
+      "unitemised": {
+        "all_sections": {
+          "value": 121.3,
+          "unit": "$/month",
+          "source": "Derived: EIA Form 861, 2021, DomVA residential average revenue per kWh x 1000 kWh (Part A bundled; no delivery-only customers to separate delivery and supply)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "total": {
+        "value": 121.3,
+        "unit": "$/month",
+        "source": "Derived: EIA Form 861, 2021, DomVA residential average revenue per kWh x 1000 kWh (Part A bundled)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      }
+    },
+    "2026": {
+      "basis": "utilities/Dominion_VA.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments"
+    },
+    "eia_series": {
+      "2021": {
+        "bundled_cents_kwh": {
+          "value": 11.3639,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 4245702.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2021, DomNC: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.3799,
+          "unit": "share",
+          "source": "EIA Form 861, 2021, DomNC: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2022": {
+        "bundled_cents_kwh": {
+          "value": 11.6513,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 4078077.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2022, DomNC: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.4026,
+          "unit": "share",
+          "source": "EIA Form 861, 2022, DomNC: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2023": {
+        "bundled_cents_kwh": {
+          "value": 13.616,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 4075831.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2023, DomNC: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.3701,
+          "unit": "share",
+          "source": "EIA Form 861, 2023, DomNC: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2024": {
+        "bundled_cents_kwh": {
+          "value": 13.9333,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 3914486.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2024, DomNC: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.3999,
+          "unit": "share",
+          "source": "EIA Form 861, 2024, DomNC: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      },
+      "2025": {
+        "bundled_cents_kwh": {
+          "value": 12.7407,
+          "unit": "cents/kWh nominal",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "total_retail_mwh": {
+          "value": 4127745.0,
+          "unit": "MWh",
+          "source": "EIA Form 861, 2025, DomNC: total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "residential_mwh_share": {
+          "value": 0.4073,
+          "unit": "share",
+          "source": "EIA Form 861, 2025, DomNC: residential / total retail sales, Parts A + C",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    }
+  },
+  "rr_bridge": {
+    "scope": {
+      "functions": [
+        "distribution"
+      ],
+      "note": "Distribution only (generation and transmission are excluded). Virginia jurisdictional share = Virginia share of total retail sales (EIA-861, VA / (VA + NC)), a proxy for the jurisdictional distribution allocation.",
+      "jurisdiction_share": {
+        "2021": {
+          "value": 0.9495,
+          "unit": "share",
+          "source": "Derived: EIA Form 861, 2021: Virginia Electric & Power Co total retail sales VA / (VA + NC)",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Proxy for the jurisdictional allocation of distribution plant and expense (_VERIFY against the cost-of-service study in the biennial review)."
+        },
+        "2025": {
+          "value": 0.9582,
+          "unit": "share",
+          "source": "Derived: EIA Form 861, 2025: Virginia Electric & Power Co total retail sales VA / (VA + NC)",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Proxy for the jurisdictional allocation of distribution plant and expense (_VERIFY against the cost-of-service study in the biennial review)."
+        }
+      }
+    },
+    "allowed_return": {
+      "2021": {
+        "roe": {
+          "value": 0.092,
+          "unit": "share",
+          "source": "SCC Order for Notice and Hearing, PUR-2021-00058 (16 Apr 2021): \"the allowed ROE of 9.2% approved by the Commission\" (in force until the 18 Nov 2021 Final Order set 9.35%)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.528,
+          "unit": "share",
+          "source": "Derived: FERC Form 1 2021 (via PUDL core_ferc1__yearly_balance_sheet_liabilities_sched110): proprietary capital $15,979M / (proprietary capital + long-term debt $14,286M). Virginia sets rates on the actual end-of-test-period capital structure (Final Order, PUR-2025-00058)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "cost_of_debt": {
+          "value": 0.05,
+          "unit": "share",
+          "source": "Forward-model default COST_OF_DEBT; Dominion's authorized cost of debt not stated in the orders retrieved",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      },
+      "2025": {
+        "roe": {
+          "value": 0.097,
+          "unit": "share",
+          "source": "SCC Final Order, PUR-2025-00058 (25 Nov 2025): \"authorized return on equity (ROE) of 9.7%\" for 2023-2024 (set by 2023 legislation)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "equity_ratio": {
+          "value": 0.52035,
+          "unit": "share",
+          "source": "SCC Final Order, PUR-2025-00058: Staff's recommended capital structure \"(which includes an equity ratio of 52.035%)\", adopted for 2026-2027 (used here for 2025 as the actual end-of-test-period structure)",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "cost_of_debt": {
+          "value": 0.05,
+          "unit": "share",
+          "source": "Forward-model default COST_OF_DEBT; not stated in the Final Order text",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    },
+    "form1": {
+      "2021": {
+        "dep_distribution": {
+          "value": 418.055,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 52.82,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_intangible": {
+          "value": 30.366,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_production": {
+          "value": 485.071,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 1265.835,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 279.523,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 191.579,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -2912.654,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 1173.385,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 8355.18,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 438.935,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 369.931,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_production": {
+          "value": 9864.872,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 9543.184,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 315.512,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 158.654,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 62.424,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 296.042,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 2589.417,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 806.278,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_regional_market": {
+          "value": 10.251,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_sales": {
+          "value": 1.302,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 237.905,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 7477.825,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 310.245,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      },
+      "2025": {
+        "dep_distribution": {
+          "value": 528.712,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_general": {
+          "value": 61.207,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_intangible": {
+          "value": 5.916,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_production": {
+          "value": 623.592,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_total": {
+          "value": 1607.702,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "dep_transmission": {
+          "value": 388.275,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_depreciation_summary_sched336 (depreciation_amortization_total by plant function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "income_taxes": {
+          "value": 385.129,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric: current + other + deferred provisions - deferred credits + ITC adjustments), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_adit": {
+          "value": -4687.492,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_working_capital": {
+          "value": 2371.624,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base, stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_distribution": {
+          "value": 12290.51,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_general": {
+          "value": 774.708,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_intangible": {
+          "value": 214.989,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_production": {
+          "value": 12635.505,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "np_transmission": {
+          "value": 13994.336,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) out_ferc1__yearly_rate_base (electric ending balance by rate_base_category: net plant by function, working capital, net ADIT), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_admin_general": {
+          "value": 428.916,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_accounts": {
+          "value": 118.921,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_customer_service": {
+          "value": 93.249,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_distribution": {
+          "value": 356.079,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_production": {
+          "value": 4493.055,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_purchased_power": {
+          "value": 1890.122,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_regional_market": {
+          "value": 12.816,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_sales": {
+          "value": 0.017,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "om_transmission": {
+          "value": 195.112,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_operating_expenses_sched320 (electric O&M by function), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "operating_revenues": {
+          "value": 10964.403,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "taxes_other_than_income": {
+          "value": 365.897,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Virginia Electric and Power Company (respondent 164), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      }
+    },
+    "step_2026": {
+      "value": 341.408,
+      "unit": "$M a year",
+      "source": "SCC Final Order, PUR-2025-00058, Attachment p.1: Commission-authorized 2026 incremental revenue requirement, Distribution $341,408 thousand (Combined $565,667 thousand)",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+    },
+    "capital_categories": {
+      "method": "Distribution (and, in New York, transmission) net plant growth split by the forward model's bau_plan.category_shares for this utility (growth / replacement / gridmod / other; status as in the utility JSON). Storm and resilience spending is not separable in Form 1 and sits inside replacement; IT and other = general and intangible plant (Form 1) plus the \"other\" share.",
+      "shares_from": "forward_assumptions.bau_plan.params.category_shares"
+    },
+    "note": "Revenue requirement on a Form 1 functional basis for 2021 and 2025 (return on functional rate base at the allowed after-tax WACC, depreciation, O&M, taxes other than income, income taxes; general, intangible and A&G costs allocated to the scope by plant or O&M share; jurisdictional share applied), then the approved 2026 rate-case step. Computed in engine/lookback.py with the forward model's revenue-requirement structure."
+  },
+  "supply_side": {
+    "influence": "Influenced, not controlled, by the distribution utility: set by wholesale markets (PJM / NYISO auctions), FERC formula rates or fuel markets; the utility affects them only through its load, procurement and the resources it connects.",
+    "capacity_prices": {
+      "pjm": [
+        {
+          "delivery_year": "2021/2022",
+          "zone": "DOM",
+          "value": 140.0,
+          "unit": "$/MW-day (UCAP)",
+          "source": "PJM 2021/2022 BRA Report (May 2018 auction): rest-of-RTO RCP $140.00/MW-day; DOM, MAAC and SWMAAC not constrained (PEPCO and DOM clear at the RTO price)",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Zone price = the clearing price of the smallest constrained LDA containing it (derived from the report)."
+        },
+        {
+          "delivery_year": "2022/2023",
+          "zone": "DOM",
+          "value": 50.0,
+          "unit": "$/MW-day (UCAP)",
+          "source": "PJM 2022/2023 BRA Report (May 2021): rest-of-RTO $50.00/MW-day; MAAC constrained at $95.79 (PEPCO is in MAAC/SWMAAC, not separately constrained); DOM at the RTO price",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Zone price = the clearing price of the smallest constrained LDA containing it (derived from the report)."
+        },
+        {
+          "delivery_year": "2023/2024",
+          "zone": "DOM",
+          "value": 34.13,
+          "unit": "$/MW-day (UCAP)",
+          "source": "PJM 2023/2024 BRA Report (June 2022): rest-of-RTO $34.13; MAAC $49.49 (PEPCO); DOM at the RTO price",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Zone price = the clearing price of the smallest constrained LDA containing it (derived from the report)."
+        },
+        {
+          "delivery_year": "2024/2025",
+          "zone": "DOM",
+          "value": 28.92,
+          "unit": "$/MW-day (UCAP)",
+          "source": "PJM 2024/2025 BRA Report (Dec 2022): rest-of-RTO $28.92; MAAC $49.49 (SWMAAC not constrained, same as MAAC); DOM at the RTO price",
+          "as_of": "2026-11-02",
+          "status": "derived",
+          "notes": "Zone price = the clearing price of the smallest constrained LDA containing it (derived from the report)."
+        },
+        {
+          "delivery_year": "2025/2026",
+          "zone": "DOM",
+          "value": 444.26,
+          "unit": "$/MW-day (UCAP)",
+          "source": "shared/capacity_markets/PJM.json bra_history (PJM 2025/2026 BRA Report, July 2024): PEPCO $269.92, DOM $444.26",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "delivery_year": "2026/2027",
+          "zone": "DOM",
+          "value": 329.17,
+          "unit": "$/MW-day (UCAP)",
+          "source": "shared/capacity_markets/PJM.json bra_history (PJM 2026/2027 BRA Report, July 2025): RTO-wide cap $329.17",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "delivery_year": "2027/2028",
+          "zone": "DOM",
+          "value": 333.44,
+          "unit": "$/MW-day (UCAP)",
+          "source": "shared/capacity_markets/PJM.json bra_history (PJM 2027/2028 BRA, Dec 2025): RTO-wide cap $333.44",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      ],
+      "nyiso": null,
+      "note": "PJM DOM zone. From 2026 capacity costs move from base rates to the fuel factor (Final Order, PUR-2025-00058)."
+    },
+    "energy_supply_cents_kwh": [
+      {
+        "note": {
+          "value": null,
+          "unit": null,
+          "source": "No delivery-only customers in Virginia to separate the supply component; fuel factor history 2021-2026 not yet located",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    ],
+    "transmission": [
+      {
+        "note": {
+          "value": null,
+          "unit": null,
+          "source": "Rider T1 (transmission) annual updates 2021-2026 not yet located; transmission rate base growth (Form 1) is reported in the Form 1 inputs.",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    ]
+  },
+  "proceedings": [
+    {
+      "docket": "PUR-2021-00058",
+      "type": "triennial review (base rates)",
+      "filed": {
+        "value": "2021-03-31",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2021-00058 (18 Nov 2021)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": "2021-11-18",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2021-00058",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "from 2022",
+      "revenue_requested_m": {
+        "value": 0.0,
+        "unit": "$M",
+        "source": "SCC Order for Notice and Hearing, PUR-2021-00058 (16 Apr 2021): \"the Company does not propose an increase or decrease to overall revenues\" (revenue-neutral transfer of $330 million between generation and distribution)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": -50.0,
+        "unit": "$M a year",
+        "source": "SCC Final Order, PUR-2021-00058: \"the statutory maximum annual rate reduction of $50 million\", plus customer refunds totaling $330 million",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": 0.108,
+        "unit": "share",
+        "source": "SCC Order for Notice and Hearing (16 Apr 2021): \"The Company requests the Commission approve a 10.80% authorized ROE\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_granted": {
+        "value": 0.0935,
+        "unit": "share",
+        "source": "SCC Final Order, PUR-2021-00058: 9.35% ROE",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [
+        {
+          "quote": "the Commission approves customer refunds totaling $330 million and the statutory maximum annual rate reduction of $50 million",
+          "source": "SCC Final Order, PUR-2021-00058 (18 Nov 2021)"
+        }
+      ]
+    },
+    {
+      "docket": "PUR-2023-00101",
+      "type": "biennial review (base rates)",
+      "filed": {
+        "value": "2023-07",
+        "unit": "month",
+        "source": "Dominion Energy 2023 Form 10-K: \"In July 2023, Virginia Power filed its base rate case and accompanying schedules in support of the 2023 Biennial Review\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: final order date, PUR-2023-00101",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "status": "decided",
+      "revenue_requested_m": {
+        "value": 0.0,
+        "unit": "$M",
+        "source": "Dominion Energy 2023 Form 10-K: \"Virginia Power did not request an increase in base rates for generation and distribution services\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: final order outcome; 2023 legislation required a base rate reduction effective July 2023 (amount not confirmed from the order)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": "share",
+        "source": "2023 legislation set the ROE (Dominion Energy 2023 Form 10-K)",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_granted": {
+        "value": 0.097,
+        "unit": "share",
+        "source": "Dominion Energy 2023 Form 10-K: legislation provides the Commission \"will establish an authorized ROE of 9.70%\" in the 2023 Biennial Review",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": []
+    },
+    {
+      "docket": "PUR-2025-00058",
+      "type": "biennial review (base rates)",
+      "filed": {
+        "value": "2025-03-31",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2025-00058, n.1 (companion fuel application filed the same day); _VERIFY the base-rate application date",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "decided": {
+        "value": "2025-11-25",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2025-00058",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "rate_years": "2026 and 2027",
+      "revenue_requested_m": {
+        "value": [
+          822,
+          345
+        ],
+        "unit": "$M (2026; incremental 2027)",
+        "source": "SCC Final Order, PUR-2025-00058: \"requested a revenue increase of $822 million for 2026, and a further incremental revenue increase of $345 million for 2027\"; distribution portion $400.6M (2026), Attachment",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": [
+          565.7,
+          209.9
+        ],
+        "unit": "$M (2026; incremental 2027)",
+        "source": "SCC Final Order, PUR-2025-00058: \"an annual base rate revenue increase of $565.7 million for 2026, followed by ... $209.9 million for 2027\"; distribution $341.4M in 2026 (Attachment)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": 0.104,
+        "unit": "share",
+        "source": "SCC Final Order, PUR-2025-00058, ROE witness table: Dominion recommended 10.40%",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_granted": {
+        "value": 0.098,
+        "unit": "share",
+        "source": "SCC Final Order, PUR-2025-00058: \"a specific ROE of 9.8% is fair and reasonable\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "capital_adjustments": [
+        {
+          "item": "Data center capital expenditures and revenues (forecast reduced to executed agreements, Scenario 2)",
+          "amount_m": -10.685,
+          "effect": "reduced (not a disallowance); distribution -$7.996M of 2026 revenue requirement",
+          "quote": "a reduction in these forecasted expenditures from the Company's proposal is not a disallowance",
+          "source": "SCC Final Order, PUR-2025-00058 and Attachment line 9",
+          "status": "sourced"
+        },
+        {
+          "item": "Power generation capital spend",
+          "amount_m": -8.48,
+          "effect": "reduced (generation; 2026 revenue requirement)",
+          "quote": "Dominion has not established that 100% of its forecasted Power Generation Capital ...",
+          "source": "SCC Final Order, PUR-2025-00058 and Attachment line 13",
+          "status": "sourced"
+        }
+      ],
+      "commission_reasons": [
+        {
+          "quote": "Dominion has not established that 100% of its forecasted data center expenditures are reasonably predicted to occur during the rate years.",
+          "source": "SCC Final Order, PUR-2025-00058"
+        }
+      ]
+    },
+    {
+      "docket": "PUR-2021-00142",
+      "type": "rider (Rider OSW, Coastal Virginia Offshore Wind; generation)",
+      "filed": {
+        "value": "2021-11-05",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2021-00142 (5 Aug 2022)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": "2022-08-05",
+        "unit": "date",
+        "source": "SCC Final Order, PUR-2021-00142; Order on Reconsideration 15 Dec 2022",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "status": "decided",
+      "revenue_requested_m": {
+        "value": 78.702,
+        "unit": "$M, first rate year",
+        "source": "SCC Order on Reconsideration, PUR-2021-00142 (15 Dec 2022): \"the Commission has approved the costs requested at this time for Rider OSW ... a first-year revenue requirement of $78,702 million\" (sic: $78.702 million)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": 78.702,
+        "unit": "$M, first rate year",
+        "source": "SCC Order on Reconsideration, PUR-2021-00142 (15 Dec 2022)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": "share",
+        "source": "Rider ROE follows the base-rate ROE",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_granted": {
+        "value": null,
+        "unit": "share",
+        "source": "Rider ROE follows the base-rate ROE",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "capital_adjustments": [
+        {
+          "item": "Performance standard on the $9.8 billion project",
+          "amount_m": null,
+          "effect": "customers held harmless for output below a 42% net capacity factor",
+          "quote": "customers shall be held harmless for any shortfall in energy production below an annual net capacity factor of 42%",
+          "source": "SCC Final Order, PUR-2021-00142 (5 Aug 2022)",
+          "status": "sourced"
+        }
+      ],
+      "commission_reasons": []
+    }
+  ],
+  "class_allocation": [
+    {
+      "docket": "PUR-2025-00058",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": null,
+        "source": "Not located: residential share of the 2026 increase (Staff revenue apportionment, Ex. 98)",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": 0.3073,
+        "unit": "share",
+        "source": "EIA Form 861, 2024 (Dominion_VA.json residential_sales_share, VA + NC)",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_before": {
+        "value": 7.58,
+        "unit": "$/month",
+        "source": "Dominion_VA.json starting_bill: Schedule 1 basic customer charge $7.58",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "customer_charge_after": {
+        "value": 7.58,
+        "unit": "$/month",
+        "source": "SCC Final Order, PUR-2025-00058: approves \"the existing Basic Customer Charges for the Residential and GS-1 customer classes\"",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    }
+  ]
+}

@@ -96,6 +96,8 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 
 **Residential vs non-residential.** By default the pool's customer share is split by sales, as today's delivery rates do. `mechanism.customer_allocation` can split it equally per customer (EIA-861 counts) or by a custom share. Costs follow the benefits they buy, and only savings are reallocated: the network revenue-requirement reduction net of earnings. Program costs and load-following savings stay split by sales. Per customer, Central residential savings rise from $10.5B to $26.2B for Con Edison, $6.1B to $10.3B for Dominion, $1.9B to $3.2B for RG&E and $1.8B to $2.2B for Pepco (METHODOLOGY 3.10b; export `allocation_sweep`).
 
+**How each utility got here, 2021–2026.** A look-back module (`engine/lookback.py`, METHODOLOGY section 12) compares the 2021 and 2026 residential bills. It bridges the distribution revenue requirement from 2021 to 2026 (FERC Form 1 plus the approved 2026 rate-case step) and tracks supply-side prices. It also lists every rate case, asked against granted. Every figure carries a source and a status.
+
 **What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
 - The energy efficiency saves, valued at today's residential supply rate.
 - Wholesale energy, avoided transmission and avoided losses.
