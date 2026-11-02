@@ -1,16 +1,19 @@
 # GridDividend methodology
 
-*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 2 November 2026: published-plan BAU (2.5, 3.3a), avoided-obligation capacity (3.6a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
+*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 2 November 2026: published-plan BAU (business as usual, following the utility's own investment plan; 2.5, 3.3a), avoided-obligation capacity (the capacity the utility no longer has to buy; 3.6a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
 
 This document explains how GridDividend works. It is written for a policy reader who is comfortable with numbers but is not a modeller. Sections marked **Technical detail** give the equations and code-level behaviour; they can be skipped without losing the thread.
 
+**New to the terms?** [GLOSSARY.md](GLOSSARY.md) defines every bill component, ratemaking term and model term in plain language.
+
 Related documents:
+- [GLOSSARY.md](GLOSSARY.md): plain-language definitions (parts of a bill, how rates are set, terms in the model).
 - [ASSUMPTIONS.md](ASSUMPTIONS.md): every input, by utility, with its value, source, as-of date and status (generated from the JSON).
 - [utilities/](utilities/): data notes for each utility.
 - [../README.md](../README.md): headline results.
 - [../CHANGELOG.md](../CHANGELOG.md): what changed, and its effect on results.
 
-Notation in the equations: `x` is multiplication, `t` is years since 2026, `^` is a power, and `(1 + g)^t` grows a 2026 value at rate `g` a year. "SS" means the shared savings case.
+Notation in the equations: `x` is multiplication, MW is megawatts and kWh kilowatt-hours, `t` is years since 2026, `^` is a power, and `(1 + g)^t` grows a 2026 value at rate `g` a year. "SS" means the shared savings case.
 
 ---
 
@@ -43,7 +46,7 @@ Under shared savings, flexibility becomes core utility business. Here flexibilit
 - energy efficiency.
 
 Flexibility creates value in five ways:
-- It defers network reinforcement.
+- It defers network reinforcement (grid upgrades).
 - It lowers capacity, wholesale energy, transmission and loss costs.
 - It lets new customers connect sooner where the grid is constrained.
 - The utility earns a share of the savings it creates. That share is its **shared savings earnings**, the earnings opportunity the reform offers.
@@ -78,10 +81,10 @@ The range shows how much the outcome depends on choices regulators and utilities
 Each run projects two cases, year by year, from 2026 to 2050.
 
 - **Business as usual (BAU):** the utility invests as its published capital plan says (2.5). Program surcharges stay on the bill, and today's flexibility programs continue at their current size.
-- **Shared savings (SS):** from the **transition year** (2028 for all four utilities), core programs leave the surcharges and become utility spending recovered in rates.
+- **Shared savings (SS):** from the **transition year** (2028 for all four utilities), core programs (programs that become utility business) leave the surcharges and become utility spending recovered in rates.
   - The utility grows flexible resources and efficiency along a target path.
-  - Flexible headroom defers reinforcement or connects waiting load.
-  - The resulting savings form a pool. The utility keeps a share as shared savings earnings.
+  - Flexible headroom (grid space freed by flexibility) defers reinforcement or connects waiting load.
+  - The resulting savings form a pool (the savings pool: the net saving before it is split). The utility keeps a share as shared savings earnings.
 
 Both cases share the same load growth, prices and network. The difference between them is the effect of the reform.
 
@@ -100,7 +103,7 @@ Two adjustments are made at year zero (see [3.1](#31-starting-bill)):
 - Where capacity is embedded in another line, it is split out.
 - Pepco's authorised but not yet billed increase is added.
 
-System figures (rate base, capex, revenue, ROE, equity ratio, customers, peak, energy) come from each utility's rate case. They are the same figures the earlier model uses.
+System figures (rate base (the value of the utility's invested assets), capex (capital spending), revenue, ROE (allowed return on equity), equity ratio (the share financed by shareholders), customers, peak, energy) come from each utility's rate case. They are the same figures the earlier model uses.
 
 ### 2.3 Projection, 2026–2050
 
@@ -108,7 +111,7 @@ Each bill category is projected on its own driver:
 
 | Category | Driver |
 |---|---|
-| Distribution base and riders | Wires revenue requirement per kWh delivered |
+| Distribution base and riders | Wires revenue requirement (what the utility may collect for the local wires) per kWh delivered |
 | Program surcharges | Core surcharges: grow with the surcharge growth rate in BAU, removed in SS from the transition year. Non-core surcharges: grow in both cases |
 | Supply energy | Supply energy growth rate; lowered in SS by wholesale-energy and loss-energy savings |
 | Capacity | Zonal capacity price x capacity MW, per kWh delivered |
@@ -120,7 +123,7 @@ Each bill category is projected on its own driver:
 
 Each input with uncertainty has a **low / central / high** value. A scenario picks a level for each input.
 
-| Scenario | Programs | Deferral | Load enabled | Everything else |
+| Scenario | Programs (flexibility and efficiency as core business) | Deferral (grid upgrades deferred) | Load enabled (new load connected sooner) | Everything else |
 |---|---|---|---|---|
 | Cautious | low | low | low | central |
 | Central | central | central | central | central |
@@ -129,16 +132,16 @@ Each input with uncertainty has a **low / central / high** value. A scenario pic
 **What "low" and "high" mean.** The levels are labels in the JSON, oriented within each layer:
 - In the programs, deferral and load-enabled layers, "low" is the cautious end and "high" the ambitious end. The programs level moves more than MW and cost:
   - fewer MW and higher cost per kW-year;
-  - lower derates;
+  - lower derates (the share of flexible MW counted on at peak);
   - higher capitalised shares, so the cost timing changes too;
-  - a lower `ee_kw_per_mwh`;
+  - a lower `ee_kw_per_mwh` (peak kW saved per MWh of efficiency);
   - a lower efficiency savings rate;
   - fewer flexible connections with more curtailment;
   - tighter ramp limits.
 
-  The deferral level sets the locational match. The load-enabled level sets the enable share, the connection cost and the incremental O&M.
-- In the mechanism layer, "low" is a *larger* utility share (40%) and "high" a smaller one (10%).
-- In the ROE layer, "low" is −60 basis points and "high" +60.
+  The deferral level sets the locational match (the share of flexibility sited where the grid needs it). The load-enabled level sets the enable share, the connection cost and the incremental O&M.
+- In the mechanism layer (the utility's share of the savings), "low" is a *larger* utility share (40%) and "high" a smaller one (10%).
+- In the ROE layer (the utility's allowed return on equity), "low" is −60 basis points (−0.6 percentage points) and "high" +60.
 
 **What scenarios hold fixed.** Load growth, prices, network inputs and the utility share stay at central in every scenario. The range therefore isolates program ambition, cost and siting.
 
@@ -162,49 +165,49 @@ BAU is what the utility says it will do. By default (`bau_plan.basis: 'published
   - Each plan records the load growth it assumes:
     - Con Edison 0.7% a year (its 10-K forecast);
     - Pepco 0.33% (its Maryland Ten-Year Plan);
-    - Dominion 1.88% (its own 2025 Company Load Forecast for the DOM LSE, which includes Dominion-served data centres);
-    - RG&E 3.0% (Gold Book Zone B, proxy).
+    - Dominion 1.88% (its own 2025 Company Load Forecast for the DOM LSE (Dominion's own load in PJM's DOM zone), which includes Dominion-served data centres);
+    - RG&E 3.0% (Gold Book Zone B: NYISO's annual load forecast for the Rochester area; proxy).
   - In the plan years, the growth category is scaled by the model's load growth relative to that assumption. Replacement, grid modernisation and other stay on plan.
   - Plan capex fixed regardless of load remains a setting.
 - **Electrification pace** (`electrification_pace`, central `utility_forecast`).
   - Central BAU load is calibrated to the forecast behind each utility's plan, so the load link's scale factor is 1.0 at plan end.
   - `state_policy` keeps the model's electrification assumptions (state policy pace). The difference is reported as the additional opportunity if electrification follows state policy (`electrification_pace_table()`).
-- **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced for Con Edison and RG&E. **Dominion and Pepco use the New York splits as a proxy** (`_VERIFY`); neither publishes one.
+- **Plan capex is split into categories:** growth-driven, asset replacement, grid modernisation / resilience, and other. The split is sourced for Con Edison and RG&E. **Dominion and Pepco use the New York splits as a proxy** (`_VERIFY`: an estimate awaiting confirmation); neither publishes one.
 - **Each category has an addressable share:** the part that flexibility, efficiency and better planning could defer, avoid or right-size under shared savings (3.3a).
 - **Transmission** follows its own published plan and stays on its bill line, where it is one (Dominion and Pepco). In New York, transmission is recovered in delivery rates and is part of the plan's electric capex.
-- **The network model no longer generates BAU capex.** It still models capacity, waiting load and the Upgrade Delay, and it estimates how much of the plan's growth-driven spending is deferrable, and where.
+- **The network model no longer generates BAU capex.** It still models capacity, waiting load and the Upgrade Delay (the wait for a grid upgrade before a new customer can connect), and it estimates how much of the plan's growth-driven spending is deferrable, and where.
 - **Other bill components:**
   - Capacity uses published auction prices where they exist (PJM 2027/28 at $333.44/MW-day).
   - Transmission follows the plans above.
   - Supply energy and program surcharges keep their growth rates (no utility-specific published forecast was found).
   - Shared savings influences these lines (capacity, wholesale energy, transmission and losses) but does not eliminate them.
 
-The earlier, model-derived BAU remains selectable (`basis: 'model'`) and reproduces the earlier results exactly (tested).
+The earlier, model-derived BAU remains selectable (`basis: 'model'`: capex generated by the network model) and reproduces the earlier results exactly (tested).
 
-> **Technical detail.** `scenario_overrides()` builds `{(layer, param): level}` from `scenarios[name]['levels']`. A key can name a layer (`'programs'`) or one input (`'programs.cost_kw_yr_dr'`), and anything unlisted takes `default_level`. Central returns only its network values. The tornado and `project_layers()` without a scenario use every input at `level` (default central), which equals Central.
+> **Technical detail.** `scenario_overrides()` builds `{(layer, param): level}` from `scenarios[name]['levels']`. A key can name a layer (`'programs'`) or one input (`'programs.cost_kw_yr_dr'`), and anything unlisted takes `default_level`. Central returns only its network values. The tornado (one input moved at a time) and `project_layers()` without a scenario use every input at `level` (default central), which equals Central.
 
 ---
 
 ## 3. The layers
 
-Each layer has its own switch (`enabled`). The waterfall adds them in this order.
+Each layer has its own switch (`enabled`). The waterfall (the bill stepping from BAU to shared savings one layer at a time) adds them in this order.
 
 | # | Layer | One line |
 |---|---|---|
 | — | Starting bill | Today's bill, line by line |
-| 1 | System needs | Load growth, peak, growth vs asset-condition capex (both cases) |
+| 1 | System needs (load growth and the grid it needs) | Load growth, peak, growth vs asset-condition capex (both cases) |
 | — | Network capacity | Loading bands, constrained sub-band, reinforcement, Upgrade Delay for Interconnection (both cases) |
-| — | Published-plan BAU | BAU distribution capex from the utility's plan; addressable shares by category (3.3a) |
-| 2 | Programs as core business | Surcharges leave the bill; flexible MW and efficiency paid for in rates |
-| 3 | Deferral | Flexible headroom counted by the planner, so reinforcement is ordered later |
-| 4 | Load enabled | Flexible headroom connects waiting load sooner |
-| 5 | Capacity | Firm MW avoided at the zonal capacity price |
-| 6 | Wholesale energy | Flexible load shifted from on-peak to off-peak hours |
-| 7 | Avoided transmission | Transmission cost avoided by peak reduction |
-| 8 | Avoided distribution losses | Marginal losses avoided |
-| 8a | Additional savings objective | Savings the utility commits to find by unspecified means (default 0%) |
-| 9 | Shared savings mechanism | The utility's share of the pool |
-| 10 | ROE lever | Allowed ROE vs BAU, outside the pool |
+| — | Published-plan BAU (the utility's own investment plan) | BAU distribution capex from the utility's plan; addressable shares by category (3.3a) |
+| 2 | Programs as core business (flexibility and efficiency run by the utility) | Surcharges leave the bill; flexible MW and efficiency paid for in rates |
+| 3 | Deferral (grid upgrades deferred) | Flexible headroom counted by the planner, so reinforcement is ordered later |
+| 4 | Load enabled (new load connected sooner) | Flexible headroom connects waiting load sooner |
+| 5 | Capacity (less capacity to buy) | Firm MW avoided at the zonal capacity price |
+| 6 | Wholesale energy (energy bought off-peak instead of on-peak) | Flexible load shifted from on-peak to off-peak hours |
+| 7 | Avoided transmission (lower transmission costs) | Transmission cost avoided by peak reduction |
+| 8 | Avoided distribution losses (less energy lost on the wires) | Marginal losses avoided |
+| 8a | Additional savings objective (extra savings the utility commits to find) | Savings the utility commits to find by unspecified means (default 0%) |
+| 9 | Mechanism (the utility's share of the savings) | Splits the pool between the utility (shared savings earnings) and customers |
+| 10 | ROE lever (the utility's allowed return) | Allowed ROE vs BAU, outside the pool |
 
 Each subsection below covers:
 - what the layer represents;
@@ -235,7 +238,7 @@ For Dominion the carved-out amount is split 91.5% from base generation and 8.5% 
 
 *Starting adjustments* (Pepco): the residential increase authorised by Order No. 92607 (+$3.94/month) is added, because the tariff in effect at the as-of date was pre-case.
 
-**Inputs.** The `starting_bill` lines (rate, unit, category, section, core flag, source, status); `capacity_carve_out`; `starting_adjustments`.
+**Inputs.** The `starting_bill` lines (rate, unit, category, section, core flag, source, status); `capacity_carve_out` (capacity split out of the line it is hidden in); `starting_adjustments` (known changes not yet on the bill).
 
 **Interactions.** Every projected line is the starting line x its driver. The core program surcharges set today's program spend (see 3.4). The residential share of that spend sets how the SS rider is allocated.
 
@@ -378,7 +381,7 @@ These are all listed in [ASSUMPTIONS.md](ASSUMPTIONS.md); upgrade cost per MW is
 > ```
 > D_b,t = load_share_b x DN_t + (growth_share_b - load_share_b) x (DN_t - DN0) - EE_MW_t x load_share_b
 > ```
-> `band_mode: 'generated'` makes `n_bands` equal-capacity bands at `mean + spread x (0.5 - i / (n - 1))`. If `mean_utilisation` is null, `mean` is the capacity-weighted mean of the explicit bands. Each band is capped at 1.0. A non-null `mean_utilisation` shifts every band by one amount (bisection) so the capacity-weighted mean equals it, each band capped at 1.0. The sub-band takes `share x DN0` of load and `share x DN0 / U` of capacity from the most loaded bands in turn, moving their growth and flex shares with the load; capacity shares are then recomputed.
+> `band_mode: 'generated'` (bands generated from a mean and a spread, instead of listed) makes `n_bands` equal-capacity bands at `mean + spread x (0.5 - i / (n - 1))`. If `mean_utilisation` is null, `mean` is the capacity-weighted mean of the explicit bands. Each band is capped at 1.0. A non-null `mean_utilisation` shifts every band by one amount (bisection) so the capacity-weighted mean equals it, each band capped at 1.0. The sub-band takes `share x DN0` of load and `share x DN0 / U` of capacity from the most loaded bands in turn, moving their growth and flex shares with the load; capacity shares are then recomputed.
 >
 > *Existing load served.* `G_b = min(load_share_b x DN0, operating_limit x C0_b)`.
 >
@@ -504,7 +507,7 @@ After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inpu
 
 ### 3.4 Programs as core business (layer 2)
 
-**What it represents.** Under shared savings, utility-run programs (demand response, efficiency, electrification, DER and non-wires programs) stop being bill surcharges. They become utility spending recovered in rates: operating cost, plus a capitalised share in a regulatory asset. The utility then grows flexible resources by type, and efficiency, along a target path.
+**What it represents.** Under shared savings, utility-run programs (demand response, efficiency, electrification, DER and non-wires programs) stop being bill surcharges. They become utility spending recovered in rates: operating cost, plus a capitalised share in a regulatory asset (a cost recovered over several years, earning a return meanwhile). The utility then grows flexible resources by type, and efficiency, along a target path.
 
 **Calculation.**
 
@@ -550,7 +553,7 @@ SS program spend_t  = BAU program spend_t + flexible cost_t + EE cost_t        (
 capitalised_t       = sum_k flexible cost_k x capitalised_k + EE cost x ee_capitalised + BAU spend x existing_capitalised
 program opex_t      = SS spend_t - capitalised_t
 regulatory asset    = previous + capitalised_t - amortisation_t   (straight line over amortisation_years, from the next year)
-program RR_t        = program opex_t + amortisation_t + regulatory asset_t x WACC
+program RR_t        = program opex_t + amortisation_t + regulatory asset_t x WACC          (WACC: weighted average cost of capital)
 ```
 
 **Bill effect.**
@@ -618,7 +621,7 @@ incremental O&M_t      = MW connected sooner x 8.76 x load factor x incremental_
 **Inputs.**
 - `locational_match`.
 - `enable_share`, `connection_cost_kw`, `incremental_om_mwh`.
-- `uplift_mode`, `direct_uplift_pct`, `customer_funded_share`.
+- `uplift_mode`, `direct_uplift_pct`, `customer_funded_share` (the share of an upgrade new customers would otherwise pay).
 - Flexibility targeting (network block).
 
 **Double counting.**
@@ -656,7 +659,7 @@ capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - 
 - The New York zones read `shared/capacity_markets/NYISO.json`, and Dominion reads `PJM.json` (DOM, $0.12M per MW-year).
 - Under published-plan BAU, `published_prices` set later years where an auction has cleared: PJM 2027/28 at the $333.44/MW-day cap, from 2027, then `price_growth`.
 - `price_path: 'long_run'` (sensitivity) ramps the price linearly from 2026 to the long-run cost of new entry by `long_run_year` (2040), then grows it with inflation:
-  - PJM: Brattle's 2025 CONE study, indicative Net CONE $528/MW-day UCAP = $192.7/kW-year, 2025 $. PJM's own 2027/28 Net CONE for DOM ($178/MW-day) and PEPCO ($292/MW-day) is below today's capped price.
+  - PJM: Brattle's 2025 CONE study, indicative Net CONE (net cost of new entry: what a new peaking plant needs from the capacity market) $528/MW-day UCAP (capacity after allowing for outages) = $192.7/kW-year, 2025 $. PJM's own 2027/28 Net CONE for DOM ($178/MW-day) and PEPCO ($292/MW-day) is below today's capped price.
   - New York: $200/kW-year. Brattle's study for NY DPS and NYSERDA (Jan 2025, Case 24-E-0165; reported by Utility Dive, 5 Feb 2025) puts avoided generation capacity cost above $200/kW-year on a fully decarbonized grid in 2040, from NREL data. The NYISO market monitor's levelized Net CONE for the 2-hour battery reference unit is also $200/kW-year UCAP (2025–2029 reset). RG&E uses the same value as a proxy.
 
 **Interactions.** Avoided-loss peak MW (3.9) lower the capacity bill line; their value is booked in the losses layer, not here. Capacity cost is in the savings pool.
@@ -690,7 +693,7 @@ The six elements:
   - Con Edison: the NYC locational requirement, 86.4% of NYC peak (CHPE-in; 82.6% CHPE-out, the low level), at the NYC price. The rest of the NYCA requirement, (1 + 24.5%) - 86.4% = 0.381, is at the Rest of State price (`secondary_*`).
   - RG&E: the NYCA requirement, 124.5% of peak (IRM 24.5%, 2026-27).
 - **(b) Accreditation** by resource type, replacing the programs derates in this formulation.
-  - PJM 2028/29 ELCC class ratings: Demand Resource 91%; storage 4-hr 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%; fixed-tilt solar 7%.
+  - PJM 2028/29 ELCC (effective load-carrying capability: how much a resource counts at peak) class ratings: Demand Resource 91%; storage 4-hr 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%; fixed-tilt solar 7%.
   - NYISO 2026-27 capacity accreditation factors (NYC Locality for Con Edison, Rest of State for RG&E; CHPE-In central and high, CHPE-Out low): Special Case Resources 70.2% / 74.2%; 4-hour storage 84.4% / 84.6%; solar 11.2% / 13.9%.
   - Storage is read from `accr_storage_by_duration` at `storage_duration_hr` (4).
   - Managed EV charging has no class in either market and keeps the programs derate (`_VERIFY`).
@@ -714,7 +717,7 @@ The six elements:
   - NYISO elasticity = 1 / (zero-crossing point - 1): NYC 5.56 (118%), NYCA 8.33 (112%).
   - PJM 16.7 (`_VERIFY`): the slope of PJM's proposed RTO VRR curve, 0.5 x cap between 101.5% and 104.5% of the requirement. It starts in 2030, after the auctions that cleared at the cap.
 
-**Results** (utility-forecast pace; 2026–2050; customer savings and the capacity layer are $B undiscounted nominal, with NPV 3% in 2026 $ in brackets; monthly savings are the average residential bill, $/month nominal). The capacity layer is the capacity cost avoided: firm MW x price in the embedded formulation, and the avoided obligation in the default. `engine.layers.capacity_formulation_table()` produces it.
+**Results** (utility-forecast pace; 2026–2050; customer savings and the capacity layer are $B undiscounted nominal, with NPV 3% (net present value, discounted at 3% a year) in 2026 $ in brackets; monthly savings are the average residential bill, $/month nominal). The capacity layer is the capacity cost avoided: firm MW x price in the embedded formulation, and the avoided obligation in the default. `engine.layers.capacity_formulation_table()` produces it.
 
 | Utility | Scenario | Formulation | Capacity layer $B (NPV 3%) | Customer savings $B (NPV 3%) | Monthly saving 2035 ($) | Monthly saving 2050 ($) |
 |---|---|---|---|---|---|---|
@@ -782,7 +785,7 @@ The six elements:
 - It supports the coincidence adjustment: the system is winter-peaking, while managed EV charging relieves mainly summer-peaking locations, so distribution relief and system-peak relief do not coincide in full.
 
 **Limitations.**
-- The obligation factors are applied to the price inputs as given. The NYISO ICAP-to-UCAP translation is not modelled (`_VERIFY`).
+- The obligation factors are applied to the price inputs as given. The NYISO ICAP-to-UCAP (installed to unforced capacity) translation is not modelled (`_VERIFY`).
 - Con Edison's Rest of State price is RG&E's 2026 price input (`_VERIFY`), held in a fixed ratio to the NYC price.
 - `local_coincidence` is an assumption pending feeder load shapes.
 - PJM accreditation is for 2028/29. Ratings change each auction, and most fall as winter risk grows (2029/30: 4-hour storage 57%).
@@ -808,7 +811,7 @@ The three value layers (3.7–3.9) apply only in shared savings once programs ar
 - `spread_mwh`: the PJM 2025 State of the Market on/off-peak spread; New York uses it as a `_VERIFY` proxy.
 - `mwh_per_mw_*`: NYISO 2025 demand-response event-hours for demand response and other DER; managed EV and storage are `_VERIFY`.
 - `offpeak_price_mwh`, `storage_rte` (0.85).
-- `in_pool`.
+- `in_pool` (whether the value counts in the shared-savings pool).
 
 **Double counting.**
 - Only incremental flexible MW, so the layer is zero without them (tested).
@@ -829,7 +832,7 @@ firm MW_t        = min(firm flexible MW + EE MW, peak)
 transmission_t   = firm MW x cost_kw_yr x 1000 x avoidable_share x (1 + transmission_growth)^t / 1e6     ($M)
 ```
 
-**Bill effect** (`bill_basis`):
+**Bill effect** (`bill_basis`: which bill lines the saving lowers):
 - **'delivery'** (New York, where transmission is recovered in delivery rates): the distribution lines fall by `transmission_t / wires RR`.
 - **'transmission_lines'** (PJM): the transmission lines fall by `transmission_t / (peak x cost_kw_yr x 1000 x growth / 1e6)`.
 
@@ -839,7 +842,7 @@ transmission_t   = firm MW x cost_kw_yr x 1000 x avoidable_share x (1 + transmis
   - **Why it is about one-twelfth of Con Edison's value:** marginal cost studies measure load-related expansion. RG&E's 115 kV system had little load-driven transmission investment in the 2015 study, while Con Edison's serves dense, growing NYC load areas.
   - **Escalation:** Con Edison's value is escalated to 2026 as its handbook directs; RG&E's is not, because its handbook gives no rule.
   - **No update yet:** no 2025 RG&E MCOS update (under the August 2024 PSC order) was located.
-- `avoidable_share`: New York 1.0. PJM 0 / 0.5 / 1.0, because network service rates are average embedded costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run. `_VERIFY`.
+- `avoidable_share` (the share of the cost per kW that a lower peak avoids): New York 1.0. PJM 0 / 0.5 / 1.0, because network service rates are average embedded costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run. `_VERIFY`.
 - `bill_basis`, `in_pool`.
 
 **Limitations.** PJM avoided transmission is a range, not a point estimate.
@@ -857,7 +860,7 @@ This is the `'single'` formulation. It is the default and is unchanged. 3.8a des
 The state mechanism can therefore **count avoided transmission charges as customer savings** and include them in the shared-savings pool. It **cannot set the utility's transmission return**, change the zonal revenue requirement or direct the RTO's planning. The ROE lever (3.11) applies to the distribution business only.
 
 **(a) Allocation effect (`allocation_effect`).** A lower peak lowers these customers' share of existing transmission costs.
-- **PJM** (`'zonal_share'`): the zone's ATRR is fixed by formula rate and shared by network service peak load. With the utility's share s of the zone peak Pz and a peak reduction d (firm flexible MW + efficiency MW, as in 3.8):
+- **PJM** (`'zonal_share'`): the zone's ATRR (annual transmission revenue requirement) is fixed by formula rate (a FERC rate reset each year from actual costs) and shared by network service peak load. With the utility's share s of the zone peak Pz and a peak reduction d (firm flexible MW + efficiency MW, as in 3.8):
 
 ```
 saving_t        = ATRR_t x (s - (s x Pz - d) / (Pz - d)) = rate_t x d x (1 - s) x Pz / (Pz - d)      ($M)
@@ -865,7 +868,7 @@ cost shifted_t  = saving_t                    (paid by the other customers in th
 rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t / s
 ```
 
-  The inputs are derived from PJM's June 2026 ATRR and NITS rate sheet (zone NSPL = ATRR / rate):
+  The inputs are derived from PJM's June 2026 ATRR and NITS (network integration transmission service) rate sheet (zone NSPL, network service peak load, = ATRR / rate):
   - DOM: zone NSPL 24,678 MW, with Dominion's share 0.810 (20,000 MW). The rest is co-operative and municipal load.
   - PEPCO: zone NSPL 6,016 MW, with Pepco MD's share 0.606 (3,644 MW). The rest is Pepco DC and SMECO.
 
@@ -875,15 +878,15 @@ rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t 
 **(b) Avoided build.** This is the deferral of load-driven transmission investment.
 - **Investment base (`transmission_plan_capex()`):**
   - PJM: from the published transmission rate base path (`bau_plan.transmission_plan_rate_base_m`), with investment = RB_t − RB_{t−1} × (1 − 3.5% decay). That gives Dominion about $2.4–2.9B a year (2026–2030) and Pepco $325–400M a year. Beyond the plan it grows at `transmission_growth`.
-  - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1): Con Edison 0.304, RG&E 0.205 (derived).
+  - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1: the annual financial report utilities file with FERC): Con Edison 0.304, RG&E 0.205 (derived).
 - **Load-driven share (`load_driven_share`, low / central / high).** Retirement, market efficiency, equipment condition and public policy projects are excluded.
 
 | Utility | Low / central / high | Status | Derivation |
 |---|---|---|---|
-| Dominion | 0.300 / 0.667 / 0.746 | derived | PJM 2024 RTEP Report (Fig. 1.9, Fig. 3.4): baseline $5.92B (deliverability $5.515B, driven by load growth in the Dominion zone and amplified by >2 GW of deactivations); supplemental $9.07B (customer service $4.49B, equipment condition $3.3B, operational flexibility $0.11B, multi-driver $1.17B). Low = customer service / total; central = (baseline deliverability + customer service) / total; high = also multi-driver. PJM-wide shares, dominated by the DOM zone. |
+| Dominion | 0.300 / 0.667 / 0.746 | derived | PJM 2024 RTEP (Regional Transmission Expansion Plan) Report (Fig. 1.9, Fig. 3.4): baseline $5.92B (deliverability $5.515B, driven by load growth in the Dominion zone and amplified by >2 GW of deactivations); supplemental $9.07B (customer service $4.49B, equipment condition $3.3B, operational flexibility $0.11B, multi-driver $1.17B). Low = customer service / total; central = (baseline deliverability + customer service) / total; high = also multi-driver. PJM-wide shares, dominated by the DOM zone. |
 | Pepco MD | 0 / 0 / 0.300 | derived | 2024 RTEP, Maryland/DC tables: no PEPCO-zone baseline projects, and its supplemental projects are all equipment-condition breaker replacements. High = the PJM-wide customer-service share. |
-| Con Edison | 0.25 / 0.5 / 0.75 | derived (count) | 2025 LTP: NYC needs have four drivers (load, retirements, no new generation, loss-of-generation design basis), so low = 1 of 4. Three of four named projects are load-serving substations (Brooklyn Clean Energy Hub, Eastern Queens, Sunset Park), so high = 3 of 4. No project costs are published, so these are counts, not dollars. |
-| RG&E | 0 / 0.25 / 0.5 | `_VERIFY` | Avangrid 2025 LTP, Rochester: the projects are reliability or CLCPA. None is attributed to load, so the share is not derivable. |
+| Con Edison | 0.25 / 0.5 / 0.75 | derived (count) | 2025 LTP (local transmission plan): NYC needs have four drivers (load, retirements, no new generation, loss-of-generation design basis), so low = 1 of 4. Three of four named projects are load-serving substations (Brooklyn Clean Energy Hub, Eastern Queens, Sunset Park), so high = 3 of 4. No project costs are published, so these are counts, not dollars. |
+| RG&E | 0 / 0.25 / 0.5 | `_VERIFY` | Avangrid 2025 LTP, Rochester: the projects are reliability or CLCPA (New York's 2019 climate law: public policy). None is attributed to load, so the share is not derivable. |
 
 - **Deferral.** In proportion to the planning-peak reduction from the scenario's firm flexibility and flexible large-load connections, lagged by `planning_lag_years` (setting; 7, range 5–10):
 
@@ -1066,7 +1069,7 @@ true-up     = if the year-end balance is above schedule, next year's credit is p
 
 **Recovery fix.** The schedule now tracks the credits actually paid. Before, it assumed every planned credit was paid. When the true-up paused a credit, the actual balance fell below the scheduled balance, so "recover what is needed to return to schedule" asked for nothing until interest closed the gap. That is why Con Edison's pool-based run recovered nothing in 2029–2037 while the pool was positive: a $7M shortfall in 2028 (the pool that year was $8M) paused the 2029 credit. It was neither the cap nor carry-forward.
 
-**What the utility earns.** Under `utility_regulatory_asset`, the return on the balance (`advance_return_m`) is the utility's, reported separately from shared savings earnings. Under securitisation (the default) it is interest to bondholders. With bill-savings recovery, shared savings earnings are unaffected.
+**What the utility earns.** Under `utility_regulatory_asset`, the return on the balance (`advance_return_m`) is the utility's, reported separately from shared savings earnings. Under securitisation (financing with low-cost bonds repaid by a dedicated charge; the default) it is interest to bondholders. With bill-savings recovery, shared savings earnings are unaffected.
 
 **Identities (tested).**
 - Credits + financing − recoveries = the balance left in 2050.
@@ -1271,7 +1274,7 @@ Faster connections benefit the customers being connected, so they are reported s
   - data-centre flexibility at Ambitious (flexible-connection share and curtailment at their high levels);
   - the three beyond-plan paths.
 
-- **Results export** (`scripts/export_results.py`, `exports/<utility>.json`): every scenario × electrification pace. The Sankey value flows decompose customer savings exactly as `system_summary()` adds them up:
+- **Results export** (`scripts/export_results.py`, `exports/<utility>.json`): every scenario × electrification pace. The Sankey value flows (a diagram of where the savings come from and who receives them) decompose customer savings exactly as `system_summary()` adds them up:
   - **Gross value:** deferral (BAU − SS wires revenue requirement, less the objective's share), capacity, transmission, losses, wholesale, efficiency energy and the additional savings objective (3.9a).
   - **Program costs:** a deduction (BAU surcharges − SS program revenue requirement).
   - **Split of the net value:** residential customers and business customers (by the residential share of sales, EIA-861), and shared savings earnings.
@@ -1501,6 +1504,8 @@ These need a decision before they are changed:
 
 ## 11. Glossary
 
+The full plain-language glossary, in three groups (parts of a bill, how rates are set, terms in the model), is [GLOSSARY.md](GLOSSARY.md). The table below keeps the model's network and mechanism terms in short form.
+
 | Term | Meaning |
 |---|---|
 | **Above planning limit (MW)** | Served load above planning capacity plus counted headroom; Dominion's "constrained" basis |
@@ -1600,9 +1605,9 @@ Note: the EIA series was corrected in this revision. It previously carried North
 
 ### 12.4 Distribution revenue-requirement bridge, 2021 → 2026
 
-The bridge runs 2021 → 2025 on a FERC Form 1 functional basis, then adds the approved 2026 rate-case step.
+The bridge runs 2021 → 2025 on a FERC Form 1 functional basis (costs sorted by function: generation, transmission, distribution), then adds the approved 2026 rate-case step (the increase approved for that year).
 
-**Source data.** FERC Form 1 data for 2021 and 2025, via the Catalyst Cooperative PUDL tables:
+**Source data.** FERC Form 1 data for 2021 and 2025, via the Catalyst Cooperative PUDL (Public Utility Data Liberation) tables:
 - net plant, working capital and accumulated deferred income taxes by function;
 - depreciation by function;
 - O&M by function;
@@ -1613,7 +1618,7 @@ The bridge runs 2021 → 2025 on a FERC Form 1 functional basis, then adds the a
 - **Dominion and Pepco:** distribution only.
 
 **Allocation.**
-- **Common costs:** general, intangible and common plant, working capital and ADIT are allocated to the scope by its share of net plant. Customer accounts, customer service and sales O&M go to the scope. A&G is allocated by the scope's share of direct O&M.
+- **Common costs:** general, intangible and common plant, working capital and ADIT (accumulated deferred income taxes) are allocated to the scope by its share of net plant. Customer accounts, customer service and sales O&M go to the scope. A&G (administrative and general costs) is allocated by the scope's share of direct O&M.
 - **Jurisdiction:**
   - Dominion VA: Virginia share of total retail sales, EIA-861 (95.0% in 2021, 95.8% in 2025; a proxy, `derived`).
   - Pepco MD: Maryland share of Pepco distribution rate base, 46.3%. This is derived for 2025 from Order No. 92607 and Exelon's 2025 rate base. It is held for 2021 (`_VERIFY`).
@@ -1637,7 +1642,7 @@ The bridge runs 2021 → 2025 on a FERC Form 1 functional basis, then adds the a
 - **The rest:** depreciation, O&M, taxes other than income and income taxes are changes in the functional totals.
 - **2026 step:** the approved increase that takes effect in 2026:
   - Con Edison: RY1, $234M.
-  - RG&E: temporary rates, $25.9M (pending the final order).
+  - RG&E: temporary rates (set while the case is pending, subject to reconciliation), $25.9M (pending the final order).
   - Dominion: the distribution share of the 2026 increase, $341.4M (Final Order attachment).
   - Pepco: Order No. 92607, $50.9M.
 
@@ -1732,7 +1737,7 @@ Most of Dominion's bill growth since 2021 is in riders, not base rates. `lb['rid
   - `rider_rr_by_year()` gives the requirement in effect on 1 July of each year.
   - Gaps (`_VERIFY`): Riders CERC, SMR, PIPP and VCR. Rider RBB has only the $25M noted in the 2025 10-K.
 
-Riders are grouped as generation (R, W, S, BW, GV, B, US-2/3/4, GEN, SNA, CERC, SMR), clean energy under the VCEA (CE, RPS, OSW, PPA, RGGI), environmental (E, CCR), transmission (T1), distribution (U, GT, DIST, RBB), energy efficiency (the DSM riders) and other (PIPP, VCR).
+Riders are grouped as generation (R, W, S, BW, GV, B, US-2/3/4, GEN, SNA, CERC, SMR), clean energy under the VCEA (Virginia Clean Economy Act; CE, RPS, OSW, PPA, RGGI), environmental (E, CCR), transmission (T1), distribution (U, GT, DIST, RBB), energy efficiency (the DSM riders) and other (PIPP, VCR).
 
 **Distribution-related riders** are U (strategic undergrounding), GT (grid transformation), DIST (which replaced both in June 2025) and RBB (rural broadband capacity on distribution plant, proposed for consolidation into DIST).
 
@@ -1767,7 +1772,7 @@ How to read the table:
 
 Every base rate case filed 2021–2026 is listed, with Pepco's Case 9655 added: it was filed in October 2020 and set rates from 2021. Of the rider proceedings, Dominion's Rider OSW (Coastal Virginia Offshore Wind) is listed individually; every Dominion rider's revenue requirement by rate year is in 12.6.
 
-- New York joint proposals are treated as the filed request against the adopted multi-year path.
+- New York joint proposals (negotiated settlements adopted by the Commission) are treated as the filed request against the adopted multi-year path.
 - RG&E's Case 25-E-0379 is pending: temporary rates were ordered on 14 May 2026.
 - Each entry gives the docket, dates, revenue requested and approved, ROE requested and granted, capital disallowed, deferred or reduced, and the Commission's stated reasons quoted briefly. Pepco's Case 9820 reasons are a paraphrase of the order as recorded in `Pepco_MD.json`; the verbatim quote was not retrieved.
 

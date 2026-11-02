@@ -67,6 +67,7 @@ tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json,
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
 docs/METHODOLOGY.md        full methodology of the layered model (policy reader; technical subsections; glossary)
+docs/GLOSSARY.md           plain-language glossary in three groups (parts of a bill, how rates are set, terms in the model), linked from the top of the README and METHODOLOGY
 docs/ASSUMPTIONS.md, docs/assumptions_register.csv   generated assumptions register (do not edit by hand)
 docs/utilities/*.md        per-utility data notes (starting point, sources, proxies, _VERIFY gaps)
 docs/*.png                 legacy chart images

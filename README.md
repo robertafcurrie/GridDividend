@@ -6,6 +6,8 @@
 
 AI has been used extensively in the creation of this tool.
 
+**New to the terms?** The [glossary](docs/GLOSSARY.md) defines every bill component, ratemaking term and model term in plain language, in three groups: parts of a bill, how rates are set, terms in the model.
+
 ---
 
 ## What it does
@@ -22,6 +24,7 @@ Four utilities are modelled: **Con Edison** and **RG&E** (New York), **Dominion 
 
 ## Documentation
 
+- [**Glossary**](docs/GLOSSARY.md): plain-language definitions of bill components, ratemaking terms and model terms.
 - [**Methodology**](docs/METHODOLOGY.md): how the model works, layer by layer, for policy readers (technical detail in marked subsections), with outputs, dollar bases, validation, limitations and a glossary.
 - [**Assumptions register**](docs/ASSUMPTIONS.md): every input for every utility, with value or low / central / high, units, status, source and as-of date (also as [CSV](docs/assumptions_register.csv)). It is generated from the utility JSON by `scripts/build_assumptions_register.py`, and a test keeps it in sync.
 - **Utility data notes:** [Con Edison](docs/utilities/ConEd.md), [RG&E](docs/utilities/RGE.md), [Dominion Energy Virginia](docs/utilities/Dominion_VA.md), [Pepco Maryland](docs/utilities/Pepco_MD.md). Each covers the starting point, key sources, proxies and the main gaps to close.

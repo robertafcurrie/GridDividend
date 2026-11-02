@@ -6,6 +6,25 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Plain-language glossary and plain names (this commit)
+
+**Effect on results:** none. No engine, data or test code changed, and the exports are unchanged. The three state notebooks were re-run; only their figure labels differ.
+
+- **`docs/GLOSSARY.md` (new):** plain-language definitions of every bill component, ratemaking term and model term used in the README, METHODOLOGY and notebooks. It uses the explorer's three groups: parts of a bill, how rates are set, terms in the model. Internal names are shown in `code` beside each term.
+- **Links:** the glossary is linked from the top of the README (and its Documentation list) and from the top of METHODOLOGY. METHODOLOGY section 11 points to it.
+- **METHODOLOGY:** a plain name sits beside each internal name or acronym on first use. Examples:
+  - "Deferral (grid upgrades deferred)", "Mechanism (the utility's share of the savings)";
+  - "rate-case step (the increase approved for that year)";
+  - rate base, capex, ROE, revenue requirement, derate, locational match;
+  - ATRR, NITS, NSPL, ELCC, Net CONE, UCAP, ICAP, NPV;
+  - Form 1, PUDL, ADIT, A&G, temporary rates, joint proposals, LTP, RTEP, CLCPA, VCEA.
+- **Notebook figure labels (all three state notebooks):**
+  - **Section 13:**
+    - Layer and bill-category labels carry plain names.
+    - The waterfall numbers its steps (BAU, 1–10, SS) and adds a key below the panels, so the long names stay readable.
+    - Tornado bars show the plain name of each input and its layer above the internal `layer: input` name.
+  - **Sections 1–12:** NWS, UTILITY_SAVINGS_SHARE, FREEZE_PLUS, EASE Case, CORRECTED, WACC-based return, rate base and crossover year carry plain names in titles, axes and legends.
+
 ## 2026-11-02: Avoided transmission, split formulation (option; default unchanged; this commit)
 
 **Effect on results:** none by default. `transmission.formulation` stays `'single'`, so v1.0, CORRECTED, the three pins, the layer fixtures and every export figure are unchanged. The new formulation is an option until the author decides.
