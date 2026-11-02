@@ -21,6 +21,8 @@ from the layered model as it stands (no model changes here):
   - advance per scenario and pace (customer dividend advance on, default sizing) and
     advance_stress per pace (sized on Central, realized Cautious): yearly bills,
     earnings and pool with the advance, and the worst year against BAU;
+  - fast_start per scenario and pace (fast start on): chart data and headline;
+    advance_fast_start per scenario and advance_fast_start_stress per pace;
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
   - metadata: source commit, date, dollar basis, pool setting.
 
@@ -92,6 +94,13 @@ def with_objective(utility_json, pct):
     spec = uj['forward_assumptions']['layers']['objective']['params']['objective_pct']
     for lev in LY.LEVELS:
         spec[lev] = pct
+    return uj
+
+
+def with_fast_start(utility_json):
+    """Copy of utility_json with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults)."""
+    uj = copy.deepcopy(utility_json)
+    uj['forward_assumptions']['layers']['mechanism']['params']['fast_start']['value'] = True
     return uj
 
 
@@ -234,23 +243,36 @@ def run_block(uj, params, scenario, run=None):
         'value_flows_m': sankey(flows)}
 
 
+def headline(run):
+    """Headline figures for one run."""
+    sm = LY.system_summary(run)
+    by = run['bau'].set_index('year'); sy = run['ss'].set_index('year')
+    return {'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
+            'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+            'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
+            'monthly_saving_2035': float(by.loc[2035, 'avg_bill_total'] - sy.loc[2035, 'avg_bill_total']),
+            'monthly_saving_2050': float(by.loc[2050, 'avg_bill_total'] - sy.loc[2050, 'avg_bill_total']),
+            'bau_bill_2050': float(by.loc[2050, 'avg_bill_total'])}
+
+
+def fast_start_block(uj, params, scenario):
+    """The scenario with fast start on (mechanism defaults otherwise): chart data and headline."""
+    ujf = with_fast_start(uj)
+    run = LY.project_layers(ujf, params, scenario=scenario)
+    return {**run_block(ujf, params, scenario, run), 'headline': headline(run)}
+
+
 def run_export(uj, params, scenario):
     run = LY.project_layers(uj, params, scenario=scenario)
-    b, s = run['bau'], run['ss']
-    sm = LY.system_summary(run)
-    by = b.set_index('year'); sy = s.set_index('year')
     return {
         **run_block(uj, params, scenario, run),
-        'headline': {'customer_savings_b_undiscounted': sm['Customer savings ($B, undiscounted nominal)'],
-                     'customer_savings_b_npv3': sm['Customer savings ($B, NPV 3%, 2026 $)'],
-                     'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
-                     'monthly_saving_2035': float(by.loc[2035, 'avg_bill_total'] - sy.loc[2035, 'avg_bill_total']),
-                     'monthly_saving_2050': float(by.loc[2050, 'avg_bill_total'] - sy.loc[2050, 'avg_bill_total']),
-                     'bau_bill_2050': float(by.loc[2050, 'avg_bill_total'])},
+        'headline': headline(run),
         'load_calibration': {k: (float(v) if isinstance(v, (int, float)) else v) for k, v in run['load_calibration'].items()},
         'share_sweep': share_sweep(uj, params, scenario),
         'objective_sweep': objective_sweep(uj, params, scenario),
         'advance': advance_block(uj, params, scenario),
+        'fast_start': fast_start_block(uj, params, scenario),
+        'advance_fast_start': advance_block(with_fast_start(uj), params, scenario),
     }
 
 
@@ -362,6 +384,7 @@ def build_export(key):
                         'objective_sweep_run_note': 'Each objective_sweep level carries its full chart data under run (yearly, waterfall_usd_month, value_flows_m), built exactly as the top-level run block.',
                         'earnings_note': 'earnings_total_m = equity return on rate base + shared savings earnings; earnings_per_rate_base = earnings_total_m / rate base (wires + program regulatory asset).',
                         'advance_note': 'advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.',
+                        'fast_start_note': 'fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}
@@ -370,6 +393,8 @@ def build_export(key):
         out['runs'][pace] = {sc: run_export(uj, params, sc) for sc in LY.SCENARIOS}
         out['tornado'][pace] = tornado_rows(uj, params)
         out.setdefault('advance_stress', {})[pace] = advance_block(uj, params, 'Cautious', sizing='Central')
+        out.setdefault('advance_fast_start_stress', {})[pace] = advance_block(with_fast_start(uj), params, 'Cautious',
+                                                                              sizing='Central')
     return out
 
 
