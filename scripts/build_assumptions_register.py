@@ -124,7 +124,8 @@ def _lookback_specs(obj, path=''):
             yield from _lookback_specs(v, f'{path}/{k}' if path else k)
     elif isinstance(obj, list):
         for i, v in enumerate(obj):
-            label = v.get('docket') or v.get('delivery_year') or v.get('capability_year') or v.get('year') if isinstance(v, dict) else None
+            label = (v.get('docket') or v.get('delivery_year') or v.get('capability_year') or v.get('year')
+                     or v.get('rate_year_beginning')) if isinstance(v, dict) else None
             yield from _lookback_specs(v, f'{path}[{label if label is not None else i}]')
 
 

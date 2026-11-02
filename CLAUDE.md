@@ -39,8 +39,10 @@ engine/
                        headroom_sweep_figure(), TIGHT_NETWORK
   roe_sweep.py         ROE sweep for the earlier model (Section 8b)
   markets.py           loader for shared/capacity_markets/*.json
-  lookback.py          look-back 2021-2026: bill comparison, Form 1 revenue-requirement bridge, supply side,
-                       asked against granted, class allocation (reads utilities/*_lookback.json; METHODOLOGY 12)
+  lookback.py          look-back 2021-2026: EIA bill trend and 2026 tariff bill, Form 1 revenue-requirement bridge
+                       (detailed and grouped: capital, cost of capital, normalised O&M), supply side, Dominion riders
+                       and bill bridge, asked against granted with totals, class allocation (reads utilities/*_lookback.json;
+                       METHODOLOGY 12)
 utilities/
   ConEd.json, RGE.json, Dominion_VA.json, Pepco_MD.json   one file per utility
   TEMPLATE.json        structure for a new utility (earlier-model fields only)
@@ -59,7 +61,8 @@ tests/test_regression.py   earlier model: pins and correction-flag checks
 tests/test_layers.py       layered model
 tests/test_assumptions_register.py   the assumptions register matches the JSON; every layered input has a status
 tests/test_export.py       exports balance and match the headline figures (regenerate exports after any model or JSON change)
-tests/test_lookback.py     look-back: bridge sums, bill categories sum, every figure has source and status, export block
+tests/test_lookback.py     look-back: bridge sums (detailed, grouped), O&M normalisation check, bill trend, Dominion riders reproduce
+                           the SCC bills, asked-against-granted totals, every figure has source and status, export block
 tests/fixtures/            layers_single_pool_ebb0c04.json, layers_1b09e20.json, layers_23fec60_model_bau.json, layers_212efce_capacity.json (pinned layer outputs)
 reports/                   HTML reports (gitignored; written by Section 11 of each state notebook)
 charts/, charts_article/   charts written on notebook runs (notebooks/charts/, notebooks/charts_article/)
@@ -74,7 +77,7 @@ exports/                   generated JSON for the web explorer (do not edit by h
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (373 tests)
+python -m pytest tests/                       # full suite (390 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \

@@ -6,6 +6,83 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Look-back revised: grouped bridge, normalised O&M, Dominion riders, like-for-like bill trend (this commit)
+
+The forward model is unchanged: v1.0, CORRECTED, the three pins and every forward export figure are as before. Only the `lookback` block of the exports changes.
+
+**Grouped bridge.**
+- **New view:** `rr_bridge_grouped()` sits alongside the detailed rows. It has four groups plus one reconciling line:
+  - capital-driven: return on rate-base growth, depreciation, plant-related property tax, income tax on the return;
+  - cost of capital: ROE, equity ratio, cost of debt;
+  - operating: normalised O&M, non-plant taxes;
+  - rate-case step;
+  - a reconciling line for the change in non-service pension and retiree-benefit costs.
+- **Property tax attributed to plant** (derived): the property tax / net plant ratio × the scope's functional plant.
+  - Numerator: Form 1 page 262, property and real estate taxes (new: PUDL raw XBRL table).
+  - Denominator: Form 1 page 200, net utility plant, all departments.
+  - Ratios 2021 → 2025: Con Edison 5.45% → 5.84%, RG&E 3.22% → 2.95%, Dominion 0.75% → 0.59%, Pepco 1.07% → 1.04%.
+- **Con Edison O&M:**
+  - **Cause:** the A&G fall ($557M → $115M) is driven by pension and retiree-benefit credits. Form 1 account 926 swings from +$191M to −$387M. CECONY's non-service components (10-K, Notes E and F) go from a $128M cost to a $733M credit.
+  - **Normalised O&M:** excludes them (electric share of CECONY O&M, derived). The scope's O&M rises $1,724M → $2,175M (+$452M), against reported O&M of $1,797M → $1,791M.
+  - **Other utilities:** RG&E, Dominion and Pepco were checked. Account 926 stays positive and does not drive their A&G, so no normalisation is applied.
+- **Grouped results, $M nominal (capital / cost of capital / operating / pension non-service / 2026 step):**
+  - Con Edison: +1,276 / +56 / +654 / −457 / +234.
+  - RG&E: +102 / +5 / +102 / 0 / +26.
+  - Dominion: +445 / +26 / +73 / 0 / +341.
+  - Pepco: +129 / −5 / +32 / 0 / +51.
+  - The detailed rows and the 2021, 2025 and 2026 totals are unchanged.
+
+**Dominion riders.** `riders` covers every Virginia rider in effect 2021–2026 (generation, clean energy, environmental, transmission, distribution, energy efficiency, fuel, other):
+- **Residential $/month at 1,000 kWh:** SCC Status Reports RD390, RD418, RD572, RD717 and RD716, as of 1 July 2021–2025; their components sum to the SCC totals. For 2026, the tariff starting bill.
+- **Annual revenue requirement by rate year:** Dominion 10-K riders tables 2021–2025. Rider T1 is split into its base-rate and rider parts, plus the fuel factor filings.
+- **Distribution-related riders** are marked: U, GT, DIST and RBB.
+- **Bill bridge (`dominion_bill_bridge()`):** 2021 → 2025 (SCC basis) goes $121.28 → $149.92/month, +$28.64. Of that:
+  - clean energy riders +$16.80;
+  - fuel +$12.68;
+  - distribution riders +$4.63;
+  - generation riders −$4.40;
+  - base rates −$1.11.
+- **2026 tariff:** $180.31 plus $2.49 taxes, shown separately.
+- **Gaps:** Riders CERC, SMR, PIPP and VCR revenue requirements are `_VERIFY`.
+
+**Bill trend.**
+- **Headline:** the like-for-like EIA-861 series 2021–2025 at the benchmark usage (`bill_trend()`), with delivery and supply where EIA reports delivery-only customers (New York, Maryland).
+- **2026:** the tariff bill is shown separately (`bill_2026_tariff()`).
+- **Export:** `bill_comparison` is replaced by `bill_trend`, `bill_2026_tariff` and `bill_levels_by_basis`. The mixed-basis 2021 → 2026 category comparison is no longer presented as a change.
+- **Change 2021 → 2025, $/month:**
+  - Con Edison +56.46 (delivery +41.66);
+  - RG&E +50.82 (+29.23);
+  - Dominion +30.67;
+  - Pepco MD +69.82 (+18.50).
+- **Fix:** the EIA series carried North Carolina figures for Dominion and DC figures for Pepco (the second state overwrote the first). It now uses Virginia and Maryland, with the other jurisdiction kept separately. The 2021 bill totals were already on the right state and are unchanged.
+
+**Asked against granted.**
+- **Comparison pairs:** each proceeding has a `comparison` pair, usually the first rate year.
+- **Totals (`asked_granted_totals()`), approved / requested:**
+  - Con Edison $691.5M / $2,811.0M (24.6%);
+  - RG&E $50.9M / $93.8M (54.3%), or 24.5% including temporary rates;
+  - Dominion $594.4M / $900.7M (66.0%; base rate reviews alone 62.7%);
+  - Pepco $116.2M / $274.5M (42.3%).
+- **RG&E's $25.9M** is labelled temporary rates and excluded from the decided totals.
+- **Dominion PUR-2023-00101** is resolved (2024 10-K): the February 2024 settlement order left base rates unchanged.
+
+**Class allocation.**
+- **Con Edison:** from the joint proposals' revenue allocation appendices, SC 1's share of the RY1 T&D increase is 46.5% (25-E-0072) and 40.8% (22-E-0064). Its share of delivery revenue is about 40%. Customer charges $17 → $18 (2023) and $20 → $21 (2026).
+- **Pepco Case 9702:** Schedule R 59.67% (68.70% with RTM; Order No. 91181, Table 8).
+- **Pepco Case 9655:** customer charge $8.01 → $8.22 (Order No. 89868).
+- **Still `_VERIFY`:** RG&E, Dominion and Pepco 9655 and 9820 residential shares.
+
+**Tests** (17 new; 390 in total):
+- The grouped bridge sums and matches the detailed one.
+- The property tax and O&M splits sit inside the totals.
+- The normalisation check (Con Edison's account 926 swing exceeds its A&G fall; the others are not credit-driven).
+- The bill trend adds up and uses the right state.
+- Dominion's riders reproduce the SCC bills and the 2026 tariff, and T1 parts sum.
+- Asked-against-granted totals, with temporary rates excluded.
+- The export carries the new blocks and no longer carries `bill_comparison`.
+
+**Docs.** METHODOLOGY 12.3–12.9 (new 12.6, Dominion riders); register (figures in the new blocks; rider entries labelled by rate year); README; CLAUDE.md.
+
 ## 2026-11-02: Look-back module, the starting point 2021-2026 (this commit)
 
 **Added.**

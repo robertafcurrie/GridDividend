@@ -1,5 +1,5 @@
 {
-  "_note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted.",
+  "_note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted. Revised 2 Nov 2026: grouped bridge inputs (property tax attribution, O&M normalisation), Dominion riders, like-for-like EIA bill trend, asked-against-granted comparisons, class allocation from the joint proposals and MD PSC orders.",
   "utility": "PepcoMD",
   "name": "Potomac Electric Power Company, distribution, Maryland jurisdiction",
   "as_of": "2026-11-02",
@@ -92,155 +92,311 @@
     "eia_series": {
       "2021": {
         "bundled_cents_kwh": {
-          "value": 12.185,
+          "value": 13.9837,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), PepcoDC: residential revenue / sales, Part A (bundled service)",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), MD part of the utility: residential revenue / sales, Part A (bundled service)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "delivery_only_cents_kwh": {
-          "value": 4.7793,
+          "value": 7.1508,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), PepcoDC: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), MD part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "total_retail_mwh": {
-          "value": 10068987.0,
+          "value": 13417733.0,
           "unit": "MWh",
-          "source": "EIA Form 861, 2021, PepcoDC: total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), MD part of the utility: total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "sourced"
         },
         "residential_mwh_share": {
-          "value": 0.2508,
+          "value": 0.4292,
           "unit": "share",
-          "source": "EIA Form 861, 2021, PepcoDC: residential / total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), MD part of the utility: residential / total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "derived"
+        },
+        "other_jurisdiction": {
+          "state": "DC",
+          "bundled_cents_kwh": {
+            "value": 12.185,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DC part of the utility: residential revenue / sales, Part A (bundled service)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "delivery_only_cents_kwh": {
+            "value": 4.7793,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DC part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "total_retail_mwh": {
+            "value": 10068987.0,
+            "unit": "MWh",
+            "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DC part of the utility: total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "residential_mwh_share": {
+            "value": 0.2508,
+            "unit": "share",
+            "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DC part of the utility: residential / total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
         }
       },
       "2022": {
         "bundled_cents_kwh": {
-          "value": 12.6911,
+          "value": 15.3182,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), PepcoDC: residential revenue / sales, Part A (bundled service)",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), MD part of the utility: residential revenue / sales, Part A (bundled service)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "delivery_only_cents_kwh": {
-          "value": 4.9688,
+          "value": 7.6756,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), PepcoDC: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), MD part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "total_retail_mwh": {
-          "value": 10227189.0,
+          "value": 13435036.0,
           "unit": "MWh",
-          "source": "EIA Form 861, 2022, PepcoDC: total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), MD part of the utility: total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "sourced"
         },
         "residential_mwh_share": {
-          "value": 0.2461,
+          "value": 0.4202,
           "unit": "share",
-          "source": "EIA Form 861, 2022, PepcoDC: residential / total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), MD part of the utility: residential / total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "derived"
+        },
+        "other_jurisdiction": {
+          "state": "DC",
+          "bundled_cents_kwh": {
+            "value": 12.6911,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DC part of the utility: residential revenue / sales, Part A (bundled service)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "delivery_only_cents_kwh": {
+            "value": 4.9688,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DC part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "total_retail_mwh": {
+            "value": 10227189.0,
+            "unit": "MWh",
+            "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DC part of the utility: total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "residential_mwh_share": {
+            "value": 0.2461,
+            "unit": "share",
+            "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DC part of the utility: residential / total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
         }
       },
       "2023": {
         "bundled_cents_kwh": {
-          "value": 14.9764,
+          "value": 18.1582,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), PepcoDC: residential revenue / sales, Part A (bundled service)",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), MD part of the utility: residential revenue / sales, Part A (bundled service)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "delivery_only_cents_kwh": {
-          "value": 5.6239,
+          "value": 8.3939,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), PepcoDC: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), MD part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "total_retail_mwh": {
-          "value": 9865498.0,
+          "value": 12983561.0,
           "unit": "MWh",
-          "source": "EIA Form 861, 2023, PepcoDC: total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), MD part of the utility: total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "sourced"
         },
         "residential_mwh_share": {
-          "value": 0.2401,
+          "value": 0.4044,
           "unit": "share",
-          "source": "EIA Form 861, 2023, PepcoDC: residential / total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), MD part of the utility: residential / total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "derived"
+        },
+        "other_jurisdiction": {
+          "state": "DC",
+          "bundled_cents_kwh": {
+            "value": 14.9764,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DC part of the utility: residential revenue / sales, Part A (bundled service)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "delivery_only_cents_kwh": {
+            "value": 5.6239,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DC part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "total_retail_mwh": {
+            "value": 9865498.0,
+            "unit": "MWh",
+            "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DC part of the utility: total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "residential_mwh_share": {
+            "value": 0.2401,
+            "unit": "share",
+            "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DC part of the utility: residential / total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
         }
       },
       "2024": {
         "bundled_cents_kwh": {
-          "value": 16.575,
+          "value": 20.0787,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), PepcoDC: residential revenue / sales, Part A (bundled service)",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), MD part of the utility: residential revenue / sales, Part A (bundled service)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "delivery_only_cents_kwh": {
-          "value": 5.6586,
+          "value": 8.9687,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), PepcoDC: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), MD part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "total_retail_mwh": {
-          "value": 10129430.0,
+          "value": 13405796.0,
           "unit": "MWh",
-          "source": "EIA Form 861, 2024, PepcoDC: total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), MD part of the utility: total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "sourced"
         },
         "residential_mwh_share": {
-          "value": 0.2412,
+          "value": 0.4102,
           "unit": "share",
-          "source": "EIA Form 861, 2024, PepcoDC: residential / total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), MD part of the utility: residential / total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "derived"
+        },
+        "other_jurisdiction": {
+          "state": "DC",
+          "bundled_cents_kwh": {
+            "value": 16.575,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DC part of the utility: residential revenue / sales, Part A (bundled service)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "delivery_only_cents_kwh": {
+            "value": 5.6586,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DC part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "total_retail_mwh": {
+            "value": 10129430.0,
+            "unit": "MWh",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DC part of the utility: total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "residential_mwh_share": {
+            "value": 0.2412,
+            "unit": "share",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DC part of the utility: residential / total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
         }
       },
       "2025": {
         "bundled_cents_kwh": {
-          "value": 20.7683,
+          "value": 21.7414,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), PepcoDC: residential revenue / sales, Part A (bundled service)",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), MD part of the utility: residential revenue / sales, Part A (bundled service)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "delivery_only_cents_kwh": {
-          "value": 6.8711,
+          "value": 9.2072,
           "unit": "cents/kWh nominal",
-          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), PepcoDC: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), MD part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
           "as_of": "2026-11-02",
           "status": "derived"
         },
         "total_retail_mwh": {
-          "value": 10237946.0,
+          "value": 13605723.0,
           "unit": "MWh",
-          "source": "EIA Form 861, 2025, PepcoDC: total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), MD part of the utility: total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "sourced"
         },
         "residential_mwh_share": {
-          "value": 0.243,
+          "value": 0.4107,
           "unit": "share",
-          "source": "EIA Form 861, 2025, PepcoDC: residential / total retail sales, Parts A + C",
+          "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), MD part of the utility: residential / total retail sales, Parts A + C",
           "as_of": "2026-11-02",
           "status": "derived"
+        },
+        "other_jurisdiction": {
+          "state": "DC",
+          "bundled_cents_kwh": {
+            "value": 20.7683,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DC part of the utility: residential revenue / sales, Part A (bundled service)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "delivery_only_cents_kwh": {
+            "value": 6.8711,
+            "unit": "cents/kWh nominal",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DC part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "total_retail_mwh": {
+            "value": 10237946.0,
+            "unit": "MWh",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DC part of the utility: total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "residential_mwh_share": {
+            "value": 0.243,
+            "unit": "share",
+            "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DC part of the utility: residential / total retail sales, Parts A + C",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          }
         }
       }
-    }
+    },
+    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change."
   },
   "rr_bridge": {
     "scope": {
@@ -475,6 +631,27 @@
           "source": "FERC Form 1, 2021, Potomac Electric Power Company (DC + MD) (respondent 290), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
           "as_of": "2026-11-02",
           "status": "sourced"
+        },
+        "om_ag_employee_pensions_benefits": {
+          "value": 14.464,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Potomac Electric Power Company (DC + MD) (respondent 290), electric O&M account 926 (employee pensions and benefits, inside administrative and general), via PUDL core_ferc1__yearly_operating_expenses_sched320 (expense_type employee_pensions_and_benefits), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "property_tax_total_company": {
+          "value": 88.078,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Potomac Electric Power Company (DC + MD), page 262 (Taxes Accrued, Prepaid and Charged During Year), taxes charged, all utility departments: rows whose kind of tax is property / real estate (Con Edison: Real Estate & Special Franchise, NYC and other than NYC), via PUDL raw XBRL ferc1_xbrl/taxes_accrued_prepaid_and_charged_during_year_262_duration (Potomac_Electric_Power_Company_form1_Q4_1648695387), accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_plant_total_company": {
+          "value": 8216.344,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, Potomac Electric Power Company (DC + MD), page 200 (Summary of Utility Plant), net utility plant, total of all departments, via PUDL core_ferc1__yearly_utility_plant_summary_sched200 (utility_type total, utility_plant_net), accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
         }
       },
       "2025": {
@@ -624,6 +801,27 @@
           "source": "FERC Form 1, 2025, Potomac Electric Power Company (DC + MD) (respondent 290), company-wide electric, via PUDL (Catalyst Cooperative) core_ferc1__yearly_income_statements_sched114 (electric), stable release, accessed 2026-11-02",
           "as_of": "2026-11-02",
           "status": "sourced"
+        },
+        "om_ag_employee_pensions_benefits": {
+          "value": 22.792,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Potomac Electric Power Company (DC + MD) (respondent 290), electric O&M account 926 (employee pensions and benefits, inside administrative and general), via PUDL core_ferc1__yearly_operating_expenses_sched320 (expense_type employee_pensions_and_benefits), stable release, accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "property_tax_total_company": {
+          "value": 113.443,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Potomac Electric Power Company (DC + MD), page 262 (Taxes Accrued, Prepaid and Charged During Year), taxes charged, all utility departments: rows whose kind of tax is property / real estate (Con Edison: Real Estate & Special Franchise, NYC and other than NYC), via PUDL raw XBRL ferc1_xbrl/taxes_accrued_prepaid_and_charged_during_year_262_duration (Potomac_Electric_Power_Company_form1_Q4_1774643812), accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        "net_plant_total_company": {
+          "value": 10869.016,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, Potomac Electric Power Company (DC + MD), page 200 (Summary of Utility Plant), net utility plant, total of all departments, via PUDL core_ferc1__yearly_utility_plant_summary_sched200 (utility_type total, utility_plant_net), accessed 2026-11-02",
+          "as_of": "2026-11-02",
+          "status": "sourced"
         }
       }
     },
@@ -638,7 +836,47 @@
       "method": "Distribution (and, in New York, transmission) net plant growth split by the forward model's bau_plan.category_shares for this utility (growth / replacement / gridmod / other; status as in the utility JSON). Storm and resilience spending is not separable in Form 1 and sits inside replacement; IT and other = general and intangible plant (Form 1) plus the \"other\" share.",
       "shares_from": "forward_assumptions.bau_plan.params.category_shares"
     },
-    "note": "Revenue requirement on a Form 1 functional basis for 2021 and 2025 (return on functional rate base at the allowed after-tax WACC, depreciation, O&M, taxes other than income, income taxes; general, intangible and A&G costs allocated to the scope by plant or O&M share; jurisdictional share applied), then the approved 2026 rate-case step. Computed in engine/lookback.py with the forward model's revenue-requirement structure."
+    "note": "Revenue requirement on a Form 1 functional basis for 2021 and 2025 (return on functional rate base at the allowed after-tax WACC, depreciation, O&M, taxes other than income, income taxes; general, intangible and A&G costs allocated to the scope by plant or O&M share; jurisdictional share applied), then the approved 2026 rate-case step. Computed in engine/lookback.py with the forward model's revenue-requirement structure.",
+    "property_tax_attribution": {
+      "method": "Plant-related property tax = the property tax / net plant ratio (Form 1 page 262 property and real estate taxes charged, all departments, / Form 1 page 200 net utility plant, all departments) x the scope's functional rate-base plant (scope net plant + allocated general and intangible plant, after the jurisdictional share). Property tax is assessed on plant value, so a uniform ratio attributes it to plant in proportion to net book value; assessed values, local rates and special-franchise valuation differ by plant type and locality, so this is an attribution, not a measured split. Non-plant taxes = the scope's taxes other than income (as in the detailed bridge) - plant-related property tax (payroll, gross receipts, franchise, sales and use and other taxes).",
+      "ratio": {
+        "2021": {
+          "value": 0.01072,
+          "unit": "share of net plant a year",
+          "source": "Derived: Form 1 2021 property_tax_total_company $88.1M / net_plant_total_company $8,216.3M (both in rr_bridge.form1)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "2025": {
+          "value": 0.010437,
+          "unit": "share of net plant a year",
+          "source": "Derived: Form 1 2025 property_tax_total_company $113.4M / net_plant_total_company $10,869.0M (both in rr_bridge.form1)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
+    },
+    "om_normalisation": {
+      "applied": false,
+      "check": "Not driven by pension or retiree-benefit credits: Form 1 account 926 (employee pensions and benefits) is $14.5M in 2021 and $22.8M in 2025 (positive in both years), against administrative and general costs of $158.4M and $197.1M. Reported and normalised O&M are the same.",
+      "method": "Normalised O&M = reported O&M (Form 1 functional basis) - non-service pension and retiree-benefit costs in administrative and general, allocated to the scope by the same O&M share as the rest of A&G and then by the jurisdictional share. The detailed bridge keeps reported O&M; the grouped view uses normalised O&M and shows the non-service change as its own reconciling line.",
+      "non_service_benefits_electric": {
+        "2021": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "Check: Form 1 account 926 is 14.5 (2021) and 22.8 (2025) $M; not credit-driven, so no normalisation is applied",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        },
+        "2025": {
+          "value": 0.0,
+          "unit": "$M nominal",
+          "source": "Check: Form 1 account 926 is 14.5 (2021) and 22.8 (2025) $M; not credit-driven, so no normalisation is applied",
+          "as_of": "2026-11-02",
+          "status": "setting"
+        }
+      }
+    }
   },
   "supply_side": {
     "influence": "Influenced, not controlled, by the distribution utility: set by wholesale markets (PJM / NYISO auctions), FERC formula rates or fuel markets; the utility affects them only through its load, procurement and the resources it connects.",
@@ -844,7 +1082,26 @@
           "source": "MD PSC Order No. 89868"
         }
       ],
-      "notes": "Filed before 2021; included because its rates applied from 2021."
+      "notes": "Filed before 2021; included because its rates applied from 2021.",
+      "comparison": {
+        "basis": "first rate year (Apr 2021 - Mar 2022) of the multi-year plan: requested against approved increment",
+        "included_in_totals": true,
+        "temporary": false,
+        "requested_m": {
+          "value": 37.437,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Case 9655: MD PSC Order No. 89868, Table 1",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": 20.647,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_approved_m of Case 9655: MD PSC Order No. 89868, Table 1",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
     },
     {
       "docket": "Case 9702",
@@ -921,7 +1178,26 @@
           "quote": "This Order rejects Pepco's proposed three-year MYP and approves a revenue adjustment for one year only.",
           "source": "MD PSC Order No. 91181"
         }
-      ]
+      ],
+      "comparison": {
+        "basis": "first period (Apr 2024 - Mar 2025): requested against the one year the Commission granted",
+        "included_in_totals": true,
+        "temporary": false,
+        "requested_m": {
+          "value": 117.2,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Case 9702: MD PSC Order No. 91181: cumulative revenue deficiencies $117.2M (12 months ending Mar 2025), $160.5M, $193.2M, $213.6M (extension to Dec 2027)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": 44.629,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_approved_m of Case 9702: MD PSC Order No. 91181: \"a total revenue increase of $44,629,000\"",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
     },
     {
       "docket": "Case 9820",
@@ -997,25 +1273,45 @@
           "status": "sourced"
         }
       ],
-      "commission_reasons": []
+      "commission_reasons": [],
+      "comparison": {
+        "basis": "annual increase requested against approved (Order No. 92607)",
+        "included_in_totals": true,
+        "temporary": false,
+        "requested_m": {
+          "value": 119.876,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of Case 9820: MD PSC Order No. 92607, Table 1 (utilities/calibration/Pepco_MD.csv)",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": 50.946,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_approved_m of Case 9820: MD PSC Order No. 92607, Appendix A",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
     }
   ],
   "class_allocation": [
     {
       "docket": "Case 9702",
       "residential_share_of_increase": {
-        "value": null,
-        "unit": null,
-        "source": "Not located: residential share of the $44.6M increase",
+        "value": 0.5967,
+        "unit": "share",
+        "source": "MD PSC Order No. 91181 (Case 9702, June 2024), Table 8 - Commission-Determined Revenue Allocation Results: Residential (R) 59.67% ($26,632,256 of $44,629,000)",
         "as_of": "2026-11-02",
-        "status": "_VERIFY"
+        "status": "sourced",
+        "notes": "Schedule R only; with Schedule RTM (residential time-metered, 9.03%) the residential classes take 68.70%."
       },
       "residential_share_of_sales": {
-        "value": null,
+        "value": 0.4102,
         "unit": "share",
-        "source": "See eia_series residential_mwh_share (Maryland)",
+        "source": "EIA Form 861, 2024, Maryland part: residential / total retail sales, Parts A + C",
         "as_of": "2026-11-02",
-        "status": "_VERIFY"
+        "status": "derived"
       },
       "customer_charge_before": {
         "value": 8.21,
@@ -1059,6 +1355,37 @@
         "value": 8.44,
         "unit": "$/month",
         "source": "Pepco Maryland tariff, P.S.C. Md. No. 1 (Aug 2026), Schedule R (Pepco_MD.json starting_bill)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      }
+    },
+    {
+      "docket": "Case 9655",
+      "residential_share_of_increase": {
+        "value": null,
+        "unit": "share",
+        "source": "Not located: Order No. 89868 adopts Staff's two-step revenue allocation (25 percent of the revenue in step 1 to under-earning classes) but gives no class percentage table",
+        "as_of": "2026-11-02",
+        "status": "_VERIFY"
+      },
+      "residential_share_of_sales": {
+        "value": 0.4292,
+        "unit": "share",
+        "source": "EIA Form 861, 2021, Maryland part: residential / total retail sales, Parts A + C",
+        "as_of": "2026-11-02",
+        "status": "derived"
+      },
+      "customer_charge_before": {
+        "value": 8.01,
+        "unit": "$/month",
+        "source": "MD PSC Order No. 89868 (Case 9655), Table 11 - Current and Proposed Customer Charges (Yr2): Schedule R current $8.01",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "customer_charge_after": {
+        "value": 8.22,
+        "unit": "$/month",
+        "source": "MD PSC Order No. 89868 (Case 9655), Table 11: Schedule R $8.22 from year two of the plan (\"the Commission directs these charges to go into effect in year two of the MRP\")",
         "as_of": "2026-11-02",
         "status": "sourced"
       }
