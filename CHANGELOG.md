@@ -6,6 +6,10 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Regenerate exports: Connecticut added (this commit)
+
+**Effect on results:** none for the existing exports. Con Edison, RG&E, Dominion and Pepco differ from the previous files only in `source_commit` (now aceb582). `exports/EversourceCT.json` and `exports/UI_CT.json` are new. 599 tests pass.
+
 ## 2026-11-02: Connecticut: Eversource (CL&P) and United Illuminating (this commit)
 
 **Effect on results:** none for the four existing utilities. Their exports regenerate identical apart from the metadata stamps (`source_commit`, `source_modified_since_commit`), checked field by field against 582d744. Two new utilities are added. v1.0, CORRECTED, the three pins and every layer fixture are unchanged.
