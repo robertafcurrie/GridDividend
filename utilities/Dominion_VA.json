@@ -547,7 +547,8 @@
           "load_enabled": "low",
           "bau_plan.addressable_growth": "low",
           "bau_plan.addressable_replacement": "low",
-          "bau_plan.addressable_gridmod": "low"
+          "bau_plan.addressable_gridmod": "low",
+          "transmission.avoided_build_share": "low"
         },
         "network": {}
       },
@@ -566,7 +567,8 @@
           "load_enabled": "high",
           "bau_plan.addressable_growth": "high",
           "bau_plan.addressable_replacement": "high",
-          "bau_plan.addressable_gridmod": "high"
+          "bau_plan.addressable_gridmod": "high",
+          "transmission.avoided_build_share": "high"
         },
         "network": {}
       }
@@ -1370,7 +1372,7 @@
       "transmission": {
         "enabled": true,
         "label": "Avoided transmission: transmission cost avoided by peak reduction",
-        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service.",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (setting formulation = split; default single): (a) allocation effect = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), with the cost shifted to other zone customers reported; (b) avoided build = load_driven_share x the published transmission investment, deferred by avoided_build_share x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.7a).",
         "params": {
           "cost_kw_yr": {
             "value": 85.19,
@@ -1401,6 +1403,68 @@
             "source": "Model setting",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "formulation": {
+            "value": "single",
+            "unit": "single | split",
+            "source": "Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'split' (METHODOLOGY 3.7a): (a) allocation effect + (b) avoided build, reported separately. Kept at 'single' until the author decides.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_enabled": {
+            "value": true,
+            "unit": "bool",
+            "source": "Setting (split formulation only): include (b), the avoided build. Off = (a) only.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the load-driven investment deferral that planning realises",
+            "source": "Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility as a planning-peak reduction), Central 0.5 (half of the planning-peak reduction is credited in transmission planning, e.g. firm DR and flexible connections that the TO accepts as load modifiers), Ambitious 1.0 (fully credited). Context, not calibration: PJM 2024 RTEP Window 1 (Board approval Feb 2025: $4.65B regional + $1.27B local, driven by 10-15 GW of data-centre load growth); Duke Nicholas Institute, Rethinking Load Growth (Feb 2025: ~76-126 GW of new load could connect with 0.25-1% curtailment).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "planning_lag_years": {
+            "low": 5,
+            "central": 7,
+            "high": 10,
+            "unit": "years",
+            "source": "Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP / local plan -> in service). Default 7, range 5-10.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "allocation_effect": {
+            "value": "zonal_share",
+            "unit": "none | zonal_share",
+            "source": "Setting (split formulation only). 'zonal_share': PJM recovers each zone's fixed annual transmission revenue requirement (ATRR, FERC formula rate) by network service peak load share, so a lower peak lowers these customers' share and raises the zonal rate for everyone else in the zone (the cost shifted is reported).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "zone_nspl_mw": {
+            "value": 24678.1,
+            "unit": "MW (zone network service peak load, 2026)",
+            "source": "Derived: PJM, Annual Transmission Revenue Requirements (ATRR) and Network Integration Transmission Service (NITS) Rates, as of 1 Jun 2026: DOM zone total ATRR $2,102,343,435.98 / NITS rate $85,190.65 per MW-year",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "utility_share_of_zone": {
+            "value": 0.8104,
+            "unit": "share of zone network service peak load",
+            "source": "Derived: Dominion_VA.json peak_demand_mw (20,000 MW, the model's peak, as the utility's network service peak load) / zone_nspl_mw (24,678.1 MW). Held constant (the zone grows with the utility). The rest of the DOM zone is co-operative and municipal load (ODEC, NOVEC and others).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "load_driven_share": {
+            "low": 0.3,
+            "central": 0.667,
+            "high": 0.746,
+            "unit": "share of planned transmission investment that is load-driven",
+            "source": "Derived: PJM 2024 Regional Transmission Expansion Plan (2025), Figure 1.9 (2024 RTEP baseline projects $5,920M: baseline deliverability $5,515M, TO criteria $297M, short circuit $108M) and Section 3.2.3 / Figure 3.4 (2024 supplemental projects about $9.07B: customer service $4.49B, equipment material condition, performance and risk $3.3B, operational flexibility and efficiency $110M, multi-driver $1.17B). Low = supplemental customer service only, $4.49B / ($5.92B + $9.07B) = 0.300; central = baseline deliverability (load growth, mainly data centres, amplified by >2 GW of deactivations) + supplemental customer service, ($5.515B + $4.49B) / $14.99B = 0.667; high = also multi-driver supplemental, ($5.515B + $4.49B + $1.17B) / $14.99B = 0.746. Excludes equipment condition, operational flexibility, TO criteria and short circuit. PJM-wide 2024 shares, dominated by the DOM zone (the report attributes the 2024 violations to large load increases in the Dominion zone); a Dominion-only split by driver is not published.",
+            "as_of": "2026-11-02",
+            "status": "derived"
           }
         }
       },

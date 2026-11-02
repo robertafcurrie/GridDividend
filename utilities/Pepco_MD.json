@@ -378,7 +378,8 @@
           "load_enabled": "low",
           "bau_plan.addressable_growth": "low",
           "bau_plan.addressable_replacement": "low",
-          "bau_plan.addressable_gridmod": "low"
+          "bau_plan.addressable_gridmod": "low",
+          "transmission.avoided_build_share": "low"
         },
         "network": {}
       },
@@ -397,7 +398,8 @@
           "load_enabled": "high",
           "bau_plan.addressable_growth": "high",
           "bau_plan.addressable_replacement": "high",
-          "bau_plan.addressable_gridmod": "high"
+          "bau_plan.addressable_gridmod": "high",
+          "transmission.avoided_build_share": "high"
         },
         "network": {}
       }
@@ -1201,7 +1203,7 @@
       "transmission": {
         "enabled": true,
         "label": "Avoided transmission: transmission cost avoided by peak reduction",
-        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service.",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (setting formulation = split; default single): (a) allocation effect = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), with the cost shifted to other zone customers reported; (b) avoided build = load_driven_share x the published transmission investment, deferred by avoided_build_share x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.7a).",
         "params": {
           "cost_kw_yr": {
             "value": 60.49,
@@ -1232,6 +1234,68 @@
             "source": "Model setting",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "formulation": {
+            "value": "single",
+            "unit": "single | split",
+            "source": "Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'split' (METHODOLOGY 3.7a): (a) allocation effect + (b) avoided build, reported separately. Kept at 'single' until the author decides.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_enabled": {
+            "value": true,
+            "unit": "bool",
+            "source": "Setting (split formulation only): include (b), the avoided build. Off = (a) only.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the load-driven investment deferral that planning realises",
+            "source": "Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility as a planning-peak reduction), Central 0.5 (half of the planning-peak reduction is credited in transmission planning, e.g. firm DR and flexible connections that the TO accepts as load modifiers), Ambitious 1.0 (fully credited). Context, not calibration: PJM 2024 RTEP Window 1 (Board approval Feb 2025: $4.65B regional + $1.27B local, driven by 10-15 GW of data-centre load growth); Duke Nicholas Institute, Rethinking Load Growth (Feb 2025: ~76-126 GW of new load could connect with 0.25-1% curtailment).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "planning_lag_years": {
+            "low": 5,
+            "central": 7,
+            "high": 10,
+            "unit": "years",
+            "source": "Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP / local plan -> in service). Default 7, range 5-10.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "allocation_effect": {
+            "value": "zonal_share",
+            "unit": "none | zonal_share",
+            "source": "Setting (split formulation only). 'zonal_share': PJM recovers each zone's fixed annual transmission revenue requirement (ATRR, FERC formula rate) by network service peak load share, so a lower peak lowers these customers' share and raises the zonal rate for everyone else in the zone (the cost shifted is reported).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "zone_nspl_mw": {
+            "value": 6015.5,
+            "unit": "MW (zone network service peak load, 2026)",
+            "source": "Derived: PJM, Annual Transmission Revenue Requirements (ATRR) and Network Integration Transmission Service (NITS) Rates, as of 1 Jun 2026: PEPCO zone total ATRR $363,883,639.00 / NITS rate $60,491.36 per MW-year",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "utility_share_of_zone": {
+            "value": 0.6058,
+            "unit": "share of zone network service peak load",
+            "source": "Derived: Pepco_MD.json peak_demand_mw (Maryland) (3,644 MW, the model's peak, as the utility's network service peak load) / zone_nspl_mw (6,015.5 MW). Held constant (the zone grows with the utility). The rest of the PEPCO zone is Pepco DC and SMECO.",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "load_driven_share": {
+            "low": 0.0,
+            "central": 0.0,
+            "high": 0.3,
+            "unit": "share of planned transmission investment that is load-driven",
+            "source": "Derived: PJM 2024 RTEP Report, Tables 6.26 and 6.28 (Maryland / DC): no 2024 baseline projects in the PEPCO zone; the PEPCO-zone supplemental projects are all equipment-condition replacements (oil circuit breakers at Burches Hill, Morgantown, O Street, Bells Mill, Buzzard Point, Lanham), so low and central 0. High = the PJM-wide supplemental customer-service share of 2024 investment, $4.49B / $14.99B = 0.300 (PJM 2024 Regional Transmission Expansion Plan (2025), Figure 1.9 (2024 RTEP baseline projects $5,920M: baseline deliverability $5,515M, TO criteria $297M, short circuit $108M) and Section 3.2.3 / Figure 3.4 (2024 supplemental projects about $9.07B: customer service $4.49B, equipment material condition, performance and risk $3.3B, operational flexibility and efficiency $110M, multi-driver $1.17B)). PJM 2024 load forecast: PEPCO zone summer peak 6,053 MW (2024) to 6,440 MW (2034), 0.6% a year.",
+            "as_of": "2026-11-02",
+            "status": "derived"
           }
         }
       },

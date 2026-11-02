@@ -835,10 +835,101 @@ transmission_t   = firm MW x cost_kw_yr x 1000 x avoidable_share x (1 + transmis
 
 **Inputs.**
 - `cost_kw_yr`: Con Edison $40.67 and RG&E $3.25 per kW-year (marginal transmission cost, BCA handbooks); Dominion $85.19 and Pepco $60.49 per kW-year (PJM network service rates, June 2026).
+  - **RG&E's $3.25 was checked, and is kept and documented.** It is correctly transcribed: the NYSEG/RG&E Electric BCA Handbook v5.0 (June 2025), Table 9-3, still prescribes it (NYSEG $4.18), from the 2015 marginal cost of service studies, "the last accepted MCOS results".
+  - **Why it is about one-twelfth of Con Edison's value:** marginal cost studies measure load-related expansion. RG&E's 115 kV system had little load-driven transmission investment in the 2015 study, while Con Edison's serves dense, growing NYC load areas.
+  - **Escalation:** Con Edison's value is escalated to 2026 as its handbook directs; RG&E's is not, because its handbook gives no rule.
+  - **No update yet:** no 2025 RG&E MCOS update (under the August 2024 PSC order) was located.
 - `avoidable_share`: New York 1.0. PJM 0 / 0.5 / 1.0, because network service rates are average embedded costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run. `_VERIFY`.
 - `bill_basis`, `in_pool`.
 
 **Limitations.** PJM avoided transmission is a range, not a point estimate.
+
+This is the `'single'` formulation. It is the default and is unchanged. 3.8a describes the alternative.
+
+### 3.8a Avoided transmission: split formulation (option, off by default)
+
+`transmission.formulation = 'split'` replaces the single value with two components, reported separately. The default stays `'single'`, so v1.0, CORRECTED, the pins, the layer fixtures and the exports are unchanged. `transmission_formulation_table()` compares the two.
+
+**Jurisdiction.** Transmission rates and returns are FERC-jurisdictional:
+- **PJM:** network service rates are each zone's annual transmission revenue requirement under FERC formula rates, divided by network service peak load.
+- **New York:** the transmission revenue requirement is set in the state rate case, but its return and planning sit within the FERC-approved NYISO tariff.
+
+The state mechanism can therefore **count avoided transmission charges as customer savings** and include them in the shared-savings pool. It **cannot set the utility's transmission return**, change the zonal revenue requirement or direct the RTO's planning. The ROE lever (3.11) applies to the distribution business only.
+
+**(a) Allocation effect (`allocation_effect`).** A lower peak lowers these customers' share of existing transmission costs.
+- **PJM** (`'zonal_share'`): the zone's ATRR is fixed by formula rate and shared by network service peak load. With the utility's share s of the zone peak Pz and a peak reduction d (firm flexible MW + efficiency MW, as in 3.8):
+
+```
+saving_t        = ATRR_t x (s - (s x Pz - d) / (Pz - d)) = rate_t x d x (1 - s) x Pz / (Pz - d)      ($M)
+cost shifted_t  = saving_t                    (paid by the other customers in the zone through a higher zonal rate)
+rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t / s
+```
+
+  The inputs are derived from PJM's June 2026 ATRR and NITS rate sheet (zone NSPL = ATRR / rate):
+  - DOM: zone NSPL 24,678 MW, with Dominion's share 0.810 (20,000 MW). The rest is co-operative and municipal load.
+  - PEPCO: zone NSPL 6,016 MW, with Pepco MD's share 0.606 (3,644 MW). The rest is Pepco DC and SMECO.
+
+  The share is held constant. Only (1 − s) of the gross reduction is a saving to these customers; the rest is recovered from them through the higher rate.
+- **New York** (`'none'`): the utility's transmission revenue requirement is recovered from its own delivery customers, so a lower peak reallocates it among them. (a) is 0.
+
+**(b) Avoided build.** This is the deferral of load-driven transmission investment.
+- **Investment base (`transmission_plan_capex()`):**
+  - PJM: from the published transmission rate base path (`bau_plan.transmission_plan_rate_base_m`), with investment = RB_t − RB_{t−1} × (1 − 3.5% decay). That gives Dominion about $2.4–2.9B a year (2026–2030) and Pepco $325–400M a year. Beyond the plan it grows at `transmission_growth`.
+  - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1): Con Edison 0.304, RG&E 0.205 (derived).
+- **Load-driven share (`load_driven_share`, low / central / high).** Retirement, market efficiency, equipment condition and public policy projects are excluded.
+
+| Utility | Low / central / high | Status | Derivation |
+|---|---|---|---|
+| Dominion | 0.300 / 0.667 / 0.746 | derived | PJM 2024 RTEP Report (Fig. 1.9, Fig. 3.4): baseline $5.92B (deliverability $5.515B, driven by load growth in the Dominion zone and amplified by >2 GW of deactivations); supplemental $9.07B (customer service $4.49B, equipment condition $3.3B, operational flexibility $0.11B, multi-driver $1.17B). Low = customer service / total; central = (baseline deliverability + customer service) / total; high = also multi-driver. PJM-wide shares, dominated by the DOM zone. |
+| Pepco MD | 0 / 0 / 0.300 | derived | 2024 RTEP, Maryland/DC tables: no PEPCO-zone baseline projects, and its supplemental projects are all equipment-condition breaker replacements. High = the PJM-wide customer-service share. |
+| Con Edison | 0.25 / 0.5 / 0.75 | derived (count) | 2025 LTP: NYC needs have four drivers (load, retirements, no new generation, loss-of-generation design basis), so low = 1 of 4. Three of four named projects are load-serving substations (Brooklyn Clean Energy Hub, Eastern Queens, Sunset Park), so high = 3 of 4. No project costs are published, so these are counts, not dollars. |
+| RG&E | 0 / 0.25 / 0.5 | `_VERIFY` | Avangrid 2025 LTP, Rochester: the projects are reliability or CLCPA. None is attributed to load, so the share is not derivable. |
+
+- **Deferral.** In proportion to the planning-peak reduction from the scenario's firm flexibility and flexible large-load connections, lagged by `planning_lag_years` (setting; 7, range 5–10):
+
+```
+f_t             = min(1, (firm flexible MW + flexible connection MW)_{t - lag} / (peak_t - peak_2026))
+avoided capex_t = avoided_build_share x load_driven_share x investment_t x f_t
+avoided RB_t    = avoided RB_{t-1} x (1 - 3.5%) + avoided capex_t
+(b)_t           = avoided RB_t x (WACC + property tax) + 3.5% x avoided RB_{t-1}      (the model's carrying cost; x s for PJM)
+```
+
+- **`avoided_build_share` by scenario** (`_VERIFY`, documented assumptions):
+  - Cautious 0: planners don't count distribution-level flexibility.
+  - Central 0.5.
+  - Ambitious 1.0.
+- **Other zone customers (PJM):** they get (1 − s) of the avoided revenue requirement, reported as `transmission_build_other_zone_m`.
+- **Context, not calibration:** PJM's 2024 RTEP Window 1 (approved February 2025: $4.65B regional + $1.27B local, driven by 10–15 GW of load growth, mainly data centres) and the Duke Nicholas Institute's *Rethinking Load Growth* (February 2025: about 76–126 GW of new load could connect with 0.25–1% curtailment). Neither sets a parameter.
+
+**New York overlap fixed.** New York's published capital plans include transmission, so the deferral layer could defer the same spend as (b). With (b) on, the load-driven transmission spend (b) counts is taken out of the deferral layer's addressable growth capex before its addressable share applies. No plan dollar is deferred by both layers (tested).
+
+**Bill effect and pool.** (a) + (b) to these customers = `transmission_avoided_m`. It lowers the transmission lines (PJM) or the delivery bill (New York) and enters the pool when `in_pool` is on, as in 3.8. The new outputs are:
+- `transmission_allocation_m`, `transmission_cost_shifted_m`;
+- `transmission_build_avoided_m`, `transmission_build_other_zone_m`;
+- `transmission_avoided_capex_m`, `transmission_deferral_fraction`, `transmission_load_driven_capex_m`.
+
+**Results** (utility-forecast pace; $B undiscounted nominal; 2050 monthly saving, $ nominal, average residential bill). The columns compare the current single formulation with the split one, (b) off and on:
+
+| Utility | Scenario | Avoided transmission: single / split (a) / split (a)+(b) | of which (b) | Cost shifted in zone by (a) | Transmission capex avoided | Customer savings: single / split, (b) off / split, (b) on | 2050 monthly saving: single / (b) off / (b) on |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 0.47 / 0.00 / 0.00 | 0.00 | 0.00 | 0.00 | 12.45 / 12.12 / 10.29 | 29.02 / 28.31 / 22.52 |
+| Con Edison | Central | 2.31 / 0.00 / 6.64 | 6.64 | 0.00 | 8.95 | 40.39 / 38.78 / 36.94 | 111.10 / 107.33 / 101.63 |
+| Con Edison | Ambitious | 3.32 / 0.00 / 18.00 | 18.00 | 0.00 | 23.35 | 60.16 / 57.84 / 62.89 | 146.21 / 141.26 / 158.67 |
+| RG&E | Cautious | 0.00 / 0.00 / 0.00 | 0.00 | 0.00 | 0.00 | 1.59 / 1.59 / 1.55 | 14.60 / 14.58 / 14.04 |
+| RG&E | Central | 0.03 / 0.00 / 0.38 | 0.38 | 0.00 | 0.46 | 4.56 / 4.54 / 4.62 | 43.88 / 43.63 / 45.96 |
+| RG&E | Ambitious | 0.03 / 0.00 / 0.80 | 0.80 | 0.00 | 0.94 | 7.04 / 7.02 / 7.38 | 62.22 / 61.92 / 69.51 |
+| Dominion VA | Cautious | 0.65 / 0.25 / 0.25 | 0.00 | 0.25 | 0.00 | 6.32 / 6.04 / 6.04 | 5.78 / 5.58 / 5.58 |
+| Dominion VA | Central | 3.21 / 1.29 / 2.96 | 1.68 | 1.29 | 2.51 | 19.97 / 18.62 / 19.80 | 16.32 / 15.43 / 16.65 |
+| Dominion VA | Ambitious | 9.52 / 4.29 / 15.37 | 11.08 | 4.29 | 16.46 | 48.34 / 44.68 / 52.43 | 37.94 / 35.74 / 43.17 |
+| Pepco MD | Cautious | 0.24 / 0.19 / 0.19 | 0.00 | 0.19 | 0.00 | 2.48 / 2.45 / 2.45 | 12.45 / 12.29 / 12.29 |
+| Pepco MD | Central | 0.44 / 0.36 / 0.36 | 0.00 | 0.36 | 0.00 | 4.49 / 4.44 / 4.44 | 25.10 / 24.85 / 24.85 |
+| Pepco MD | Ambitious | 0.74 / 0.64 / 0.64 | 0.00 | 0.64 | 0.00 | 6.24 / 6.17 / 6.17 | 34.26 / 33.93 / 33.93 |
+
+Reading the results:
+- **Con Edison:** (b) on adds avoided transmission ($6.6B Central, $18.0B Ambitious). In Cautious and Central the overlap fix removes more growth deferral than (b) adds back, because the deferral layer deferred that spend at up to 80% while (b) realises 0 or 50%. In Ambitious, (b) realises 100%.
+- **Dominion:** (a) is only (1 − 0.81) of the gross charge reduction, and all of it is shifted to other DOM zone customers. (b) dominates in Ambitious.
+- **Pepco:** (b) is 0 at a central load-driven share of 0.
+- **What the comparison shows:** the single formulation's "avoidable share" mixed a cost shift with avoided build. The split shows how much of each there is.
 
 ### 3.9 Avoided distribution losses (layer 8)
 

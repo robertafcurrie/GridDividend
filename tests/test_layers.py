@@ -1115,3 +1115,127 @@ def test_customer_allocation_drives_bill_and_advance_cap(key, nb, opt):
         LY.system_summary(base)['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
     ra = LY.project_layers(uj, p, scenario='Cautious', overrides={**ADV, ('mechanism', 'customer_allocation'): opt})
     assert (ra['ss']['avg_bill_total'].values <= ra['bau']['avg_bill_total'].values + 1e-9).all()
+
+
+# ── Transmission: split formulation (METHODOLOGY 3.7a) ───────────────────────
+
+SPLIT = {('transmission', 'formulation'): 'split'}
+TX_NEW = ('transmission_allocation_m', 'transmission_cost_shifted_m', 'transmission_build_avoided_m',
+          'transmission_build_other_zone_m', 'transmission_avoided_capex_m', 'transmission_deferral_fraction')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_default_single_and_split_inputs(key, nb):
+    """The default stays 'single' (new columns zero); split-only inputs have a status and stay out of the
+    tornado while single; avoided_build_share is 0 in Cautious; the lag is 7 (5 to 10)."""
+    uj, p = _utility(key, nb)
+    fa = uj['forward_assumptions']
+    tp = fa['layers']['transmission']['params']
+    assert tp['formulation']['value'] == 'single'
+    for k in LY.TRANSMISSION_SPLIT_PARAMS:
+        if k in tp:
+            assert tp[k]['status'] in ('sourced', 'derived', '_VERIFY', 'setting'), k
+    assert tp['avoided_build_share']['status'] == '_VERIFY' and tp['avoided_build_share']['low'] == 0.0
+    assert (tp['planning_lag_years']['low'], tp['planning_lag_years']['central'], tp['planning_lag_years']['high']) == (5, 7, 10)
+    assert fa['scenarios']['Cautious']['levels']['transmission.avoided_build_share'] == 'low'
+    assert tp['load_driven_share']['status'] == ('_VERIFY' if key == 'RGE' else 'derived')
+    keys = LY.assumption_keys(fa)
+    assert not [k for k in keys if k[0] == 'transmission' and k[1] in LY.TRANSMISSION_SPLIT_PARAMS]
+    assert ('transmission', 'avoidable_share') in keys
+    fs = json.loads(json.dumps(fa))
+    fs['layers']['transmission']['params']['formulation']['value'] = 'split'
+    ks = LY.assumption_keys(fs)
+    assert ('transmission', 'planning_lag_years') in ks and ('transmission', 'avoidable_share') not in ks
+    s = LY.project_layers(uj, p)['ss']
+    for c in TX_NEW:
+        assert (s[c] == 0).all(), c
+    with pytest.raises(ValueError):
+        LY.project_layers(uj, p, overrides={('transmission', 'formulation'): 'other'})
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_split_identities(key, nb):
+    uj, p = _utility(key, nb)
+    tp = LY.resolve(uj['forward_assumptions'])['transmission']
+    r = LY.project_layers(uj, p, overrides=SPLIT)
+    s, b = r['ss'], r['bau']
+    # avoided transmission to these customers = (a) + (b); BAU carries none of it
+    assert np.allclose(s['transmission_avoided_m'], s['transmission_allocation_m'] + s['transmission_build_avoided_m'])
+    for c in TX_NEW:
+        assert (b[c] == 0).all(), c
+    assert ((s['transmission_deferral_fraction'] >= 0) & (s['transmission_deferral_fraction'] <= 1)).all()
+    assert (s['transmission_avoided_capex_m'] <= tp['avoided_build_share'] * s['transmission_load_driven_capex_m'] + 1e-9).all()
+    if tp['allocation_effect'] == 'zonal_share':
+        # (a): the fixed zonal ATRR is re-shared; what these customers save, the rest of the zone pays
+        assert np.allclose(s['transmission_cost_shifted_m'], s['transmission_allocation_m'])
+        sh = tp['utility_share_of_zone']
+        # gross charge avoided at the unchanged rate (single formulation, avoidable share 1) = firm MW x rate;
+        # the customers' saving is the drop in their share of the fixed ATRR: gross x (1 - s) Pz / (Pz - d)
+        gross = LY.project_layers(uj, p, overrides={('transmission', 'avoidable_share'): 1.0})['ss']['transmission_avoided_m']
+        pz, d = s['peak_mw'] / sh, s['firm_mw'].clip(upper=s['peak_mw'])
+        expect = np.where(d > 0, gross * (1 - sh) * pz / (pz - d), 0.0)
+        assert np.allclose(s['transmission_allocation_m'], expect, rtol=1e-9, atol=1e-12)
+        assert (s['transmission_allocation_m'] < gross + 1e-12).all()
+        assert np.allclose(s['transmission_build_other_zone_m'] * sh, s['transmission_build_avoided_m'] * (1 - sh))
+    else:
+        assert (s['transmission_allocation_m'] == 0).all() and (s['transmission_cost_shifted_m'] == 0).all()
+        assert (s['transmission_build_other_zone_m'] == 0).all()
+    # no avoided build before the transition year + planning lag
+    first = int(tp_y) if (tp_y := uj['forward_assumptions']['layers']['programs']['params']['transition_year'].get('value')) else 2027
+    lag = int(tp['planning_lag_years'])
+    assert (s.loc[s['year'] < first + lag, 'transmission_avoided_capex_m'] == 0).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_avoided_build_switch_and_scenarios(key, nb):
+    uj, p = _utility(key, nb)
+    off = LY.project_layers(uj, p, overrides={**SPLIT, ('transmission', 'avoided_build_enabled'): False})['ss']
+    assert (off['transmission_build_avoided_m'] == 0).all() and (off['transmission_avoided_capex_m'] == 0).all()
+    cau = LY.project_layers(uj, p, scenario='Cautious', overrides=SPLIT)['ss']
+    assert (cau['transmission_build_avoided_m'] == 0).all()           # Cautious: avoided_build_share 0
+    on = LY.project_layers(uj, p, overrides=SPLIT)['ss']
+    tp = LY.resolve(uj['forward_assumptions'])['transmission']
+    if tp['load_driven_share'] > 0:
+        assert on['transmission_build_avoided_m'].sum() > 0
+        # a longer planning lag never brings the avoided build forward
+        late = LY.project_layers(uj, p, overrides={**SPLIT, ('transmission', 'planning_lag_years'): 10})['ss']
+        assert late['transmission_avoided_capex_m'].cumsum().le(on['transmission_avoided_capex_m'].cumsum() + 1e-9).all()
+
+
+@pytest.mark.parametrize('key,nb', [u for u in UTILS if u[0] in ('ConEd', 'RGE')])
+def test_transmission_new_york_overlap_removed(key, nb):
+    """New York plans include transmission: with (b) on, the deferral layer's growth deferral excludes the
+    load-driven transmission spend (b) counts, so no dollar of plan capex is deferred twice."""
+    uj, p = _utility(key, nb)
+    ad = LY.resolve(uj['forward_assumptions'])['bau_plan']['addressable_growth']
+    on = LY.project_layers(uj, p, overrides=SPLIT)['ss']
+    off = LY.project_layers(uj, p, overrides={**SPLIT, ('transmission', 'avoided_build_enabled'): False})['ss']
+    ld = on['transmission_load_driven_capex_m']
+    assert ld.sum() > 0
+    assert (on['capex_avoided_growth_m'] <= (on['plan_growth_capex_m'] - ld).clip(lower=0) * ad + 1e-9).all()
+    assert (on['capex_avoided_growth_m'] <= off['capex_avoided_growth_m'] + 1e-9).all()
+    # the two layers together never avoid more growth capex than the plan's growth category
+    assert (on['capex_avoided_growth_m'] + on['transmission_avoided_capex_m'] <= on['plan_growth_capex_m'] + 1e-9).all()
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_formulation_table(key, nb):
+    uj, p = _utility(key, nb)
+    t = LY.transmission_formulation_table(uj, p)
+    assert list(t.index) == [(sc, c[0]) for sc in LY.SCENARIOS for c in LY.TRANSMISSION_CASES]
+    for sc in LY.SCENARIOS:
+        sm = LY.system_summary(LY.project_layers(uj, p, scenario=sc))
+        assert t.loc[(sc, 'single'), 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(
+            sm['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
+        for c in LY.TRANSMISSION_CASES[1:]:          # split cases: (a) + (b); single is one undivided value
+            row = t.loc[(sc, c[0])]
+            assert row['Avoided transmission ($B, undiscounted nominal)'] == pytest.approx(
+                row['of which (a) allocation effect ($B, undiscounted nominal)']
+                + row['of which (b) avoided build ($B, undiscounted nominal)'], abs=1e-9)
+        assert t.loc[(sc, 'split, avoided build off'), 'of which (b) avoided build ($B, undiscounted nominal)'] == 0
+
+
+def test_rge_transmission_cost_documented():
+    uj, _ = _utility('RGE', 'GridDividend_NewYork.ipynb')
+    c = uj['forward_assumptions']['layers']['transmission']['params']['cost_kw_yr']
+    assert c['value'] == 3.25 and 'Table 9-3' in c['notes'] and 'v5.0' in c['notes']

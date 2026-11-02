@@ -69,6 +69,11 @@ CAPACITY_OBLIGATION_PARAMS = ('obligation_factor', 'secondary_obligation_factor'
                               'accr_storage_by_duration', 'storage_duration_hr', 'accr_der', 'accr_ee',
                               'auction_lag_years', 'avoided_price_path', 'suppression_enabled', 'suppression_elasticity',
                               'suppression_start_year', 'market_peak_mw')
+TRANSMISSION_FORMULATIONS = ('single', 'split')
+# Transmission inputs read only by the 'split' formulation (kept out of the tornado
+# while the formulation is 'single'); avoidable_share is read only by 'single'
+TRANSMISSION_SPLIT_PARAMS = ('allocation_effect', 'zone_nspl_mw', 'utility_share_of_zone', 'avoided_build_enabled',
+                             'load_driven_share', 'avoided_build_share', 'planning_lag_years', 'tx_capex_share_of_plan')
 SCENARIOS = ('Cautious', 'Central', 'Ambitious')
 CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 'supply_energy',
               'capacity', 'transmission', 'taxes_and_fees')
@@ -306,11 +311,15 @@ def assumption_keys(fa, layers_only=False):
     """
     keys = []
     form = ((fa['layers'].get('capacity', {}).get('params', {}).get('formulation') or {}).get('value', 'embedded'))
+    tx_form = ((fa['layers'].get('transmission', {}).get('params', {}).get('formulation') or {}).get('value', 'single'))
     for lname, items in _param_items(fa):
         if layers_only and lname == 'projection':
             continue
         for pname, spec in items.items():
             if lname == 'capacity' and pname in CAPACITY_OBLIGATION_PARAMS and form != 'avoided_obligation':
+                continue
+            if lname == 'transmission' and ((pname in TRANSMISSION_SPLIT_PARAMS and tx_form != 'split')
+                                            or (pname == 'avoidable_share' and tx_form == 'split')):
                 continue
             if isinstance(spec, dict) and 'central' in spec and spec['low'] != spec['high']:
                 keys.append((lname, pname))
@@ -756,6 +765,36 @@ def plan_paths(params, a, fa, sysdf, infl):
                 tx_index=tx_index, plan_end=y_end, plan_cagr=g_plan, path=path, taper_year=ty)
 
 
+def transmission_plan_capex(a, plan):
+    """
+    Planned transmission investment, $M nominal a year, 2026-2050 (the base of the
+    split formulation's avoided build).
+
+    PJM utilities (bau_plan.transmission_plan_rate_base_m): investment = the change in
+    the published transmission rate base plus the rate-base decay on the opening
+    balance (the model's 3.5% a year), RB_t - RB_{t-1} x (1 - decay), for the plan
+    years; beyond the plan it grows at projection.transmission_growth. New York
+    (transmission recovered in delivery rates, inside the published electric capital
+    plan): transmission.tx_capex_share_of_plan x the plan capex path.
+    Output: array (zeros where neither is available).
+    """
+    bp, tx, pj = a['bau_plan'], a.get('transmission', {}), a['projection']
+    out = np.zeros(len(YEARS))
+    if bp.get('transmission_plan_rate_base_m'):
+        tyrs, trb = list(bp['transmission_plan_years']), list(bp['transmission_plan_rate_base_m'])
+        last = None
+        for t, y in enumerate(YEARS):
+            if y in tyrs and (y - 1) in tyrs:
+                i = tyrs.index(y)
+                out[t] = trb[i] - trb[i - 1] * (1 - RATE_BASE_DECAY)
+                last = t
+            elif last is not None:
+                out[t] = out[t - 1] * (1 + pj['transmission_growth'])
+    elif tx.get('tx_capex_share_of_plan') is not None and plan is not None:
+        out = np.asarray(plan['capex'], dtype=float) * tx['tx_capex_share_of_plan']
+    return out
+
+
 def _capacity_price(cap, t, y, infl, plan_on):
     """
     Capacity price, $M per MW-year nominal: the 2026 price grown at price_growth,
@@ -1018,6 +1057,21 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     tx_on_lines = tx.get('bill_basis', 'transmission_lines') == 'transmission_lines'
     tx_plan = plan['tx_index'] if plan_on else None
     tx_idx = (lambda t: tx_plan[t]) if tx_plan is not None else (lambda t: _infl(pj['transmission_growth'], t))
+    # Transmission formulation (METHODOLOGY 3.7a): 'single' (default) = firm MW x cost per
+    # kW-yr x avoidable share; 'split' = (a) allocation effect (a lower peak lowers the
+    # customers' share of existing zonal transmission costs: PJM network service peak
+    # load shares; none in New York) + (b) avoided build (the load-driven share of the
+    # published transmission investment, deferred in proportion to the lagged
+    # planning-peak reduction from firm flexibility and flexible connections)
+    tx_form = (tx.get('formulation') or 'single') if tx else 'single'
+    if tx_form not in TRANSMISSION_FORMULATIONS:
+        raise ValueError(f'transmission formulation {tx_form!r} must be one of {TRANSMISSION_FORMULATIONS}')
+    tx_split = tx_form == 'split'
+    tx_zonal = tx_split and tx.get('allocation_effect', 'none') == 'zonal_share'
+    tx_s = tx['utility_share_of_zone'] if tx_zonal else 1.0
+    tx_build_on = tx_split and bool(tx.get('avoided_build_enabled', True)) and plan_on
+    tx_ld = (transmission_plan_capex(a, plan) * tx['load_driven_share']) if tx_build_on else np.zeros(len(YEARS))
+    tx_lag = int(round(tx.get('planning_lag_years', 7) or 7)) if tx_build_on else 0
     bands = network_bands(nw, DN[0], h)
     NB = range(len(bands))
     op_x = operating_limit(nw)
@@ -1072,6 +1126,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         carry = 0.0
         adv_bal, adv_paused, adv_sched = 0.0, False, 0.0
         obl_hist = []
+        tx_r_hist, tx_ar = [], 0.0               # planning-peak reduction by year; avoided transmission rate base
         ee_vint = []
         Cb = [bd['C0'] for bd in bands]
         pipes = [list(sd) for sd in seeds]
@@ -1234,7 +1289,11 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     f_ad = nt('near_term_ramp_addressable', y)
                     if f_ad is not None:                     # near-term addressable ramp replaces the default
                         ramp_p = f_ad
-                    av_g = cat['growth'] * min(ad['growth'] * (f_ad if f_ad is not None else 1.0), deferrable)
+                    # New York plans include transmission: the load-driven transmission spend the
+                    # split formulation's avoided build counts is not addressable here as well
+                    cat_g = (max(0.0, cat['growth'] - tx_ld[t]) if (tx_build_on and Lt and not tx_on_lines)
+                             else cat['growth'])
+                    av_g = cat_g * min(ad['growth'] * (f_ad if f_ad is not None else 1.0), deferrable)
                     av_r = cat['replacement'] * ad['replacement'] * ramp_p
                     av_m = cat['gridmod'] * ad['gridmod'] * ramp_p
                     av_o = cat['other'] * ad['other'] * ramp_p
@@ -1352,15 +1411,37 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             mw_firm = min(firm_flex + ee_mw, P[t]) if active else 0.0
             sup_kwh = sup0_kwh * _infl(pj['supply_energy_growth'], t)            # $/kWh
             whl = tx_av = loss_e = loss_p = mw_loss = 0.0
+            tx_alloc = tx_shift = tx_build = tx_build_oz = tx_av_capex = tx_f = 0.0
             if Lw and active:      # load shifted from on-peak to off-peak hours
                 spread = we['spread_mwh'] * _infl(pj['supply_energy_growth'], t)
                 off = we['offpeak_price_mwh'] * _infl(pj['supply_energy_growth'], t)
                 per = {k: spread for k in FLEX_TYPES}
                 per['storage'] = spread - off * (1 / we['storage_rte'] - 1)      # round-trip losses
                 whl = sum(inc[k] * we[f'mwh_per_mw_{k}'] * per[k] for k in FLEX_TYPES) / 1e6
-            if Lt and active:      # transmission cost avoided by peak reduction
+            if Lt and active and not tx_split:      # transmission cost avoided by peak reduction
                 tx_av = (mw_firm * tx['cost_kw_yr'] * 1000 * tx['avoidable_share']
                          * tx_idx(t) / 1e6)
+            if Lt and tx_split:
+                if tx_zonal and active and mw_firm > 0:
+                    # (a) the zonal ATRR is fixed (formula rate): a lower network service peak
+                    # load lowers the customers' share and raises the zonal rate for the rest
+                    rate = tx['cost_kw_yr'] * 1000 * tx_idx(t) / 1e6              # $M per MW-yr
+                    pz = P[t] / tx_s
+                    tx_alloc = rate * pz * mw_firm * (1 - tx_s) / (pz - mw_firm)
+                    tx_shift = tx_alloc                                         # paid by others in the zone
+                tx_r_hist.append((firm_flex + fc_mw) if active else 0.0)
+                if tx_build_on:
+                    # (b) load-driven investment deferred in proportion to the planning-peak
+                    # reduction seen planning_lag_years earlier, against peak growth since 2026
+                    r_l = tx_r_hist[t - tx_lag] if t >= tx_lag else 0.0
+                    g_pk = P[t] - P[0]
+                    tx_f = min(1.0, r_l / g_pk) if g_pk > 1e-9 else (1.0 if r_l > 0 else 0.0)
+                    tx_av_capex = tx['avoided_build_share'] * tx_ld[t] * tx_f
+                    ar_open = tx_ar
+                    tx_ar = tx_ar * (1 - RATE_BASE_DECAY) + tx_av_capex
+                    b_rr = tx_ar * (wacc + ptr * (1 + infl * 0.5) ** t) + RATE_BASE_DECAY * ar_open
+                    tx_build, tx_build_oz = b_rr * tx_s, b_rr * (1 - tx_s)
+                tx_av = tx_alloc + tx_build
             if Ll and active:      # marginal distribution losses avoided (above the average in retail rates)
                 loss_e = (ee_gwh * lo['avg_loss_pct'] * (lo['marginal_mult_energy'] - 1)) * sup_kwh
                 mw_loss = min(mw_firm * lo['avg_loss_pct'] * lo['marginal_mult_peak'], max(0.0, sys_peak - mw_red))
@@ -1529,6 +1610,10 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 capacity_avoided_price_m_per_mw_yr=price_av,
                 savings_pool_m=pool, shared_savings_earnings_m=earnings,
                 wholesale_value_m=whl, transmission_avoided_m=tx_av, losses_energy_value_m=loss_e,
+                transmission_allocation_m=tx_alloc, transmission_cost_shifted_m=tx_shift,
+                transmission_build_avoided_m=tx_build, transmission_build_other_zone_m=tx_build_oz,
+                transmission_avoided_capex_m=tx_av_capex, transmission_deferral_fraction=tx_f,
+                transmission_load_driven_capex_m=(tx_ld[t] if (ss and Lt) else 0.0),
                 losses_peak_value_m=loss_p, roe_delta=roe_d, roe_cost_m=roe_cost,
                 objective_level=obj_level, objective_gross_m=obj_gross, objective_cost_to_achieve_m=obj_cta,
                 objective_saving_m=obj_saving,
@@ -2283,6 +2368,49 @@ def capacity_formulation_table(utility_json, params, scenarios=SCENARIOS, overri
                          f'Obligation MW avoided {y}': s.loc[y, 'peak_reduction_mw'],
                          f'Capacity avoided per kW {y} ($/kW-yr, nominal)': cv.loc[y] * 1e3 / mw if mw else np.nan})
     return pd.DataFrame(rows).set_index(['scenario', 'formulation'])
+
+
+TRANSMISSION_CASES = (('single', 'single', None), ('split, avoided build off', 'split', False),
+                      ('split, avoided build on', 'split', True))
+
+
+def transmission_formulation_table(utility_json, params, scenarios=SCENARIOS, overrides=None):
+    """
+    Each scenario under the current transmission formulation ('single', the default)
+    and the split formulation with the avoided build (b) off and on (METHODOLOGY 3.7a).
+
+    Inputs: overrides added to every run.
+    Output: DataFrame indexed by (scenario, case): avoided transmission to the
+      utility's customers ($B undiscounted nominal and NPV 3%), of which (a)
+      allocation effect and (b) avoided build ($B undiscounted nominal); cost shifted
+      to other customers in the zone by (a) and the avoided build's benefit to other
+      zone customers ($B, PJM); transmission capex avoided ($B undiscounted nominal);
+      customer savings ($B undiscounted nominal and NPV 3%) and the 2035 and 2050
+      monthly saving ($/month nominal).
+    """
+    rows = []
+    for sc in scenarios:
+        for label, form, build in TRANSMISSION_CASES:
+            ov = {**(overrides or {}), ('transmission', 'formulation'): form}
+            if build is not None:
+                ov[('transmission', 'avoided_build_enabled')] = build
+            r = project_layers(utility_json, params, scenario=sc, overrides=ov)
+            sm = system_summary(r)
+            b, s = r['bau'].set_index('year'), r['ss'].set_index('year')
+            tx = s['transmission_avoided_m']
+            rows.append({'scenario': sc, 'case': label,
+                         'Avoided transmission ($B, undiscounted nominal)': tx.sum() / 1e3,
+                         'Avoided transmission ($B, NPV 3%, 2026 $)': _npv(tx.values, YEARS, 0.03) / 1e3,
+                         'of which (a) allocation effect ($B, undiscounted nominal)': s['transmission_allocation_m'].sum() / 1e3,
+                         'of which (b) avoided build ($B, undiscounted nominal)': s['transmission_build_avoided_m'].sum() / 1e3,
+                         'Cost shifted to others in the zone by (a) ($B, undiscounted nominal)': s['transmission_cost_shifted_m'].sum() / 1e3,
+                         'Avoided build benefit to others in the zone ($B, undiscounted nominal)': s['transmission_build_other_zone_m'].sum() / 1e3,
+                         'Transmission capex avoided ($B, undiscounted nominal)': s['transmission_avoided_capex_m'].sum() / 1e3,
+                         'Customer savings ($B, undiscounted nominal)': sm['Customer savings ($B, undiscounted nominal)'],
+                         'Customer savings ($B, NPV 3%, 2026 $)': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+                         'Monthly saving 2035 ($, nominal)': b.loc[2035, 'avg_bill_total'] - s.loc[2035, 'avg_bill_total'],
+                         'Monthly saving 2050 ($, nominal)': b.loc[2050, 'avg_bill_total'] - s.loc[2050, 'avg_bill_total']})
+    return pd.DataFrame(rows).set_index(['scenario', 'case'])
 
 
 CUSTOMER_ALLOCATIONS = ('by_sales', 'per_customer', 'custom')

@@ -533,7 +533,8 @@
           "load_enabled": "low",
           "bau_plan.addressable_growth": "low",
           "bau_plan.addressable_replacement": "low",
-          "bau_plan.addressable_gridmod": "low"
+          "bau_plan.addressable_gridmod": "low",
+          "transmission.avoided_build_share": "low"
         },
         "network": {}
       },
@@ -552,7 +553,8 @@
           "load_enabled": "high",
           "bau_plan.addressable_growth": "high",
           "bau_plan.addressable_replacement": "high",
-          "bau_plan.addressable_gridmod": "high"
+          "bau_plan.addressable_gridmod": "high",
+          "transmission.avoided_build_share": "high"
         },
         "network": {}
       }
@@ -1367,7 +1369,7 @@
       "transmission": {
         "enabled": true,
         "label": "Avoided transmission: transmission cost avoided by peak reduction",
-        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service.",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (setting formulation = split; default single): (a) allocation effect = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), with the cost shifted to other zone customers reported; (b) avoided build = load_driven_share x the published transmission investment, deferred by avoided_build_share x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.7a).",
         "params": {
           "cost_kw_yr": {
             "value": 40.67,
@@ -1398,6 +1400,61 @@
             "source": "Model setting",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "formulation": {
+            "value": "single",
+            "unit": "single | split",
+            "source": "Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'split' (METHODOLOGY 3.7a): (a) allocation effect + (b) avoided build, reported separately. Kept at 'single' until the author decides.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_enabled": {
+            "value": true,
+            "unit": "bool",
+            "source": "Setting (split formulation only): include (b), the avoided build. Off = (a) only.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the load-driven investment deferral that planning realises",
+            "source": "Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility as a planning-peak reduction), Central 0.5 (half of the planning-peak reduction is credited in transmission planning, e.g. firm DR and flexible connections that the TO accepts as load modifiers), Ambitious 1.0 (fully credited). Context, not calibration: PJM 2024 RTEP Window 1 (Board approval Feb 2025: $4.65B regional + $1.27B local, driven by 10-15 GW of data-centre load growth); Duke Nicholas Institute, Rethinking Load Growth (Feb 2025: ~76-126 GW of new load could connect with 0.25-1% curtailment).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "planning_lag_years": {
+            "low": 5,
+            "central": 7,
+            "high": 10,
+            "unit": "years",
+            "source": "Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP / local plan -> in service). Default 7, range 5-10.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "allocation_effect": {
+            "value": "none",
+            "unit": "none | zonal_share",
+            "source": "Setting (split formulation only). 'none': the utility's own transmission revenue requirement is recovered in its delivery rates from its own customers (and NYPA delivery customers), so a lower peak reallocates it among them rather than lowering what they pay together; (a) is 0 in New York.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "tx_capex_share_of_plan": {
+            "value": 0.3037,
+            "unit": "share of the published electric capital plan",
+            "source": "Derived: FERC Form 1 (via PUDL; utilities/ConEd_lookback.json rr_bridge.form1), CECONY electric net plant 2021 -> 2025: transmission $3,452M -> $5,251M (+$1,799M), distribution $20,306M -> $24,430M (+$4,124M); transmission share of T&D net plant growth = 1,799 / 5,923 = 0.3037. Applied to the published electric capital plan (bau_plan.plan_dist_capex_m, which includes transmission). Cross-check: 2025 10-K, CECONY transmission net plant $4,703M (2024) -> $5,223M (2025).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "load_driven_share": {
+            "low": 0.25,
+            "central": 0.5,
+            "high": 0.75,
+            "unit": "share of planned transmission investment that is load-driven",
+            "source": "Derived from CECONY's 2025 Local Transmission Plan (NYISO LTPP, Dec 2025) and the Jan 2026 Reliability Needs Report: NYC 345/138 kV needs (250 MW in 2030 rising to 1,325 MW in 2035) are driven by (1) increasing load demand, (2) cumulative generation retirements, (3) no incremental new generation and (4) loss of generation as the design basis; three of the four named transmission projects are load-serving substations (Brooklyn Clean Energy Hub 345 kV, which also provides generation interconnection points for CLCPA resources; Eastern Queens 138 kV, \"driven by growing electric demand in Queens\" (2023 LTP); Sunset Park 345 kV, 2034), the fourth (4th Gowanus-Greenwood feeder) is reliability / retirement. Low = 1 of 4 needs drivers (0.25); high = 3 of 4 projects load-serving (0.75); central 0.5. Public policy (CLCPA) and retirement-driven spending excluded. Project costs are not published in the LTP, so the shares are counts, not dollars.",
+            "as_of": "2026-11-02",
+            "status": "derived"
           }
         }
       },

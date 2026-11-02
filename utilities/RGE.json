@@ -286,7 +286,8 @@
           "load_enabled": "low",
           "bau_plan.addressable_growth": "low",
           "bau_plan.addressable_replacement": "low",
-          "bau_plan.addressable_gridmod": "low"
+          "bau_plan.addressable_gridmod": "low",
+          "transmission.avoided_build_share": "low"
         },
         "network": {}
       },
@@ -305,7 +306,8 @@
           "load_enabled": "high",
           "bau_plan.addressable_growth": "high",
           "bau_plan.addressable_replacement": "high",
-          "bau_plan.addressable_gridmod": "high"
+          "bau_plan.addressable_gridmod": "high",
+          "transmission.avoided_build_share": "high"
         },
         "network": {}
       }
@@ -1108,14 +1110,15 @@
       "transmission": {
         "enabled": true,
         "label": "Avoided transmission: transmission cost avoided by peak reduction",
-        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service.",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (setting formulation = split; default single): (a) allocation effect = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), with the cost shifted to other zone customers reported; (b) avoided build = load_driven_share x the published transmission investment, deferred by avoided_build_share x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.7a).",
         "params": {
           "cost_kw_yr": {
             "value": 3.25,
             "unit": "$/kW-yr, 2026 (grows at transmission_growth)",
             "source": "NYSEG/RG&E Electric BCA Handbook, Table 9-3 (RG&E Marginal Cost of Electric Delivery Service, 23 Oct 2015, Case 15-E-0285): transmission $3.25/kW-yr, the last accepted value. RG&E's residential bill has no separate transmission charge, so avoided transmission lowers the delivery bill",
             "as_of": "2026-10-31",
-            "status": "sourced"
+            "status": "sourced",
+            "notes": "Checked 2 Nov 2026: correctly transcribed. The NYSEG/RG&E Electric BCA Handbook v5.0 (30 Jun 2025), Table 9-3, still prescribes RG&E $3.25/kW-yr transmission (NYSEG $4.18) from the 2015 marginal cost of service studies (\"the last accepted MCOS results and should continue to be used until a new MCOS is approved\"). It is about one-twelfth of Con Edison's $40.67 because the marginal cost studies measure load-related expansion: RG&E's 115 kV system had little load-driven transmission investment in the 2015 study, while Con Edison's 345/138 kV system serves dense, growing NYC load areas; Con Edison's value is also escalated to 2026, RG&E's is not (the NYSEG/RG&E handbook gives no escalation rule). A 2025 RG&E MCOS update under the Aug 2024 PSC order was not located. Kept as is (single formulation, default unchanged); the split formulation values RG&E's avoided build from its capital plan instead."
           },
           "avoidable_share": {
             "low": 0.5,
@@ -1139,6 +1142,61 @@
             "source": "Model setting",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "formulation": {
+            "value": "single",
+            "unit": "single | split",
+            "source": "Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'split' (METHODOLOGY 3.7a): (a) allocation effect + (b) avoided build, reported separately. Kept at 'single' until the author decides.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_enabled": {
+            "value": true,
+            "unit": "bool",
+            "source": "Setting (split formulation only): include (b), the avoided build. Off = (a) only.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "avoided_build_share": {
+            "low": 0.0,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the load-driven investment deferral that planning realises",
+            "source": "Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility as a planning-peak reduction), Central 0.5 (half of the planning-peak reduction is credited in transmission planning, e.g. firm DR and flexible connections that the TO accepts as load modifiers), Ambitious 1.0 (fully credited). Context, not calibration: PJM 2024 RTEP Window 1 (Board approval Feb 2025: $4.65B regional + $1.27B local, driven by 10-15 GW of data-centre load growth); Duke Nicholas Institute, Rethinking Load Growth (Feb 2025: ~76-126 GW of new load could connect with 0.25-1% curtailment).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
+          },
+          "planning_lag_years": {
+            "low": 5,
+            "central": 7,
+            "high": 10,
+            "unit": "years",
+            "source": "Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP / local plan -> in service). Default 7, range 5-10.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "allocation_effect": {
+            "value": "none",
+            "unit": "none | zonal_share",
+            "source": "Setting (split formulation only). 'none': the utility's own transmission revenue requirement is recovered in its delivery rates from its own customers (and NYPA delivery customers), so a lower peak reallocates it among them rather than lowering what they pay together; (a) is 0 in New York.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "tx_capex_share_of_plan": {
+            "value": 0.2052,
+            "unit": "share of the published electric capital plan",
+            "source": "Derived: FERC Form 1 (via PUDL; utilities/RGE_lookback.json rr_bridge.form1), RG&E electric net plant 2021 -> 2025: transmission $1,117M -> $1,272M (+$155M), distribution $1,136M -> $1,736M (+$600M); transmission share of T&D net plant growth = 155 / 755 = 0.2052. Applied to the published electric capital plan (bau_plan.plan_dist_capex_m, which includes transmission).",
+            "as_of": "2026-11-02",
+            "status": "derived"
+          },
+          "load_driven_share": {
+            "low": 0.0,
+            "central": 0.25,
+            "high": 0.5,
+            "unit": "share of planned transmission investment that is load-driven",
+            "source": "Avangrid 2025 Local Transmission Plan Update (NYISO LTPP), RG&E Rochester: Rochester Transmission Project Enhancement (Line 949, 2028), Monroe County Reliability Project (2031), Lines 901/902 and 942/943 upgrades (on hold), Station 127, 168 and 56 works (complete) are reliability projects; Line 906 rebuild (2030) is a CLCPA public-policy project (excluded). No project is attributed to load growth, although Zone B load grows about 3% a year with large loads (NYISO 2026 Gold Book). Low 0; central 0.25 (reliability projects partly load-driven, as one of Con Edison's four needs drivers); high 0.5. Not derivable from the published plan: an assumption.",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
           }
         }
       },
