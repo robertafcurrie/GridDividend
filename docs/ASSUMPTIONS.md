@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ConEd | 36 | 32 | 63 | 54 | 185 | 34% | 48% |
-| RGE | 20 | 22 | 76 | 54 | 172 | 44% | 64% |
-| DomVA | 45 | 26 | 62 | 54 | 187 | 33% | 47% |
-| PepcoMD | 29 | 30 | 65 | 54 | 178 | 37% | 52% |
+| ConEd | 37 | 33 | 63 | 56 | 189 | 33% | 47% |
+| RGE | 21 | 23 | 76 | 56 | 176 | 43% | 63% |
+| DomVA | 46 | 27 | 62 | 56 | 191 | 32% | 46% |
+| PepcoMD | 30 | 31 | 65 | 56 | 182 | 36% | 52% |
 
 ## Status counts by layer
 
@@ -32,7 +32,7 @@ All four utilities together.
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
 | objective | 0 | 0 | 0 | 24 | 24 |
-| mechanism | 0 | 4 | 0 | 60 | 64 |
+| mechanism | 4 | 8 | 0 | 68 | 80 |
 | roe | 0 | 4 | 0 | 4 | 8 |
 | network | 6 | 17 | 41 | 20 | 84 |
 | bau_plan | 9 | 6 | 6 | 40 | 61 |
@@ -56,7 +56,7 @@ _VERIFY / total status-tagged inputs.
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
 | objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
-| mechanism | 0 / 16 | 0 / 16 | 0 / 16 | 0 / 16 |
+| mechanism | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 |
 | roe | 0 / 2 | 0 / 2 | 0 / 2 | 0 / 2 |
 | network | 10 / 21 | 12 / 21 | 7 / 21 | 12 / 21 |
 | bau_plan | 0 / 14 | 3 / 15 | 2 / 16 | 1 / 16 |
@@ -217,6 +217,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
 | mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customer share of the shared savings pool (the wires and program revenue-requirement reduction net of shared savings earni… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 3064038 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Consolidated Edison Co-NY Inc, NY: bundled (Part A) + delivery-only (Part C) rows. Residenti… |
+| mechanism | nonresidential_customers | 582749 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Consolidated Edison Co-NY Inc, NY: bundled (Part A) + delivery-only (Part C) rows. Residenti… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -417,6 +421,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
 | mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customer share of the shared savings pool (the wires and program revenue-requirement reduction net of shared savings earni… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 351481 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Rochester Gas & Electric Corp, NY: bundled (Part A) + delivery-only (Part C) rows. Residenti… |
+| mechanism | nonresidential_customers | 40861 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Rochester Gas & Electric Corp, NY: bundled (Part A) + delivery-only (Part C) rows. Residenti… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -633,6 +641,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
 | mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customer share of the shared savings pool (the wires and program revenue-requirement reduction net of shared savings earni… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 2492204 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Virginia Electric & Power Co, VA + NC (rows combined): bundled (Part A) + delivery-only (Par… |
+| mechanism | nonresidential_customers | 291053 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Virginia Electric & Power Co, VA + NC (rows combined): bundled (Part A) + delivery-only (Par… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |
@@ -848,6 +860,10 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | mechanism | advance_cap | true |  |  |  | true \| false | setting | 2026-11-01 | Setting: recoveries are limited so that customers' net saving in any year (all customers, system level) is never negative: no year's shared… |
 | mechanism | advance_recovery_source | bill_savings |  |  |  | 'bill_savings' \| 'pool' | setting | 2026-11-01 | Setting: bill_savings (default) = recovered through a rider that withholds a share of each year's total customer saving compared with BAU (… |
 | mechanism | advance_sizing_basis | recoverable |  |  |  | 'recoverable' \| 'customer_savings' | setting | 2026-11-01 | Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving… |
+| mechanism | customer_allocation | by_sales |  |  |  | 'by_sales' \| 'per_customer' \| 'custom' | setting | 2026-11-02 | Setting: how the customer share of the shared savings pool (the wires and program revenue-requirement reduction net of shared savings earni… |
+| mechanism | custom_residential_share | 0.5 |  |  |  | share (0-1) | setting | 2026-11-02 | Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5). |
+| mechanism | residential_customers | 553607 |  |  |  | customers | sourced | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Potomac Electric Power Co, MD only: bundled (Part A) + delivery-only (Part C) rows. Resident… |
+| mechanism | nonresidential_customers | 49822 |  |  |  | customers | derived | 2026-11-02 | EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Potomac Electric Power Co, MD only: bundled (Part A) + delivery-only (Part C) rows. Resident… |
 | roe | roe_delta |  | -0.006 | 0.0 | 0.006 | change in allowed ROE, shared savings vs BAU (0.0… | derived | 2026-10-31 | Illinois CEJA performance-based ratemaking: performance metrics may move the allowed ROE by +/- 20 to 60 basis points, symmetrical (Ameren,… |
 | roe | roe_in_pool | false |  |  |  | count the ROE change inside the shared-savings po… | setting | 2026-10-31 | Model setting |
 | network | band_mode | explicit |  |  |  | 'explicit' = the bands list; 'generated' = n_band… | setting | 2026-10-31 | Model setting |

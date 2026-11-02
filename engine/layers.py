@@ -2262,3 +2262,115 @@ def capacity_formulation_table(utility_json, params, scenarios=SCENARIOS, overri
                          f'Obligation MW avoided {y}': s.loc[y, 'peak_reduction_mw'],
                          f'Capacity avoided per kW {y} ($/kW-yr, nominal)': cv.loc[y] * 1e3 / mw if mw else np.nan})
     return pd.DataFrame(rows).set_index(['scenario', 'formulation'])
+
+
+CUSTOMER_ALLOCATIONS = ('by_sales', 'per_customer', 'custom')
+
+
+def allocation_split(customers, pool_customer_share, sales_share, residential_pool_share=None):
+    """
+    Residential and non-residential customer savings, $M a year.
+
+    Inputs: customers (total customer savings, $M a year); pool_customer_share (the
+      part of it that is the pool's customer share: the wires and program revenue-
+      requirement reduction net of shared savings earnings, $M a year); sales_share
+      (residential share of sales); residential_pool_share (residential share of the
+      pool's customer share; None = by sales).
+    Output: (residential, non_residential) arrays. Everything except the pool's
+      customer share (supply, capacity, transmission, losses, efficiency energy)
+      stays allocated by sales. By sales, residential = customers x sales_share.
+    """
+    customers = np.asarray(customers, float)
+    if residential_pool_share is None:          # the export's residential / business split, exactly
+        return customers * sales_share, customers * (1 - sales_share)
+    r = np.asarray(pool_customer_share, float)
+    res = (customers - r) * sales_share + r * residential_pool_share
+    return res, customers - res
+
+
+def residential_pool_share(mech, sales_share, option=None, custom_share=None):
+    """
+    Residential share of the pool's customer share under a customer_allocation option
+    ('by_sales' -> sales_share; 'per_customer' -> residential / all customers, EIA-861;
+    'custom' -> custom_share or mechanism.custom_residential_share, between 0 and 1).
+    """
+    option = option or mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    if option not in CUSTOMER_ALLOCATIONS:
+        raise ValueError(f"customer_allocation {option!r} must be one of {CUSTOMER_ALLOCATIONS}")
+    if option == 'by_sales':
+        return sales_share
+    if option == 'per_customer':
+        n_r, n_n = mech['residential_customers'], mech['nonresidential_customers']
+        return n_r / (n_r + n_n)
+    a = mech.get('custom_residential_share') if custom_share is None else custom_share
+    if a is None or not 0.0 <= a <= 1.0:
+        raise ValueError(f'custom residential share {a!r} must be between 0 and 1')
+    return float(a)
+
+
+def customer_allocation(run, params, option=None, custom_share=None):
+    """
+    The customer share of the savings pool split between residential and non-
+    residential customers (METHODOLOGY 3.10b). Reporting only: bills and totals in
+    `run` follow the sales-based split of today's rates.
+
+    Inputs: run = project_layers() output; params (residential_sales_share, EIA-861);
+      option = 'by_sales' / 'per_customer' / 'custom' (None = mechanism.customer_allocation);
+      custom_share for 'custom'.
+    Output: dict of yearly arrays ($M nominal unless marked): customers (total customer
+      savings), pool_customer_share (wires + program revenue-requirement reduction net
+      of earnings: BAU minus SS of rr + program bill cost), load_following (the rest),
+      residential, non_residential, residential_bill_bau / residential_bill_ss
+      (average residential bill, $/month: the SS bill moves by the reallocated pool
+      share per residential customer), residential_saving_usd_month,
+      non_residential_saving_usd_month (per non-residential customer); and scalars
+      option, residential_pool_share, sales_share, residential_customers,
+      non_residential_customers (EIA-861 2024, held constant).
+    """
+    mech = run['assumptions']['mechanism']
+    rs = params['residential_sales_share']
+    option = option or mech.get('customer_allocation', 'by_sales') or 'by_sales'
+    a = residential_pool_share(mech, rs, option, custom_share)
+    b, s = run['bau'], run['ss']
+    cust = _customer_saving_yearly(run)
+    r = ((b['rr_m'] + b['program_bill_cost_m']) - (s['rr_m'] + s['program_bill_cost_m'])).values
+    res, non = allocation_split(cust, r, rs, None if option == 'by_sales' else a)
+    n_r, n_n = mech['residential_customers'], mech['nonresidential_customers']
+    shift = (a - rs) * r * 1e6 / (n_r * 12) if option != 'by_sales' else np.zeros(len(r))
+    bill_ss = s['avg_bill_total'].values - shift
+    return {'option': option, 'residential_pool_share': a, 'sales_share': rs,
+            'residential_customers': n_r, 'non_residential_customers': n_n,
+            'customers': cust, 'pool_customer_share': r, 'load_following': cust - r,
+            'residential': res, 'non_residential': non,
+            'residential_bill_bau': b['avg_bill_total'].values, 'residential_bill_ss': bill_ss,
+            'residential_saving_usd_month': b['avg_bill_total'].values - bill_ss,
+            'non_residential_saving_usd_month': non * 1e6 / (n_n * 12)}
+
+
+def customer_allocation_table(utility_json, params, scenarios=SCENARIOS, custom_share=0.5):
+    """
+    Residential and non-residential savings under each customer_allocation option.
+
+    Output: DataFrame indexed by (scenario, option): residential share of the pool's
+      customer share; residential and non-residential savings ($B undiscounted nominal
+      and NPV 3%); average residential bill saving 2035 / 2050 ($/month nominal);
+      non-residential saving per customer 2035 / 2050 ($/month nominal). Totals are
+      the same under every option.
+    """
+    rows = []
+    for sc in scenarios:
+        run = project_layers(utility_json, params, scenario=sc)
+        for opt in CUSTOMER_ALLOCATIONS:
+            al = customer_allocation(run, params, opt, custom_share)
+            i35, i50 = YEARS.index(2035), YEARS.index(2050)
+            rows.append({'scenario': sc, 'option': opt,
+                         'Residential share of pool customer share': al['residential_pool_share'],
+                         'Residential ($B, undiscounted nominal)': al['residential'].sum() / 1e3,
+                         'Residential ($B, NPV 3%, 2026 $)': _npv(al['residential'], YEARS, 0.03) / 1e3,
+                         'Non-residential ($B, undiscounted nominal)': al['non_residential'].sum() / 1e3,
+                         'Non-residential ($B, NPV 3%, 2026 $)': _npv(al['non_residential'], YEARS, 0.03) / 1e3,
+                         'Residential bill saving 2035 ($/month)': al['residential_saving_usd_month'][i35],
+                         'Residential bill saving 2050 ($/month)': al['residential_saving_usd_month'][i50],
+                         'Non-residential saving per customer 2035 ($/month)': al['non_residential_saving_usd_month'][i35],
+                         'Non-residential saving per customer 2050 ($/month)': al['non_residential_saving_usd_month'][i50]})
+    return pd.DataFrame(rows).set_index(['scenario', 'option'])

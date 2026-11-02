@@ -285,3 +285,82 @@ def test_program_costs_enter_once(key):
             assert (tot(s1) - tot(s0)) * 1e3 == pytest.approx(-prog0, rel=1e-9, abs=1e-6)
             assert ((f1['customers'] + f1['earnings']) - (f0['customers'] + f0['earnings'])).sum() == pytest.approx(
                 -prog0, rel=1e-12, abs=1e-6)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_allocation_sweep_by_sales_matches_export(key):
+    """by_sales reproduces the existing export fields exactly (bills, residential / business flows, customer savings)."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            blk = ex['runs'][pace][sc]
+            al = blk['allocation_sweep']['by_sales']
+            y = blk['yearly']['avg_residential_bill_usd_month']
+            assert al['yearly']['avg_residential_bill_usd_month']['bau'] == y['bau']['total']
+            assert al['yearly']['avg_residential_bill_usd_month']['shared_savings'] == y['shared_savings']['total']
+            for basis in ('undiscounted_nominal', 'npv3_2026'):
+                to = blk['value_flows_m'][basis]['to']
+                assert al['value_flows_m'][basis]['residential']['total'] == to['residential_customers']
+                assert al['value_flows_m'][basis]['non_residential']['total'] == to['business_customers']
+            assert al['residential_pool_share'] == al['residential_sales_share'] == ex['metadata']['residential_sales_share']
+            h = blk['headline']
+            assert al['headline']['residential_bill_saving_2035'] == pytest.approx(h['monthly_saving_2035'], abs=1e-12)
+            assert al['headline']['residential_bill_saving_2050'] == pytest.approx(h['monthly_saving_2050'], abs=1e-12)
+            assert al['headline']['customer_savings_b_undiscounted'] == pytest.approx(h['customer_savings_b_undiscounted'], rel=1e-9)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_allocation_totals_same_under_every_option(key):
+    """Residential + non-residential = customer savings under every option; load-following parts never move."""
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            sw = ex['runs'][pace][sc]['allocation_sweep']
+            cust = np.array(ex['runs'][pace][sc]['yearly']['customer_savings_m'])
+            tot = {}
+            for opt, al in sw.items():
+                yl = al['yearly']
+                np.testing.assert_allclose(np.array(yl['residential_savings_m']) + np.array(yl['non_residential_savings_m']),
+                                           cust, atol=2e-4, err_msg=f'{pace} {sc} {opt}')
+                h = al['headline']
+                tot[opt] = h['residential_savings_b_undiscounted'] + h['non_residential_savings_b_undiscounted']
+                assert tot[opt] == pytest.approx(h['customer_savings_b_undiscounted'], rel=1e-12)
+                for basis, f in al['value_flows_m'].items():
+                    t = sum(sum(f[c][g].values()) for c in ('residential', 'non_residential')
+                            for g in ('load_following', 'pool_customer_share'))
+                    assert t == pytest.approx(f['residential']['total'] + f['non_residential']['total'], rel=1e-9, abs=1e-6)
+                    for k, v in f['residential']['load_following'].items():
+                        assert v == pytest.approx(sw['by_sales']['value_flows_m'][basis]['residential']['load_following'][k],
+                                                  rel=1e-12)
+            assert len(set(round(v, 9) for v in tot.values())) == 1
+            assert sw['custom']['residential_pool_share'] == 0.5
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_per_customer_share_equals_customer_counts(key):
+    """per_customer: the residential share of the pool equals the residential share of EIA-861 customer counts."""
+    uj, p = E.load_utility(key)
+    mech = LY.resolve(uj['forward_assumptions'])['mechanism']
+    n_r, n_n = mech['residential_customers'], mech['nonresidential_customers']
+    share = n_r / (n_r + n_n)
+    assert share == pytest.approx(p['residential_customer_share'], abs=5e-5)   # the EIA-861 class shares note
+    assert mech['customer_allocation'] == 'by_sales'
+    ex = _export(key)
+    for pace in LY.PACES:
+        for sc in LY.SCENARIOS:
+            al = ex['runs'][pace][sc]['allocation_sweep']['per_customer']
+            assert al['residential_pool_share'] == share
+            f = al['value_flows_m']['undiscounted_nominal']
+            for k in E.POOL_PARTS:
+                r, n = f['residential']['pool_customer_share'][k], f['non_residential']['pool_customer_share'][k]
+                if abs(r + n) > 1e-6:
+                    assert r / (r + n) == pytest.approx(share, rel=1e-9)
+    run = LY.project_layers(uj, p, scenario='Central')
+    with pytest.raises(ValueError):
+        LY.customer_allocation(run, p, 'custom', 1.5)
+    with pytest.raises(ValueError):
+        LY.customer_allocation(run, p, 'other')
+    # the engine table: totals equal across options
+    t = LY.customer_allocation_table(uj, p, scenarios=('Central',))
+    tot = t['Residential ($B, undiscounted nominal)'] + t['Non-residential ($B, undiscounted nominal)']
+    assert tot.max() - tot.min() < 1e-9

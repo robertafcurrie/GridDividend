@@ -989,6 +989,63 @@ true-up     = if the year-end balance is above schedule, next year's credit is p
 - The cap applies to all customers together and to the average residential bill, not to each class separately.
 - An unrecovered balance is reported, not assigned.
 
+### 3.10b Customer allocation of the pool: residential vs non-residential (`customer_allocation`)
+
+**What it represents.** How the customers' share of the savings pool is divided between residential and non-residential customers. The pool's customer share is the wires and program revenue-requirement reduction net of shared savings earnings, returned through delivery rates. In the value flows it is deferral + additional objective + program costs − earnings, and BAU minus SS of (revenue requirement + program surcharge cost). How a regulator divides it is a rate-design choice, so the model offers three options (`mechanism.customer_allocation`, a setting):
+- `'by_sales'` (default; the earlier method): by the residential share of sales (EIA-861 2024: Con Edison 26.0%, RG&E 41.4%, Dominion 30.7%, Pepco 41.0%).
+- `'per_customer'`: equal per customer, by EIA-861 2024 class customer counts (`residential_customers`, `nonresidential_customers`). The residential share is Con Edison 84.0%, RG&E 89.6%, Dominion 89.5% and Pepco 91.7%.
+- `'custom'`: a residential share between 0 and 1 (`custom_residential_share`; the export uses 0.5).
+
+**Why only the pool is reallocated.** The other savings follow load through existing rates. Moving them would mean redesigning those rates, not the shared-savings mechanism:
+- Capacity is charged per kW of each class's peak contribution.
+- Transmission is charged by load.
+- Lower supply prices and avoided losses reach every kWh.
+- Efficiency energy savings stay with the customers whose usage falls.
+
+So capacity, transmission, losses, wholesale energy and efficiency energy stay allocated by sales under every option. The pool's customer share is different: it is a reduction in the revenue requirement net of the utility's earnings, collected through delivery rates and riders whose class allocation the commission sets. That is the part a shared-savings mechanism could choose to return differently.
+
+**Calculation.**
+
+```
+pool customer share P_t = (BAU - SS) of (revenue requirement + program surcharge cost)      ($M)
+load-following L_t      = customer savings_t - P_t
+residential_t           = L_t x sales share + P_t x residential pool share
+non-residential_t       = customer savings_t - residential_t
+                          (by_sales: customer savings x sales share and x (1 - sales share), exactly as the value flows)
+residential bill_t      = SS average residential bill - (residential pool share - sales share) x P_t / (residential customers x 12)
+non-residential $/month = non-residential_t / (non-residential customers x 12)        (counts held at 2024)
+```
+
+Totals, the pool, earnings and every value source are the same under every option. `customer_allocation()` reports the split for one run and `customer_allocation_table()` reports every scenario and option. The export's `allocation_sweep` carries yearly bills, value flows split by class, and headline savings by class for each option.
+
+**Results** (Central, utility-forecast pace; $B undiscounted nominal, NPV 3% in 2026 $ in brackets; $/month nominal; all scenarios in the CHANGELOG):
+
+| Utility | Scenario | Option | Residential share of pool | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Central | by sales (default) | 0.260 | 10.51 (6.22) | 29.88 (17.68) | 17.28 / 111.10 | 78.12 / 465.77 |
+| Con Edison | Central | per customer | 0.840 | 21.22 (12.22) | 19.18 (11.68) | 18.85 / 151.90 | 69.89 / 251.24 |
+| Con Edison | Central | custom 0.5 | 0.500 | 14.94 (8.70) | 25.45 (15.20) | 17.93 / 127.96 | 74.72 / 377.09 |
+| RG&E | Central | by sales (default) | 0.414 | 1.88 (1.15) | 2.67 (1.63) | 12.17 / 43.88 | 149.54 / 464.19 |
+| RG&E | Central | per customer | 0.896 | 2.69 (1.64) | 1.86 (1.15) | 17.02 / 61.03 | 107.80 / 316.61 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.03 (1.24) | 2.53 (1.55) | 13.04 / 46.95 | 142.06 / 437.75 |
+| Dominion | Central | by sales (default) | 0.307 | 6.14 (3.70) | 13.83 (8.35) | 6.44 / 16.32 | 91.38 / 378.88 |
+| Dominion | Central | per customer | 0.895 | 5.21 (3.00) | 14.76 (9.06) | 3.50 / 18.25 | 116.58 / 362.37 |
+| Dominion | Central | custom 0.5 | 0.500 | 5.83 (3.47) | 14.14 (8.58) | 5.48 / 16.96 | 99.63 / 373.47 |
+| Pepco MD | Central | by sales (default) | 0.410 | 1.84 (1.14) | 2.65 (1.65) | 10.80 / 25.10 | 136.02 / 346.25 |
+| Pepco MD | Central | per customer | 0.917 | 1.40 (0.86) | 3.09 (1.93) | 8.27 / 21.72 | 164.13 / 383.78 |
+| Pepco MD | Central | custom 0.5 | 0.500 | 1.76 (1.09) | 2.73 (1.70) | 10.35 / 24.50 | 140.99 / 352.89 |
+
+**Reading the results.**
+- **Where the pool's customer share is positive, per-customer allocation moves savings to residential customers.** Con Edison Central's is $18.5B and RG&E's is $1.7B. Con Edison's residential share rises from $10.5B to $21.2B, and its 2050 bill saving from $111 to $152/month.
+- **Where it is negative over the period, per-customer allocation lowers residential savings.** Dominion Central's is −$1.6B and Pepco's is −$0.9B. There, program costs (mostly efficiency) and earnings exceed the wires savings, and the customer savings come from load-following streams that stay split by sales. A larger residential share of a net cost lowers the residential saving.
+  - Dominion's 2035 residential saving falls from $6.44 to $3.50/month, but its 2050 saving rises from $16.32 to $18.25, as deferral savings overtake program costs.
+- **The design question is which costs and savings travel together.** Under per-customer allocation, residential customers would carry most of the efficiency program costs while the efficiency energy savings stay with each class's usage.
+
+**Limitations.**
+- Customer counts are held at EIA-861 2024 levels.
+- The residential bill shift uses residential customers, not sales, so under by_sales the class totals and the average-bill saving differ slightly, as before.
+- The class split of today's rates is taken as given. The allocation is reporting only; the engine's bills and totals follow the sales-based split.
+
 ### 3.11 ROE lever (layer 10)
 
 **What it represents.** A regulator could change the allowed return on equity alongside shared savings, for example to reward or penalise performance (Illinois CEJA performance metrics adjust ROE by 20–60 basis points; Ameren Illinois ±24 bp). This is a **separate lever**, outside the pool.
@@ -1147,7 +1204,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-Of the measured inputs (sourced, derived or `_VERIFY`, i.e. excluding settings), about half are `_VERIFY`: Con Edison 48%, Dominion 47%, Pepco 52%, RG&E 64%. As a share of all status-tagged inputs, including the settings that each new feature adds, the figures are 34%, 33%, 37% and 44%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares), and again with the avoided-obligation capacity inputs (3.6a), most of which are sourced from PJM, NYISO and NYSRC publications. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+Of the measured inputs (sourced, derived or `_VERIFY`, i.e. excluding settings), about half are `_VERIFY`: Con Edison 47%, Dominion 46%, Pepco 52%, RG&E 63%. As a share of all status-tagged inputs, including the settings that each new feature adds, the figures are 33%, 32%, 36% and 43%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares), and again with the avoided-obligation capacity inputs (3.6a), most of which are sourced from PJM, NYISO and NYSRC publications. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.
@@ -1264,7 +1321,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 - The assumptions register matches the JSON.
 - Every layered input has a valid status.
 
-`tests/test_export.py` checks that the exports balance and match direct runs. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
+`tests/test_export.py` checks that the exports balance and match direct runs. The allocation tests check three things: `allocation_sweep` by_sales reproduces the existing export fields exactly; residential + non-residential equal customer savings under every option, with the load-following parts unchanged; and the per_customer residential share equals the residential share of EIA-861 customer counts. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
 
 `tests/test_regression.py` pins the earlier model: the v1.0 BASE results for Con Edison, Dominion and Pepco, plus the correction-flag checks.
 

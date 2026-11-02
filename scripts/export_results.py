@@ -23,6 +23,10 @@ from the layered model as it stands (no model changes here):
     earnings and pool with the advance, and the worst year against BAU;
   - fast_start per scenario and pace (fast start on): chart data and headline;
     advance_fast_start per scenario and advance_fast_start_stress per pace;
+  - allocation_sweep per scenario and pace: the pool's customer share split between
+    residential and non-residential customers by_sales (default) / per_customer /
+    custom (0.5): yearly residential bills and savings by class, value flows split
+    by class, and headline savings by class;
   - tornado rows per pace (Central, 2035 and 2050 monthly saving);
   - metadata: source commit, date, dollar basis, pool setting.
 
@@ -59,6 +63,9 @@ YEARS = LY.YEARS
 WATERFALL_YEARS = (2035, 2050)
 SHARE_SWEEP = (0.20, 0.30, 0.40)                 # utility share of the savings pool (default 0.30)
 OBJECTIVE_SWEEP = (0.0, 0.025, 0.05, 0.10)       # additional savings objective (default 0%)
+ALLOCATION_CUSTOM_SHARE = 0.5                    # residential share of the pool's customer share, 'custom' option
+LOAD_FOLLOWING = ('capacity', 'transmission', 'losses', 'wholesale', 'efficiency_energy')   # stay allocated by sales
+POOL_PARTS = ('deferral', 'additional_objective', 'program_costs', 'earnings')             # pool's customer share
 # Tornado driver type: a choice regulators or utilities make (policy) or a condition they do not control (external)
 POLICY_LAYERS = {'programs', 'deferral', 'load_enabled', 'mechanism', 'roe', 'objective'}
 POLICY_PARAMS = {('bau_plan', 'addressable_growth'), ('bau_plan', 'addressable_replacement'),
@@ -262,6 +269,57 @@ def fast_start_block(uj, params, scenario):
     return {**run_block(ujf, params, scenario, run), 'headline': headline(run)}
 
 
+def allocation_sweep(uj, params, scenario, run=None, custom_share=ALLOCATION_CUSTOM_SHARE):
+    """
+    The pool's customer share (wires and program revenue-requirement reduction net of
+    shared savings earnings: deferral + additional objective + program costs - earnings)
+    split between residential and non-residential customers under each
+    customer_allocation option; load-following savings (capacity, transmission, losses,
+    wholesale, efficiency energy) stay split by sales. Totals are the same under every
+    option; by_sales reproduces the run block exactly.
+    """
+    run = run or LY.project_layers(uj, params, scenario=scenario)
+    flows = value_flows(run, params)
+    rs = params['residential_sales_share']
+    mech = run['assumptions']['mechanism']
+    pool = flows['deferral'] + flows['additional_objective'] + flows['program_costs'] - flows['earnings']
+    i35, i50 = YEARS.index(2035), YEARS.index(2050)
+    out = {}
+    for opt in LY.CUSTOMER_ALLOCATIONS:
+        al = LY.customer_allocation(run, params, opt, custom_share)
+        a = al['residential_pool_share']
+        res, non = LY.allocation_split(flows['customers'], pool, rs, None if opt == 'by_sales' else a)
+        vf = {}
+        for basis, agg in (('undiscounted_nominal', lambda v: float(np.sum(v))), ('npv3_2026', _npv)):
+            vf[basis] = {cls: {'load_following': {k: agg(flows[k]) * sh_lf for k in LOAD_FOLLOWING},
+                               'pool_customer_share': {k: agg(flows[k]) * sh_p * (-1 if k == 'earnings' else 1)
+                                                       for k in POOL_PARTS},
+                               'total': agg(tot)}
+                         for cls, sh_lf, sh_p, tot in (('residential', rs, a, res), ('non_residential', 1 - rs, 1 - a, non))}
+        out[opt] = {'option': opt, 'residential_pool_share': a, 'residential_sales_share': rs,
+                    **({'custom_residential_share': custom_share} if opt == 'custom' else {}),
+                    'yearly': {'year': YEARS,
+                               'avg_residential_bill_usd_month': {'bau': _r(al['residential_bill_bau']),
+                                                                  'shared_savings': _r(al['residential_bill_ss'])},
+                               'residential_saving_usd_month': _r(al['residential_saving_usd_month']),
+                               'non_residential_saving_usd_month_per_customer': _r(al['non_residential_saving_usd_month']),
+                               'residential_savings_m': _r(res), 'non_residential_savings_m': _r(non),
+                               'pool_customer_share_m': _r(pool)},
+                    'value_flows_m': vf,
+                    'headline': {'customer_savings_b_undiscounted': float(np.sum(flows['customers'])) / 1e3,
+                                 'residential_savings_b_undiscounted': float(np.sum(res)) / 1e3,
+                                 'residential_savings_b_npv3': _npv(res) / 1e3,
+                                 'non_residential_savings_b_undiscounted': float(np.sum(non)) / 1e3,
+                                 'non_residential_savings_b_npv3': _npv(non) / 1e3,
+                                 'residential_bill_saving_2035': float(al['residential_saving_usd_month'][i35]),
+                                 'residential_bill_saving_2050': float(al['residential_saving_usd_month'][i50]),
+                                 'non_residential_saving_per_customer_2035': float(al['non_residential_saving_usd_month'][i35]),
+                                 'non_residential_saving_per_customer_2050': float(al['non_residential_saving_usd_month'][i50]),
+                                 'residential_customers': mech['residential_customers'],
+                                 'non_residential_customers': mech['nonresidential_customers']}}
+    return out
+
+
 def run_export(uj, params, scenario):
     run = LY.project_layers(uj, params, scenario=scenario)
     return {
@@ -273,6 +331,7 @@ def run_export(uj, params, scenario):
         'advance': advance_block(uj, params, scenario),
         'fast_start': fast_start_block(uj, params, scenario),
         'advance_fast_start': advance_block(with_fast_start(uj), params, scenario),
+        'allocation_sweep': allocation_sweep(uj, params, scenario, run),
     }
 
 
@@ -385,6 +444,7 @@ def build_export(key):
                         'earnings_note': 'earnings_total_m = equity return on rate base + shared savings earnings; earnings_per_rate_base = earnings_total_m / rate base (wires + program regulatory asset).',
                         'advance_note': 'advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.',
                         'fast_start_note': 'fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.',
+                        'allocation_sweep_note': "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}

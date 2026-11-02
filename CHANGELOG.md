@@ -6,6 +6,79 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Customer allocation of the pool, residential vs non-residential (this commit)
+
+**Added.**
+- **`mechanism.customer_allocation` (setting):** how the customer share of the shared savings pool is split between residential and non-residential customers (METHODOLOGY 3.10b). The pool's customer share is the wires and program revenue-requirement reduction net of shared savings earnings.
+  - `'by_sales'`: default, the earlier method.
+  - `'per_customer'`: equal per customer, by EIA-861 2024 class customer counts.
+  - `'custom'`: a residential share between 0 and 1; `custom_residential_share` is 0.5.
+- **What moves:** only the pool's customer share is reallocated. Capacity, transmission, losses, wholesale energy and efficiency energy savings follow load through existing rates and stay allocated by sales.
+- **New inputs:** `residential_customers` (sourced) and `nonresidential_customers` (derived), from EIA-861 2024, in each utility file (Con Edison 3,064,038 / 582,749; RG&E 351,481 / 40,861; Dominion 2,492,204 / 291,053; Pepco 553,607 / 49,822). The assumptions register is regenerated; the `_VERIFY` shares of measured inputs are now Con Edison 47%, Dominion 46%, Pepco 52%, RG&E 63%.
+- **Engine:** `customer_allocation()`, `customer_allocation_table()` and `allocation_split()` in `engine/layers.py`. The allocation is reporting only; the engine's bills and totals follow the sales-based split.
+- **Export:** `allocation_sweep` for each utility, pace and scenario, with by_sales, per_customer and custom (0.5). Each entry has:
+  - yearly average residential bills;
+  - residential savings ($/month) and non-residential savings per customer ($/month);
+  - class savings ($M);
+  - value flows split into residential and non-residential (load-following and pool parts, undiscounted and NPV 3%);
+  - headline savings by class.
+
+  It builds on the current defaults, including the avoided-obligation capacity formulation. Every existing export field is unchanged (recursive comparison); only `allocation_sweep` and `metadata.allocation_sweep_note` are new.
+- **Tests** (12; 345 in total):
+  - by_sales reproduces the existing export fields exactly (bills, residential / business flows);
+  - residential + non-residential equal customer savings under every option, with the load-following parts unchanged;
+  - the per_customer residential share equals the residential share of EIA-861 customer counts;
+  - invalid options raise an error.
+
+**Effect on results:** none by default. v1.0, CORRECTED, the pins, the fixtures and every existing headline are unchanged.
+
+**Residential and non-residential savings by option** (utility-forecast pace; $B undiscounted nominal, NPV 3% in 2026 $ in brackets; $/month nominal):
+
+| Utility | Scenario | Option | Residential share of pool | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | by sales (default) | 0.260 | 3.24 (1.94) | 9.21 (5.52) | 5.05 / 29.02 | 26.93 / 128.52 |
+| Con Edison | Cautious | per customer | 0.840 | 6.54 (3.83) | 5.91 (3.63) | 5.79 / 39.94 | 23.05 / 71.13 |
+| Con Edison | Cautious | custom 0.5 | 0.500 | 4.60 (2.72) | 7.85 (4.74) | 5.36 / 33.53 | 25.33 / 104.80 |
+| Con Edison | Central | by sales (default) | 0.260 | 10.51 (6.22) | 29.88 (17.68) | 17.28 / 111.10 | 78.12 / 465.77 |
+| Con Edison | Central | per customer | 0.840 | 21.22 (12.22) | 19.18 (11.68) | 18.85 / 151.90 | 69.89 / 251.24 |
+| Con Edison | Central | custom 0.5 | 0.500 | 14.94 (8.70) | 25.45 (15.20) | 17.93 / 127.96 | 74.72 / 377.09 |
+| Con Edison | Ambitious | by sales (default) | 0.260 | 15.66 (9.35) | 44.50 (26.58) | 26.09 / 146.21 | 133.20 / 665.16 |
+| Con Edison | Ambitious | per customer | 0.840 | 30.11 (17.45) | 30.04 (18.48) | 28.40 / 202.72 | 121.03 / 368.04 |
+| Con Edison | Ambitious | custom 0.5 | 0.500 | 21.63 (12.70) | 38.52 (23.23) | 27.04 / 169.57 | 128.17 / 542.35 |
+| RG&E | Cautious | by sales (default) | 0.414 | 0.66 (0.41) | 0.93 (0.58) | 4.58 / 14.60 | 56.76 / 154.67 |
+| RG&E | Cautious | per customer | 0.896 | 1.13 (0.69) | 0.46 (0.29) | 7.63 / 24.62 | 30.54 / 68.48 |
+| RG&E | Cautious | custom 0.5 | 0.500 | 0.74 (0.46) | 0.85 (0.53) | 5.13 / 16.39 | 52.06 / 139.23 |
+| RG&E | Central | by sales (default) | 0.414 | 1.88 (1.15) | 2.67 (1.63) | 12.17 / 43.88 | 149.54 / 464.19 |
+| RG&E | Central | per customer | 0.896 | 2.69 (1.64) | 1.86 (1.15) | 17.02 / 61.03 | 107.80 / 316.61 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.03 (1.24) | 2.53 (1.55) | 13.04 / 46.95 | 142.06 / 437.75 |
+| RG&E | Ambitious | by sales (default) | 0.414 | 2.91 (1.79) | 4.13 (2.53) | 18.05 / 62.22 | 236.64 / 700.85 |
+| RG&E | Ambitious | per customer | 0.896 | 4.30 (2.62) | 2.75 (1.70) | 26.26 / 92.15 | 166.04 / 443.40 |
+| RG&E | Ambitious | custom 0.5 | 0.500 | 3.16 (1.94) | 3.88 (2.38) | 19.52 / 67.58 | 223.99 / 654.72 |
+| Dominion | Cautious | by sales (default) | 0.307 | 1.94 (1.19) | 4.38 (2.69) | 2.75 / 5.78 | 34.49 / 111.75 |
+| Dominion | Cautious | per customer | 0.895 | 1.12 (0.69) | 5.20 (3.20) | 2.00 / 3.97 | 40.95 / 127.26 |
+| Dominion | Cautious | custom 0.5 | 0.500 | 1.67 (1.03) | 4.65 (2.86) | 2.51 / 5.19 | 36.61 / 116.83 |
+| Dominion | Central | by sales (default) | 0.307 | 6.14 (3.70) | 13.83 (8.35) | 6.44 / 16.32 | 91.38 / 378.88 |
+| Dominion | Central | per customer | 0.895 | 5.21 (3.00) | 14.76 (9.06) | 3.50 / 18.25 | 116.58 / 362.37 |
+| Dominion | Central | custom 0.5 | 0.500 | 5.83 (3.47) | 14.14 (8.58) | 5.48 / 16.96 | 99.63 / 373.47 |
+| Dominion | Ambitious | by sales (default) | 0.307 | 14.85 (8.97) | 33.48 (20.22) | 14.82 / 37.94 | 226.63 / 923.54 |
+| Dominion | Ambitious | per customer | 0.895 | 11.27 (6.42) | 37.07 (22.76) | 6.52 / 40.07 | 297.71 / 905.30 |
+| Dominion | Ambitious | custom 0.5 | 0.500 | 13.68 (8.13) | 34.66 (21.05) | 12.10 / 38.64 | 249.92 / 917.56 |
+| Pepco MD | Cautious | by sales (default) | 0.410 | 1.02 (0.64) | 1.46 (0.92) | 6.63 / 12.45 | 83.33 / 179.31 |
+| Pepco MD | Cautious | per customer | 0.917 | 0.50 (0.33) | 1.98 (1.23) | 4.73 / 6.50 | 104.44 / 245.49 |
+| Pepco MD | Cautious | custom 0.5 | 0.500 | 0.93 (0.58) | 1.55 (0.98) | 6.30 / 11.40 | 87.06 / 191.03 |
+| Pepco MD | Central | by sales (default) | 0.410 | 1.84 (1.14) | 2.65 (1.65) | 10.80 / 25.10 | 136.02 / 346.25 |
+| Pepco MD | Central | per customer | 0.917 | 1.40 (0.86) | 3.09 (1.93) | 8.27 / 21.72 | 164.13 / 383.78 |
+| Pepco MD | Central | custom 0.5 | 0.500 | 1.76 (1.09) | 2.73 (1.70) | 10.35 / 24.50 | 140.99 / 352.89 |
+| Pepco MD | Ambitious | by sales (default) | 0.410 | 2.56 (1.59) | 3.68 (2.28) | 14.09 / 34.26 | 185.21 / 484.76 |
+| Pepco MD | Ambitious | per customer | 0.917 | 1.99 (1.21) | 4.25 (2.65) | 10.33 / 30.47 | 227.04 / 526.84 |
+| Pepco MD | Ambitious | custom 0.5 | 0.500 | 2.46 (1.52) | 3.78 (2.35) | 13.43 / 33.58 | 192.62 / 492.21 |
+
+- **Per-customer allocation helps residential customers where the pool's customer share is positive:** Con Edison $10.5B → $21.2B, RG&E $1.9B → $2.7B (Central).
+- **It lowers their savings where that share is negative over the period:** Dominion (−$1.6B Central) and Pepco (−$0.9B). There, efficiency program costs and earnings exceed the wires savings.
+- **Dominion's 2050 residential saving still rises,** from $16.32 to $18.25/month, as deferral overtakes program costs.
+
+---
+
 ## 2026-11-02: Avoided-obligation capacity is the default (this commit)
 
 **Changed.**

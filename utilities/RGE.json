@@ -1349,6 +1349,34 @@
             "source": "Setting: recoverable (default) = size the advance on the sizing scenario's recoverable savings (the recovery base: positive customer saving for bill_savings, positive pool for pool), PV at the financing rate; customer_savings = NPV at 3% of the sizing scenario's customer savings (the earlier sizing, which the pool cannot repay).",
             "as_of": "2026-11-01",
             "status": "setting"
+          },
+          "customer_allocation": {
+            "value": "by_sales",
+            "unit": "'by_sales' | 'per_customer' | 'custom'",
+            "source": "Setting: how the customer share of the shared savings pool (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) is split between residential and non-residential customers. 'by_sales' (default, the earlier method): by the residential share of sales (residential_sales_share, EIA-861). 'per_customer': equal per customer, by the class customer counts below. 'custom': custom_residential_share. Supply, capacity, transmission, losses and efficiency energy savings stay allocated by sales whatever the option (METHODOLOGY 3.10b). Reporting only: the engine's bills and totals do not change.",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "custom_residential_share": {
+            "value": 0.5,
+            "unit": "share (0-1)",
+            "source": "Setting: residential share of the pool's customer share under customer_allocation 'custom' (export allocation_sweep uses 0.5).",
+            "as_of": "2026-11-02",
+            "status": "setting"
+          },
+          "residential_customers": {
+            "value": 351481,
+            "unit": "customers",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Rochester Gas & Electric Corp, NY: bundled (Part A) + delivery-only (Part C) rows. Residential customers 351,481 of 392,342 are residential.",
+            "as_of": "2026-11-02",
+            "status": "sourced"
+          },
+          "nonresidential_customers": {
+            "value": 40861,
+            "unit": "customers",
+            "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), Rochester Gas & Electric Corp, NY: bundled (Part A) + delivery-only (Part C) rows. Residential customers 351,481 of 392,342; non-residential = 392,342 - 351,481 = 40,861 (commercial, industrial, transportation).",
+            "as_of": "2026-11-02",
+            "status": "derived"
           }
         }
       },

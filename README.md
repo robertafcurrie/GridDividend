@@ -94,6 +94,8 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 
 **In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 7 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.5 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
 
+**Residential vs non-residential.** By default the pool's customer share is split by sales, as today's delivery rates do. `mechanism.customer_allocation` can split it equally per customer (EIA-861 counts) or by a custom share. The load-following savings stay split by sales under every option. Per customer, Con Edison's Central residential savings double ($10.5B → $21.2B), while Dominion's and Pepco's fall, because their pool customer share is a net cost over the period (METHODOLOGY 3.10b; export `allocation_sweep`).
+
 **What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
 - The energy efficiency saves, valued at today's residential supply rate.
 - Wholesale energy, avoided transmission and avoided losses.
@@ -173,7 +175,7 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel
     - RG&E's is the Gold Book zone (proxy). Matching it with RG&E's 57% share of the zone's large loads needs RG&E's other load to fall 1.7%/yr.
   - **RG&E's data centres** follow the NYISO 2026 Gold Book Zone B large-load forecast, allocated by RG&E's share of the zone's peak (57%).
   - The addressable shares (how much shared savings can defer or right-size) are settings.
-- **About half of the measured inputs are still `_VERIFY`.** By utility: Con Edison 48%, Dominion 47%, Pepco 52%, RG&E 64% of the measured inputs in `starting_bill` and `forward_assumptions` (34 / 33 / 37 / 44% of all status-tagged inputs, including settings) (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
+- **About half of the measured inputs are still `_VERIFY`.** By utility: Con Edison 47%, Dominion 46%, Pepco 52%, RG&E 63% of the measured inputs in `starting_bill` and `forward_assumptions` (33 / 32 / 36 / 43% of all status-tagged inputs, including settings) (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
 - **Proxies.** Con Edison, RG&E and Pepco use Dominion's measured network loading as a `_VERIFY` proxy until their own feeder data is found. New York uses PJM's price spreads for wholesale energy, and the other utilities use Con Edison's connection timelines for ordinary load.
 - **Avoided transmission is a range.** PJM's network service rates are average costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run, so the avoidable share runs from 0 to 1.
 - **ROE is a separate lever.** Central assumes no change in allowed ROE. Changing it moves bills and the utility's equity return, not shared savings earnings.
