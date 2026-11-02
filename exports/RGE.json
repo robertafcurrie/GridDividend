@@ -3,7 +3,7 @@
   "utility": "RGE",
   "name": "Rochester Gas and Electric Corporation",
   "short_name": "RG&E",
-  "source_commit": "4d5f09649b8443f80299de3c59f721b772f0eeb6",
+  "source_commit": "b78a2464b89db8dd3d2d05b131d64e9f76a3828a",
   "source_modified_since_commit": false,
   "generated": "2026-11-02",
   "dollar_basis": "Nominal dollars. Cumulative figures undiscounted unless labelled npv3_2026 (NPV at 3%, 2026 dollars). Bills are the average residential bill, $/month.",
