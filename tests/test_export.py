@@ -6,6 +6,7 @@ import json
 import os
 import sys
 
+import numpy as np
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -202,3 +203,58 @@ def test_export_advance_defaults(key):
         assert abs(sm['balance_2050_m']) < 1e-3
         mc = sm['monthly_credit_2027_2031_usd']
         assert set(mc) == {str(y) for y in range(2027, 2032)} and mc['2027'] > 0
+
+
+FS = {('mechanism', 'fast_start'): True}
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_fast_start_matches_direct_runs(key):
+    """fast_start blocks equal direct runs with fast_start on; flows balance; the waterfall matches the saving."""
+    ex = _export(key)
+    uj0, p = E.load_utility(key)
+    for pace in LY.PACES:
+        uj = E.with_pace(uj0, pace)
+        for sc in LY.SCENARIOS:
+            blk = ex['runs'][pace][sc]['fast_start']
+            run = LY.project_layers(uj, p, scenario=sc, overrides=FS)
+            sm = LY.system_summary(run)
+            b, s = run['bau'], run['ss']
+            h = blk['headline']
+            assert h['customer_savings_b_undiscounted'] == pytest.approx(sm['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
+            assert h['customer_savings_b_npv3'] == pytest.approx(sm['Customer savings ($B, NPV 3%, 2026 $)'], rel=1e-12)
+            assert h['shared_savings_earnings_b'] == pytest.approx(sm['Shared savings earnings ($B, undiscounted nominal)'], rel=1e-12)
+            for y in (2035, 2050):
+                sav = float(b.loc[b['year'] == y, 'avg_bill_total'].iloc[0] - s.loc[s['year'] == y, 'avg_bill_total'].iloc[0])
+                assert h[f'monthly_saving_{y}'] == pytest.approx(sav, rel=1e-12)
+                w = blk['waterfall_usd_month'][str(y)]
+                assert w['BAU'] - w['Shared savings'] == pytest.approx(sav, abs=1e-3)
+            yb = blk['yearly']['avg_residential_bill_usd_month']['shared_savings']['total']
+            np.testing.assert_allclose(yb, s['avg_bill_total'].values, atol=1e-4)
+            assert yb[1] < ex['runs'][pace][sc]['yearly']['avg_residential_bill_usd_month']['shared_savings']['total'][1] + 1e-9
+            f = blk['value_flows_m']['undiscounted_nominal']
+            assert sum(f['to'].values()) == pytest.approx(sum(f['sources'].values()) + f['program_costs'], rel=1e-9, abs=1e-6)
+            assert (f['to']['residential_customers'] + f['to']['business_customers']) / 1e3 == pytest.approx(
+                sm['Customer savings ($B, undiscounted nominal)'], rel=1e-9)
+
+
+@pytest.mark.parametrize('key', list(E.UTILITIES))
+def test_export_advance_fast_start_matches_direct_runs(key):
+    ex = _export(key)
+    uj0, p = E.load_utility(key)
+    adv = {**FS, ('mechanism', 'advance_enabled'): True}
+    for pace in LY.PACES:
+        uj = E.with_pace(uj0, pace)
+        cases = [(ex['runs'][pace][sc]['advance_fast_start'], sc, {}) for sc in LY.SCENARIOS]
+        cases.append((ex['advance_fast_start_stress'][pace], 'Cautious', {('mechanism', 'advance_sizing_scenario'): 'Central'}))
+        for blk, sc, extra in cases:
+            run = LY.project_layers(uj, p, scenario=sc, overrides={**adv, **extra})
+            s, sm = run['ss'], blk['summary']
+            assert sm['advance_size_m_pv3_2026'] == pytest.approx(run['advance']['size_m'], rel=1e-12)
+            assert sm['credits_paid_m'] == pytest.approx(s['advance_credit_m'].sum(), rel=1e-12, abs=1e-9)
+            assert sm['recoveries_m'] == pytest.approx(s['advance_recovery_m'].sum(), rel=1e-12, abs=1e-9)
+            assert sm['balance_2050_m'] == pytest.approx(s['advance_balance_m'].iloc[-1], rel=1e-12, abs=1e-9)
+            assert sm['customer_savings_b_undiscounted'] == pytest.approx(
+                LY.system_summary(run)['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
+            assert sm['worst_year_vs_bau']['exceeds_bau'] is False
+            assert sm['credits_paid_m'] + sm['financing_cost_m'] - sm['recoveries_m'] == pytest.approx(sm['balance_2050_m'], abs=1e-3)

@@ -6,6 +6,27 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-01: Export fast-start runs (`8756a89` script; exports and tests in this commit)
+
+- **Added, per utility, pace and scenario:** `fast_start`, with `yearly`, `waterfall_usd_month`, `value_flows_m` and `headline`, run at the fast-start defaults (first savings year 2027; near-term ramps as in the JSON).
+- **Added, per utility, pace and scenario:** `advance_fast_start`, the customer dividend advance at its enabled defaults with fast start on.
+- **Added at top level, per pace:** `advance_fast_start_stress`, sized on Central and realised on Cautious, with fast start on.
+- **Unchanged:** every existing field, which was checked against the previous exports with a recursive comparison, and every default.
+- **New tests** (`tests/test_export.py`, 305 tests in total): each new block equals a direct `project_layers` run with those settings; the flows balance; the waterfall matches the monthly saving; and credits + financing − recoveries = the 2050 balance.
+
+**Utility-forecast pace.** All dollar figures are undiscounted nominal unless stated.
+
+| Utility | Central customer savings $B, off → fast start (NPV 3%, 2026 $) | Advance + fast start, Cautious: credits $M / 2050 balance $M | Stress case: credits $M / 2050 balance $M |
+|---|---|---|---|
+| Con Edison | 37.85 → 39.67 (23.68) | 3,601 / 0 | 2,258 / 0 |
+| RG&E | 3.80 → 4.10 (2.54) | 504 / 0 | 245 / 0 |
+| Dominion | 19.31 → 19.98 (12.27) | 1,902 / 0 | 1,183 / 0 |
+| Pepco MD | 4.35 → 4.57 (2.90) | 751 / 0 | 1,411 / 285 |
+
+**Effect on results:** none on defaults, v1.0, CORRECTED or the pins. Fast start brings forward savings that customers keep and that the utility shares as shared savings earnings. In the stress case, Pepco's advance still has $285M unrecovered in 2050.
+
+---
+
 ## 2026-11-01: Fast-start results; dividend advance revised (`e7feb73`, `ea8ef0f` engine, inputs, script, docs; exports in this commit)
 
 **Fast-start results** (utility-forecast pace).
