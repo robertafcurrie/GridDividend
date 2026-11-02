@@ -913,6 +913,122 @@
             "source": "Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified).",
             "as_of": "2026-10-31",
             "status": "setting"
+          },
+          "formulation": {
+            "value": "embedded",
+            "unit": "'embedded' | 'avoided_obligation'",
+            "source": "Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bill line. 'avoided_obligation': avoided capacity obligation from the contribution to the RTO / NYCA peak, accredited by resource type, coincidence-adjusted, lagged by the auction cycle and priced on the long-run avoided capacity price path (METHODOLOGY 3.6a). The BAU capacity line is the same in both.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "obligation_factor": {
+            "value": 1.245,
+            "unit": "ICAP MW per MW of NYCA coincident peak",
+            "source": "NYSRC, LCR report (28 May 2026): NYCA Installed Reserve Margin 24.5% for the 2026-2027 Capability Year (approved 5 Dec 2025); NYCA requirement 124.5% of the 31,648.2 MW forecast peak. _VERIFY ICAP-to-UCAP translation: the price input is applied per MW of the ICAP requirement.",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "system_coincidence": {
+            "value": 0.9675,
+            "unit": "share",
+            "source": "Derived: 1 / NCP-to-CP ratio 1.0336 for Zone B (NYSRC/NYISO, 2026 IRM Forecast, Sep 2025, 15-year average).",
+            "as_of": "2026-11-01",
+            "status": "derived"
+          },
+          "local_coincidence": {
+            "low": 0.5,
+            "central": 0.75,
+            "high": 1.0,
+            "unit": "share",
+            "source": "Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locational_match share) that also falls in the system's peak hours. High 1.0 = full alignment (what the current formulation credits). Low 0.5 proxies the ~50% capacity credit Brattle finds when flexibility is used for a need other than the one its dispatch targets (New York's Grid Flexibility Potential, Vol. I, Jan 2025, p.30: ~50% ability of grid flexibility to reduce distribution loading, range across programs); central = midpoint. Brattle allocates generation capacity value to the top 50 hours of statewide net load and distribution value to the top 50 hours of utility-region load (p.31) and notes the two 'may not fully temporally align'; Brattle's Pepco DC study (Nov 2025) finds managed EV charging relieves mainly the summer-peaking locations of a winter-peaking system. Confirm with feeder load shapes against RTO/NYCA peak hours.",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "accr_dr": {
+            "low": 0.7406,
+            "central": 0.7417,
+            "high": 0.7417,
+            "unit": "share",
+            "source": "NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: Special Case Resource 74.17% (CHPE-In), 74.06% (CHPE-Out). Low = CHPE-Out set, central and high = CHPE-In set (CHPE's UDRs participating in the ICAP market).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "accr_storage_by_duration": {
+            "value": {
+              "2": 0.6465,
+              "4": 0.8456,
+              "6": 0.9336,
+              "8": 0.9596
+            },
+            "unit": "{hours: share}",
+            "source": "NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: Energy Duration Limited 2-hour 64.65%, 4-hour 84.56%, 6-hour 93.36%, 8-hour 95.96% (CHPE-In set; CHPE-Out 4-hour 82.31%). Low = CHPE-Out set, central and high = CHPE-In set (CHPE's UDRs participating in the ICAP market).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "storage_duration_hr": {
+            "value": 4,
+            "unit": "hours",
+            "source": "Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and derate inputs).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "accr_der": {
+            "low": 0.1533,
+            "central": 0.1385,
+            "high": 0.1385,
+            "unit": "share",
+            "source": "NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: Solar 13.85% (CHPE-In), 15.33% (CHPE-Out). Low = CHPE-Out set, central and high = CHPE-In set (CHPE's UDRs participating in the ICAP market).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "accr_ee": {
+            "value": 1.0,
+            "unit": "share of measured peak kW",
+            "source": "Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obligation one for one. PJM: FERC accepted removal of Energy Efficiency Resources from the supply side of RPM from the 2026/2027 BRA, with efficiency recognised on the demand side through the load forecast (Docket ER24-2995, order 5 Nov 2024; affirmed D.C. Cir. No. 25-1091, Feb 2026). NYISO: efficiency is netted in the Gold Book / ICAP peak forecast. _VERIFY: the forecast may not credit measured savings in full.",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "auction_lag_years": {
+            "value": 1,
+            "unit": "years",
+            "source": "Derived: NYISO sets each Capability Year's (May-April) NYCA and Locality requirements from a peak forecast built on the previous summer's weather-normalised coincident peak (NYSRC/NYISO, 2026 IRM Forecast, Sep 2025: 2026 forecast from the 2025 weather-normalised peak), so a load reduction lowers the obligation the following capability year.",
+            "as_of": "2026-11-01",
+            "status": "derived"
+          },
+          "avoided_price_path": {
+            "value": "long_run",
+            "unit": "'long_run' | 'today'",
+            "source": "Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's clearing price (and published auction prices) trending to the long-run net cost of new entry (long_run_price_m_per_mw_yr) by long_run_year, then with inflation, whatever price_path the bill line uses. 'today': the bill-line price path (consistency check).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "suppression_enabled": {
+            "value": false,
+            "unit": "bool",
+            "source": "Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' formulation only. Off in every scenario; never in the central case.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "suppression_elasticity": {
+            "value": 8.33,
+            "unit": "% price change per 1% of requirement",
+            "source": "Derived: the NYCA ICAP demand curve falls from the reference point price at 100% of the requirement to $0 at the zero-crossing point 112% (NYISO, DCR Shapes and Slopes, ICAPWG 21 Jan 2026, slide 10; demand curve length in NYISO, Summer 2024 UCAP Demand Curves, ICAPWG 25 Mar 2024), so a 1% lower requirement lowers the price by 1 / 0.12 % of the reference price when supply is fixed.",
+            "as_of": "2026-11-01",
+            "status": "derived"
+          },
+          "suppression_start_year": {
+            "value": 2027,
+            "unit": "year",
+            "source": "Setting: first year a load reduction reaches the NYISO requirement (one-year lag).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "market_peak_mw": {
+            "value": 31648.2,
+            "unit": "MW",
+            "source": "NYSRC LCR report (28 May 2026): NYISO 2026-2027 NYCA forecast peak 31,648.2 MW.",
+            "as_of": "2026-11-01",
+            "status": "sourced"
           }
         }
       },

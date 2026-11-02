@@ -61,6 +61,14 @@ OBJECTIVE_BASES = ('dist_opex', 'capex_plan', 'dist_revenue_requirement')
 VALUE_LAYERS = ('wholesale_energy', 'transmission', 'losses')     # value streams added in the shared-savings pool
 SAVINGS_LAYERS = LAYERS[1:]                    # layers that separate shared savings from BAU
 LEVELS = ('low', 'central', 'high')
+CAPACITY_FORMULATIONS = ('embedded', 'avoided_obligation')
+# Capacity inputs read only by the 'avoided_obligation' formulation (kept out of
+# the tornado while the formulation is 'embedded', where they have no effect)
+CAPACITY_OBLIGATION_PARAMS = ('obligation_factor', 'secondary_obligation_factor', 'secondary_price_ratio',
+                              'system_coincidence', 'local_coincidence', 'accr_dr', 'accr_ev', 'accr_storage',
+                              'accr_storage_by_duration', 'storage_duration_hr', 'accr_der', 'accr_ee',
+                              'auction_lag_years', 'avoided_price_path', 'suppression_enabled', 'suppression_elasticity',
+                              'suppression_start_year', 'market_peak_mw')
 SCENARIOS = ('Cautious', 'Central', 'Ambitious')
 CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 'supply_energy',
               'capacity', 'transmission', 'taxes_and_fees')
@@ -297,10 +305,13 @@ def assumption_keys(fa, layers_only=False):
       high differ.
     """
     keys = []
+    form = ((fa['layers'].get('capacity', {}).get('params', {}).get('formulation') or {}).get('value', 'embedded'))
     for lname, items in _param_items(fa):
         if layers_only and lname == 'projection':
             continue
         for pname, spec in items.items():
+            if lname == 'capacity' and pname in CAPACITY_OBLIGATION_PARAMS and form != 'avoided_obligation':
+                continue
             if isinstance(spec, dict) and 'central' in spec and spec['low'] != spec['high']:
                 keys.append((lname, pname))
     return keys
@@ -778,6 +789,25 @@ def _near_term(ramp, y):
     return None if v is None else float(v)
 
 
+def _capacity_accreditation(cap, pr):
+    """
+    Accredited share by flexible type for the 'avoided_obligation' formulation:
+    accr_<type> where given, storage from accr_storage_by_duration at
+    storage_duration_hr, otherwise the programs derate_<type>.
+    """
+    out = {}
+    for k in FLEX_TYPES:
+        v = cap.get(f'accr_{k}')
+        if k == 'storage' and v is None and cap.get('accr_storage_by_duration'):
+            tab = {int(float(h)): x for h, x in cap['accr_storage_by_duration'].items()}
+            dur = int(cap.get('storage_duration_hr') or 4)
+            if dur not in tab:
+                raise ValueError(f'storage_duration_hr {dur} not in accr_storage_by_duration {sorted(tab)}')
+            v = tab[dur]
+        out[k] = pr[f'derate_{k}'] if v is None else v
+    return out
+
+
 ADVANCE_FINANCING = ('utility_regulatory_asset', 'securitized')
 
 
@@ -958,6 +988,20 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     ee_kw_per_mwh = (pr['ee_kw_per_mwh'] if pr.get('ee_kw_per_mwh') is not None
                      else pr['ee_peak_coincidence'] / (8.76 * lf_new))
     price0 = cap['price_m_per_mw_yr']
+    # Capacity formulation: 'embedded' (firm MW at the bill-line price) or
+    # 'avoided_obligation' (METHODOLOGY 3.6a); the BAU capacity line is the same in both
+    cap_form = cap.get('formulation', 'embedded') or 'embedded'
+    if cap_form not in CAPACITY_FORMULATIONS:
+        raise ValueError(f"capacity formulation {cap_form!r} must be one of {CAPACITY_FORMULATIONS}")
+    obl_on = cap_form == 'avoided_obligation'
+    if obl_on:
+        acc_k = _capacity_accreditation(cap, pr)
+        cap_lr = {**cap, 'price_path': cap.get('avoided_price_path', 'long_run') or 'long_run'}
+        if cap_lr['price_path'] == 'today':
+            cap_lr['price_path'] = cap.get('price_path', 'today')
+        obl_mult = cap['obligation_factor'] + ((cap.get('secondary_obligation_factor') or 0.0)
+                                               * (cap.get('secondary_price_ratio') or 0.0))
+        cap_lag = int(cap['auction_lag_years'])
     # Value-stream layers (absent in older forward_assumptions = off)
     we, tx, lo, ro = (a.get(k, {}) for k in ('wholesale_energy', 'transmission', 'losses', 'roe'))
     ob = a.get('objective', {})
@@ -1020,6 +1064,7 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
         reg_vint, reg_asset = [], 0.0
         carry = 0.0
         adv_bal, adv_paused, adv_sched = 0.0, False, 0.0
+        obl_hist = []
         ee_vint = []
         Cb = [bd['C0'] for bd in bands]
         pipes = [list(sd) for sd in seeds]
@@ -1262,11 +1307,39 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
             # Load waiting for an upgrade buys no capacity. Efficiency and firm flexible
             # MW lower the obligation once each, in the capacity layer (off: no credit)
             sys_peak = P[t] - (D - served)
-            mw_red = min(firm_flex + (ee_mw if active else 0.0), sys_peak) if Lc else 0.0
-            f_cap = nt('near_term_ramp_capacity', y) if Lc else None
-            if f_cap is not None:                        # near-term capacity ramp: fraction of the credit
-                mw_red *= f_cap
-            cap_cost = (sys_peak - mw_red) * price
+            cap_supp = obl_mw = 0.0
+            if not obl_on:
+                mw_red = min(firm_flex + (ee_mw if active else 0.0), sys_peak) if Lc else 0.0
+                f_cap = nt('near_term_ramp_capacity', y) if Lc else None
+                if f_cap is not None:                        # near-term capacity ramp: fraction of the credit
+                    mw_red *= f_cap
+                cap_cost = (sys_peak - mw_red) * price
+                price_av, cap_av = price, mw_red * price
+            else:
+                # Avoided obligation: accredited MW x coincidence at the RTO / NYCA peak,
+                # lagged by the auction cycle, x obligation per MW of coincident peak,
+                # at the long-run avoided capacity price
+                if Lc:
+                    lm = dfr['locational_match'] if Ld else 0.0
+                    cf = cap['system_coincidence'] * ((1 - lm) + lm * cap['local_coincidence'])
+                    obl_mw = (sum(inc[k] * acc_k[k] for k in FLEX_TYPES) * cf
+                              + (ee_mw * cap['accr_ee'] if active else 0.0))
+                    f_cap = nt('near_term_ramp_capacity', y)
+                    if f_cap is not None:
+                        obl_mw *= f_cap
+                obl_hist.append(obl_mw)
+                mw_red = min(obl_hist[t - cap_lag] if t >= cap_lag else 0.0, sys_peak)
+                price_av = _capacity_price(cap_lr, t, y, infl, plan_on)
+                cap_av = mw_red * obl_mult * price_av
+                if cap.get('suppression_enabled') and mw_red > 0 and y >= int(cap['suppression_start_year']):
+                    # Sensitivity only: a lower requirement lowers the clearing price on the
+                    # remaining obligation, fading to zero by long_run_year (new entry)
+                    s0, ly = int(cap['suppression_start_year']), int(cap['long_run_year'])
+                    fade = (ly - y) / (ly - s0) if ly > s0 else 0.0
+                    if fade > 0:
+                        dp = cap['suppression_elasticity'] * mw_red / cap['market_peak_mw'] * price_av * fade
+                        cap_supp = dp * (sys_peak - mw_red) * cap['obligation_factor']
+                cap_cost = sys_peak * price - cap_av - cap_supp
             prog_bill_cost = 0.0 if active else bau_spend
             # ── Value streams (shared savings, once programs are active) ─────
             mw_firm = min(firm_flex + ee_mw, P[t]) if active else 0.0
@@ -1321,6 +1394,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                         e['month'] = d['month'] * tx_idx(t)
                         if f_tx:
                             e['month'] *= 1 - f_tx
+                    elif c == 'capacity' and obl_on:      # capacity cost net of the avoided obligation
+                        e['month'] = d['month'] * ((cap_cost - mw_loss * price) / (P0 * price0)) / (S_case / S0)
                     elif c == 'capacity':
                         e['month'] = d['month'] * (price / price0) * ((sys_peak - mw_red - mw_loss) / P0) / (S_case / S0)
                     elif c == 'taxes_and_fees' and d.get('pct') is None:
@@ -1431,6 +1506,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                 program_bill_cost_m=prog_bill_cost, firm_flex_mw=firm_flex, ee_mw=ee_mw if active else 0.0,
                 firm_mw=firm_flex + (ee_mw if active else 0.0), flex_mw_incremental=sum(inc.values()),
                 peak_reduction_mw=mw_red, capacity_price_m_per_mw_yr=price, capacity_cost_m=cap_cost,
+                capacity_avoided_m=cap_av, capacity_suppression_m=cap_supp, capacity_obligation_mw=obl_mw,
+                capacity_avoided_price_m_per_mw_yr=price_av,
                 savings_pool_m=pool, shared_savings_earnings_m=earnings,
                 wholesale_value_m=whl, transmission_avoided_m=tx_av, losses_energy_value_m=loss_e,
                 losses_peak_value_m=loss_p, roe_delta=roe_d, roe_cost_m=roe_cost,
@@ -2140,3 +2217,48 @@ def electrification_pace_table(utility_json, params, scenarios=SCENARIOS):
             sp['Monthly saving 2050 ($, nominal)'] - u['Monthly saving 2050 ($, nominal)'])
         rows += [u, sp]
     return pd.DataFrame(rows).set_index(['scenario', 'pace'])
+
+
+def capacity_formulation_table(utility_json, params, scenarios=SCENARIOS, overrides=None, calibration_year=2040):
+    """
+    Each scenario under both capacity formulations: 'embedded' (the default:
+    firm flexible MW + efficiency MW at the bill-line capacity price) and
+    'avoided_obligation' (avoided obligation from the contribution to the RTO /
+    NYCA peak, accredited by type, coincidence-adjusted, lagged by the auction
+    cycle, at the long-run avoided capacity price; METHODOLOGY 3.6a).
+
+    Inputs: overrides added to every run (e.g. {('capacity', 'suppression_enabled'):
+      True} for the price-suppression sensitivity); calibration_year for the
+      per-kW columns.
+    Output: DataFrame indexed by (scenario, formulation): capacity layer (capacity
+      cost avoided, including any price suppression, $B undiscounted nominal and NPV
+      3%), price suppression ($B undiscounted nominal), customer savings ($B,
+      undiscounted nominal and NPV 3%), 2035 and 2050 monthly saving ($/month
+      nominal), and for calibration_year: capacity avoided ($M nominal), flexible
+      + efficiency MW (incremental flexible MW + efficiency peak MW), obligation MW
+      avoided, and capacity avoided per kW of flexible + efficiency MW ($/kW-yr
+      nominal).
+    """
+    rows = []
+    for sc in scenarios:
+        for form in CAPACITY_FORMULATIONS:
+            r = project_layers(utility_json, params, scenario=sc,
+                               overrides={**(overrides or {}), ('capacity', 'formulation'): form})
+            sm = system_summary(r)
+            b, s = r['bau'].set_index('year'), r['ss'].set_index('year')
+            cv = s['capacity_avoided_m'] + s['capacity_suppression_m']
+            y = calibration_year
+            mw = s.loc[y, 'flex_mw_incremental'] + s.loc[y, 'ee_mw']
+            rows.append({'scenario': sc, 'formulation': form,
+                         'Capacity layer ($B, undiscounted nominal)': cv.sum() / 1e3,
+                         'Capacity layer ($B, NPV 3%, 2026 $)': _npv(cv.values, YEARS, 0.03) / 1e3,
+                         'of which price suppression ($B, undiscounted nominal)': s['capacity_suppression_m'].sum() / 1e3,
+                         'Customer savings ($B, undiscounted nominal)': sm['Customer savings ($B, undiscounted nominal)'],
+                         'Customer savings ($B, NPV 3%, 2026 $)': sm['Customer savings ($B, NPV 3%, 2026 $)'],
+                         'Monthly saving 2035 ($, nominal)': b.loc[2035, 'avg_bill_total'] - s.loc[2035, 'avg_bill_total'],
+                         'Monthly saving 2050 ($, nominal)': b.loc[2050, 'avg_bill_total'] - s.loc[2050, 'avg_bill_total'],
+                         f'Capacity avoided {y} ($M, nominal)': cv.loc[y],
+                         f'Flexible + efficiency MW {y}': mw,
+                         f'Obligation MW avoided {y}': s.loc[y, 'peak_reduction_mw'],
+                         f'Capacity avoided per kW {y} ($/kW-yr, nominal)': cv.loc[y] * 1e3 / mw if mw else np.nan})
+    return pd.DataFrame(rows).set_index(['scenario', 'formulation'])

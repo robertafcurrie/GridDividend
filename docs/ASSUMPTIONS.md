@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ConEd | 31 | 28 | 60 | 49 | 168 | 36% | 50% |
-| RGE | 15 | 19 | 74 | 49 | 157 | 47% | 69% |
-| DomVA | 40 | 25 | 58 | 49 | 172 | 34% | 47% |
-| PepcoMD | 24 | 29 | 61 | 49 | 163 | 37% | 54% |
+| ConEd | 36 | 32 | 63 | 54 | 185 | 34% | 48% |
+| RGE | 20 | 22 | 76 | 54 | 172 | 44% | 64% |
+| DomVA | 45 | 26 | 62 | 54 | 187 | 33% | 47% |
+| PepcoMD | 29 | 30 | 65 | 54 | 178 | 37% | 52% |
 
 ## Status counts by layer
 
@@ -27,7 +27,7 @@ All four utilities together.
 | programs | 19 | 20 | 129 | 8 | 176 |
 | deferral | 0 | 0 | 4 | 0 | 4 |
 | load_enabled | 0 | 0 | 12 | 12 | 24 |
-| capacity | 3 | 9 | 2 | 12 | 26 |
+| capacity | 23 | 18 | 15 | 32 | 88 |
 | wholesale_energy | 4 | 6 | 18 | 4 | 32 |
 | transmission | 3 | 1 | 4 | 8 | 16 |
 | losses | 2 | 10 | 0 | 4 | 16 |
@@ -51,7 +51,7 @@ _VERIFY / total status-tagged inputs.
 | programs | 34 / 44 | 34 / 44 | 33 / 44 | 28 / 44 |
 | deferral | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 |
 | load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
-| capacity | 0 / 6 | 2 / 6 | 0 / 7 | 0 / 7 |
+| capacity | 3 / 23 | 4 / 21 | 4 / 22 | 4 / 22 |
 | wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
 | transmission | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
@@ -162,6 +162,23 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | capacity | long_run_price_m_per_mw_yr | 0.2 |  |  |  | $M per MW-year (2025 $) | sourced | 2026-10-31 | Brattle, New York's Grid Flexibility Potential (for NY DPS and NYSERDA, 31 Jan 2025, Case 24-E-0165), as reported by Utility Dive (5 Feb 20… |
 | capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
 | capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | formulation | embedded |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-01 | Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bil… |
+| capacity | obligation_factor |  | 0.826 | 0.864 | 0.864 | ICAP MW per MW of NYC coincident peak | sourced | 2026-11-01 | NYSRC, Locational Minimum Installed Capacity Requirements report (28 May 2026), from the NYISO 2026-2027 LCRs: New York City LCR 86.4% (CHP… |
+| capacity | secondary_obligation_factor |  | 0.419 | 0.381 | 0.381 | ICAP MW per MW of NYC coincident peak | derived | 2026-11-01 | Derived: the rest of the NYCA requirement, (1 + IRM 24.5%) - NYC LCR = 1.245 - 0.864 = 0.381 (CHPE-in) or 1.245 - 0.826 = 0.419 (CHPE-out),… |
+| capacity | secondary_price_ratio | 0.6037 |  |  |  | ratio | _VERIFY | 2026-11-01 | Derived: Rest of State / NYC capacity price = 0.07244 (RGE.json capacity price, NYISO Rest of State 2026, _VERIFY) / 0.120 (NYC). Applied t… |
+| capacity | system_coincidence | 0.9761 |  |  |  | share | derived | 2026-11-01 | Derived: 1 / NCP-to-CP ratio 1.0245 for Zone J (NYSRC/NYISO, 2026 IRM Forecast, Sep 2025, 15-year average): Zone J peak at the NYCA coincid… |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-01 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr |  | 0.6423 | 0.7024 | 0.7024 | share | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), NYC Locality: Spe… |
+| capacity | accr_storage_by_duration | {"2":0.6376,"4":0.8439,"6":0.9272,"8":0.9669} |  |  |  | {hours: share} | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), NYC Locality: Ene… |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-01 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der |  | 0.1506 | 0.1124 | 0.1124 | share | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), NYC Locality: Sol… |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-01 | Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obli… |
+| capacity | auction_lag_years | 1 |  |  |  | years | derived | 2026-11-01 | Derived: NYISO sets each Capability Year's (May-April) NYCA and Locality requirements from a peak forecast built on the previous summer's w… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-01 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-01 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 5.56 |  |  |  | % price change per 1% of requirement | derived | 2026-11-01 | Derived: the NYC Locality ICAP demand curve falls from the reference point price at 100% of the requirement to $0 at the zero-crossing poin… |
+| capacity | suppression_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year a load reduction reaches the NYISO requirement (one-year lag). |
+| capacity | market_peak_mw | 11088.8 |  |  |  | MW | sourced | 2026-11-01 | NYSRC/NYISO 2026 IRM Forecast and NYSRC LCR report (28 May 2026): 2026 NYC Locality forecast peak 11,088.8 MW. |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -347,6 +364,21 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | capacity | long_run_price_m_per_mw_yr | 0.2 |  |  |  | $M per MW-year (2025 $) | _VERIFY | 2026-10-31 | Brattle, New York's Grid Flexibility Potential (for NY DPS and NYSERDA, 31 Jan 2025, Case 24-E-0165), as reported by Utility Dive (5 Feb 20… |
 | capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
 | capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
+| capacity | formulation | embedded |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-01 | Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bil… |
+| capacity | obligation_factor | 1.245 |  |  |  | ICAP MW per MW of NYCA coincident peak | sourced | 2026-11-01 | NYSRC, LCR report (28 May 2026): NYCA Installed Reserve Margin 24.5% for the 2026-2027 Capability Year (approved 5 Dec 2025); NYCA requirem… |
+| capacity | system_coincidence | 0.9675 |  |  |  | share | derived | 2026-11-01 | Derived: 1 / NCP-to-CP ratio 1.0336 for Zone B (NYSRC/NYISO, 2026 IRM Forecast, Sep 2025, 15-year average). |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-01 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr |  | 0.7406 | 0.7417 | 0.7417 | share | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: Sp… |
+| capacity | accr_storage_by_duration | {"2":0.6465,"4":0.8456,"6":0.9336,"8":0.9596} |  |  |  | {hours: share} | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: En… |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-01 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der |  | 0.1533 | 0.1385 | 0.1385 | share | sourced | 2026-11-01 | NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year (Feb 2026; MRI technique, LCR study model), Rest of State: So… |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-01 | Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obli… |
+| capacity | auction_lag_years | 1 |  |  |  | years | derived | 2026-11-01 | Derived: NYISO sets each Capability Year's (May-April) NYCA and Locality requirements from a peak forecast built on the previous summer's w… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-01 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-01 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 8.33 |  |  |  | % price change per 1% of requirement | derived | 2026-11-01 | Derived: the NYCA ICAP demand curve falls from the reference point price at 100% of the requirement to $0 at the zero-crossing point 112% (… |
+| capacity | suppression_start_year | 2027 |  |  |  | year | setting | 2026-11-01 | Setting: first year a load reduction reaches the NYISO requirement (one-year lag). |
+| capacity | market_peak_mw | 31648.2 |  |  |  | MW | sourced | 2026-11-01 | NYSRC LCR report (28 May 2026): NYISO 2026-2027 NYCA forecast peak 31,648.2 MW. |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | _VERIFY | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -548,6 +580,21 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
 | capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
 | capacity | published_prices | {"2027":0.1217056} |  |  |  | {year: $M per MW-year} | derived | 2026-10-31 | PJM 2027/2028 Base Residual Auction: RTO-wide clearing price at the FERC-approved cap $333.44/MW-day (2027/2028 BRA planning parameters and… |
+| capacity | formulation | embedded |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-01 | Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bil… |
+| capacity | obligation_factor | 0.926 |  |  |  | UCAP MW per MW of coincident peak | sourced | 2026-11-01 | PJM, 2027/2028 RPM BRA Planning Period Parameters (26 Aug 2025), Table 1: Forecast Pool Requirement 0.926 = (1 + IRM 20.00%) x pool-wide ac… |
+| capacity | system_coincidence | 0.9752 |  |  |  | share | derived | 2026-11-01 | Derived: PJM 2026 Load Forecast Report (Jan 2026), DOM zone 2026 summer peak at the RTO coincident peak 24,569 MW (Table B-10) / zone non-c… |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-01 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr | 0.91 |  |  |  | share | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Demand Resource 91% (92% in 2027/28). |
+| capacity | accr_storage_by_duration | {"4":0.59,"6":0.68,"8":0.71,"10":0.78} |  |  |  | {hours: share} | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: 4-hr Storage 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%. |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-01 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der | 0.07 |  |  |  | share | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Fixed-Tilt Solar 7% (Tracking 10%). |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-01 | Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obli… |
+| capacity | auction_lag_years |  | 3 | 3 | 1 | years | _VERIFY | 2026-11-01 | PJM RPM: the Base Residual Auction procures capacity about three years before the delivery year (PJM Manual 18; the 2026/27-2029/30 auction… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-01 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-01 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 16.7 |  |  |  | % price change per 1% of requirement | _VERIFY | 2026-11-01 | Derived (_VERIFY): slope of PJM's proposed RTO VRR curve (PJM MRC, 23 Jul 2025, VRR curve comparison, informational): price falls from 0.5… |
+| capacity | suppression_start_year | 2030 |  |  |  | year | setting | 2026-11-01 | Setting (_VERIFY): first delivery year without the FERC-approved cap and floor (in force for the 2026/27-2028/29 BRAs; secondary sources re… |
+| capacity | market_peak_mw | 164579 |  |  |  | MW | sourced | 2026-11-01 | PJM, 2027/2028 BRA Planning Period Parameters: forecast RTO peak load 164,579 MW (market size for price suppression). |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |
@@ -748,6 +795,21 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | capacity | long_run_price_year | 2025 |  |  |  | year | setting | 2026-10-31 | Price year of long_run_price_m_per_mw_yr (study year), inflated at inflation_rate. |
 | capacity | long_run_year | 2040 |  |  |  | year | setting | 2026-10-31 | Setting: year the long-run price is reached (Brattle New York reference ~$200+/kW-year by 2040, as specified). |
 | capacity | published_prices | {"2027":0.1217056} |  |  |  | {year: $M per MW-year} | derived | 2026-10-31 | PJM 2027/2028 Base Residual Auction: RTO-wide clearing price at the FERC-approved cap $333.44/MW-day (2027/2028 BRA planning parameters and… |
+| capacity | formulation | embedded |  |  |  | 'embedded' \| 'avoided_obligation' | setting | 2026-11-01 | Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bil… |
+| capacity | obligation_factor | 0.926 |  |  |  | UCAP MW per MW of coincident peak | sourced | 2026-11-01 | PJM, 2027/2028 RPM BRA Planning Period Parameters (26 Aug 2025), Table 1: Forecast Pool Requirement 0.926 = (1 + IRM 20.00%) x pool-wide ac… |
+| capacity | system_coincidence | 0.9625 |  |  |  | share | derived | 2026-11-01 | Derived: PJM 2026 Load Forecast Report (Jan 2026), PEPCO zone 2026 summer peak at the RTO coincident peak 5,778 MW (Table B-10) / zone non-… |
+| capacity | local_coincidence |  | 0.5 | 0.75 | 1.0 | share | _VERIFY | 2026-11-01 | Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locatio… |
+| capacity | accr_dr | 0.91 |  |  |  | share | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Demand Resource 91% (92% in 2027/28). |
+| capacity | accr_storage_by_duration | {"4":0.59,"6":0.68,"8":0.71,"10":0.78} |  |  |  | {hours: share} | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: 4-hr Storage 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%. |
+| capacity | storage_duration_hr | 4 |  |  |  | hours | setting | 2026-11-01 | Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and de… |
+| capacity | accr_der | 0.07 |  |  |  | share | sourced | 2026-11-01 | PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Fixed-Tilt Solar 7% (Tracking 10%). |
+| capacity | accr_ee | 1.0 |  |  |  | share of measured peak kW | _VERIFY | 2026-11-01 | Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obli… |
+| capacity | auction_lag_years |  | 3 | 3 | 1 | years | _VERIFY | 2026-11-01 | PJM RPM: the Base Residual Auction procures capacity about three years before the delivery year (PJM Manual 18; the 2026/27-2029/30 auction… |
+| capacity | avoided_price_path | long_run |  |  |  | 'long_run' \| 'today' | setting | 2026-11-01 | Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's cleari… |
+| capacity | suppression_enabled | false |  |  |  | bool | setting | 2026-11-01 | Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' form… |
+| capacity | suppression_elasticity | 16.7 |  |  |  | % price change per 1% of requirement | _VERIFY | 2026-11-01 | Derived (_VERIFY): slope of PJM's proposed RTO VRR curve (PJM MRC, 23 Jul 2025, VRR curve comparison, informational): price falls from 0.5… |
+| capacity | suppression_start_year | 2030 |  |  |  | year | setting | 2026-11-01 | Setting (_VERIFY): first delivery year without the FERC-approved cap and floor (in force for the 2026/27-2028/29 BRAs; secondary sources re… |
+| capacity | market_peak_mw | 164579 |  |  |  | MW | sourced | 2026-11-01 | PJM, 2027/2028 BRA Planning Period Parameters: forecast RTO peak load 164,579 MW (market size for price suppression). |
 | wholesale_energy | spread_mwh |  | 11.24 | 19.0 | 38.68 | $/MWh on-peak minus off-peak, 2026 (grows at supp… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | offpeak_price_mwh | 38.08 |  |  |  | $/MWh off-peak price, 2026 (grows at supply_energ… | derived | 2026-10-31 | Monitoring Analytics, 2025 State of the Market Report for PJM, Vol. 2 Sec. 3 (Mar 2026), Table 3-50: real-time average LMP 2025 on peak $57… |
 | wholesale_energy | storage_rte | 0.85 |  |  |  | battery round-trip efficiency | sourced | 2026-10-31 | Potomac Economics, 2025 NYISO State of the Market Report, Appendix VII.D (energy storage net revenue assumptions): round-trip efficiency 85… |

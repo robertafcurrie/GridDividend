@@ -658,9 +658,130 @@ capacity bill  = starting capacity line x (price_t / price_0) x ((system peak - 
 **Interactions.** Avoided-loss peak MW (3.9) lower the capacity bill line; their value is booked in the losses layer, not here. Capacity cost is in the savings pool.
 
 **Limitations.**
-- One zonal price, with no price suppression.
+- One zonal price, with no price suppression (the alternative formulation in 3.6a adds accreditation, coincidence, the auction lag, the long-run price and a price-suppression sensitivity).
 - Dominion's layer price ($0.12M per MW-year) is the same 2026/27 BRA price as its carve-out, rounded in `PJM.json` (0.1% lower than $329.17/MW-day x 365).
 - RG&E uses NYISO Rest of State in the layered model.
+
+### 3.6a Capacity: avoided-obligation formulation (alternative, off by default)
+
+**What it represents.** An alternative way to value the capacity layer, built the way avoided-cost studies value capacity. It is selected with `capacity.formulation = 'avoided_obligation'`. The default stays `'embedded'` (3.6), so no headline result changes until the formulation is switched. The BAU capacity line is the same in both; only the value credited in shared savings changes.
+
+**Calculation** (shared savings, capacity layer on).
+
+```
+accredited MW_t  = sum_k incremental MW_k,t x accr_k x coincidence  +  EE MW_t x accr_ee
+coincidence      = system_coincidence x ((1 - locational_match) + locational_match x local_coincidence)
+                   (locational_match from the deferral layer; 0 with deferral off)
+obligation MW_t  = min(accredited MW_(t - auction_lag_years), system peak_t)      (near-term capacity ramp applied before the lag)
+avoided price_t  = today's price (and published auction prices) trending linearly to the long-run net CONE by long_run_year, then inflation
+capacity avoided = obligation MW_t x (obligation_factor + secondary_obligation_factor x secondary_price_ratio) x avoided price_t
+capacity cost    = system peak_t x bill-line price_t - capacity avoided - price suppression
+capacity bill    = starting capacity line x ((capacity cost - loss peak MW x price_t) / (peak_2026 x price_0)) / (sales_t / sales_2026)
+```
+
+The six elements:
+
+- **(a) Contribution to peak.** The avoided obligation is the reduction in the utility's contribution to the RTO / NYCA peak, times the obligation that peak carries.
+  - PJM (Dominion, Pepco): an LSE's UCAP obligation is its Peak Load Contribution (share of the 5 coincident peaks) x the Forecast Pool Requirement. `obligation_factor` 0.926 = (1 + IRM 20.0%) x pool-wide accredited UCAP factor 77.2% (2027/28 BRA planning parameters).
+  - Con Edison: the NYC locational requirement, 86.4% of NYC peak (CHPE-in; 82.6% CHPE-out, the low level), at the NYC price. The rest of the NYCA requirement, (1 + 24.5%) - 86.4% = 0.381, is at the Rest of State price (`secondary_*`).
+  - RG&E: the NYCA requirement, 124.5% of peak (IRM 24.5%, 2026-27).
+- **(b) Accreditation** by resource type, replacing the programs derates in this formulation.
+  - PJM 2028/29 ELCC class ratings: Demand Resource 91%; storage 4-hr 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%; fixed-tilt solar 7%.
+  - NYISO 2026-27 capacity accreditation factors (NYC Locality for Con Edison, Rest of State for RG&E; CHPE-In central and high, CHPE-Out low): Special Case Resources 70.2% / 74.2%; 4-hour storage 84.4% / 84.6%; solar 11.2% / 13.9%.
+  - Storage is read from `accr_storage_by_duration` at `storage_duration_hr` (4).
+  - Managed EV charging has no class in either market and keeps the programs derate (`_VERIFY`).
+  - Efficiency: `accr_ee` 1.0 of its measured peak kW, because efficiency lowers the load forecast. PJM removed Energy Efficiency Resources from the supply side from the 2026/27 BRA (FERC, ER24-2995) and recognises efficiency in the forecast. `_VERIFY`.
+- **(c) Coincidence.** Distribution peak shaving is not automatically credited at system peak.
+  - `system_coincidence` is the utility's zone peak at the RTO / NYCA coincident peak per MW of its own peak: Con Edison 0.976 (Zone J NCP/CP 1.0245), RG&E 0.968 (Zone B 1.0336), Dominion 0.975 (DOM 24,569 / 25,193 MW), Pepco 0.963 (PEPCO 5,778 / 6,003 MW).
+  - The share of flexible MW dispatched for local relief (the deferral layer's `locational_match`) also carries `local_coincidence` (0.5 / 0.75 / 1.0, `_VERIFY`; low from the ~50% cross-use credit in Brattle's New York study).
+  - Efficiency's peak kW are measured on the summer peak-period basis, so efficiency takes accreditation only.
+- **(d) Auction lag.** The obligation falls `auction_lag_years` after the load does.
+  - PJM: 3 (the BRA runs about three years ahead; high level 1, the year after a lower Peak Load Contribution).
+  - NYISO: 1 (each capability year's requirement is set from the previous summer's weather-normalised peak).
+- **(e) Long-run price.** The avoided price follows the long-run path whatever `price_path` the bill line uses (`avoided_price_path: 'long_run'`): Net CONE $192.7/kW-yr (PJM, 2025 $) and $200/kW-yr (New York, 2025 $) by 2040, as in 3.6.
+- **(f) Price suppression** (`suppression_enabled`, off by default and never in the central case). It is a separate sensitivity:
+
+  ```
+  suppression_t = suppression_elasticity x (obligation MW / market_peak_mw) x avoided price_t x fade_t x remaining obligation_t
+  fade_t        = linear from 1 at suppression_start_year to 0 at long_run_year (new entry restores the long-run price)
+  ```
+
+  - NYISO elasticity = 1 / (zero-crossing point - 1): NYC 5.56 (118%), NYCA 8.33 (112%).
+  - PJM 16.7 (`_VERIFY`): the slope of PJM's proposed RTO VRR curve, 0.5 x cap between 101.5% and 104.5% of the requirement. It starts in 2030, after the auctions that cleared at the cap.
+
+**Results** (utility-forecast pace; 2026–2050; customer savings and the capacity layer are $B undiscounted nominal, with NPV 3% in 2026 $ in brackets; monthly savings are the average residential bill, $/month nominal). The capacity layer is the capacity cost avoided: firm MW x price in the current formulation, and the avoided obligation in the alternative. `engine.layers.capacity_formulation_table()` produces it.
+
+| Utility | Scenario | Formulation | Capacity layer $B (NPV 3%) | Customer savings $B (NPV 3%) | Monthly saving 2035 ($) | Monthly saving 2050 ($) |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | current | 1.38 (0.86) | 11.81 (7.08) | 4.75 | 27.74 |
+| Con Edison | Cautious | avoided obligation | 2.29 (1.40) | 12.45 (7.46) | 5.05 | 29.02 |
+| Con Edison | Central | current | 6.82 (4.23) | 37.85 (22.40) | 16.13 | 105.69 |
+| Con Edison | Central | avoided obligation | 10.45 (6.37) | 40.39 (23.90) | 17.28 | 111.10 |
+| Con Edison | Ambitious | current | 9.79 (6.16) | 56.78 (33.94) | 24.52 | 139.53 |
+| Con Edison | Ambitious | avoided obligation | 14.61 (9.01) | 60.16 (35.93) | 26.09 | 146.21 |
+| RG&E | Cautious | current | 0.04 (0.03) | 1.53 (0.95) | 4.46 | 14.17 |
+| RG&E | Cautious | avoided obligation | 0.13 (0.08) | 1.59 (0.98) | 4.58 | 14.60 |
+| RG&E | Central | current | 0.60 (0.37) | 3.80 (2.33) | 10.88 | 37.56 |
+| RG&E | Central | avoided obligation | 1.68 (1.02) | 4.56 (2.78) | 12.17 | 43.88 |
+| RG&E | Ambitious | current | 0.73 (0.46) | 6.17 (3.80) | 16.54 | 55.13 |
+| RG&E | Ambitious | avoided obligation | 1.98 (1.20) | 7.04 (4.32) | 18.05 | 62.22 |
+| Dominion | Cautious | current | 1.27 (0.79) | 6.04 (3.74) | 2.77 | 5.60 |
+| Dominion | Cautious | avoided obligation | 1.67 (1.00) | 6.32 (3.88) | 2.75 | 5.78 |
+| Dominion | Central | current | 6.30 (3.95) | 19.31 (11.76) | 6.64 | 15.79 |
+| Dominion | Central | avoided obligation | 7.25 (4.37) | 19.97 (12.06) | 6.44 | 16.32 |
+| Dominion | Ambitious | current | 18.66 (11.74) | 47.07 (28.74) | 15.54 | 36.69 |
+| Dominion | Ambitious | avoided obligation | 20.47 (12.36) | 48.34 (29.18) | 14.82 | 37.94 |
+| Pepco MD | Cautious | current | 0.59 (0.37) | 2.29 (1.46) | 6.65 | 11.75 |
+| Pepco MD | Cautious | avoided obligation | 0.85 (0.51) | 2.48 (1.56) | 6.63 | 12.45 |
+| Pepco MD | Central | current | 1.09 (0.69) | 4.35 (2.73) | 11.01 | 24.31 |
+| Pepco MD | Central | avoided obligation | 1.29 (0.78) | 4.49 (2.79) | 10.80 | 25.10 |
+| Pepco MD | Ambitious | current | 1.86 (1.18) | 6.07 (3.80) | 14.55 | 33.15 |
+| Pepco MD | Ambitious | avoided obligation | 2.10 (1.28) | 6.24 (3.87) | 14.09 | 34.26 |
+
+- **The earnings opportunity grows with the avoided capacity.** The new formulation raises customer savings in every utility and scenario:
+  - Con Edison Central: +$2.5B, from $37.8B to $40.4B.
+  - RG&E Central: +$0.8B.
+  - Dominion Central: +$0.7B.
+  - Pepco Central: +$0.1B.
+  - Shared savings earnings rise too, since capacity is in the pool.
+- **Two forces work in opposite directions.**
+  - Upward: the long-run price ($200/kW-yr by 2040, against today's NYISO Rest of State $72/kW-yr and the PJM cap of $122/kW-yr) and, in New York, the reserve margin in the obligation.
+  - Downward: lower accreditation (NYISO Special Case Resources 70–74% against the 92% PJM proxy), coincidence (0.96–0.98, and 0.75 for locally dispatched MW) and the auction lag.
+  - In PJM, the 3-year lag and the 0.926 FPR outweigh the price path until the early 2030s. Dominion's and Pepco's 2035 monthly savings are slightly lower ($0.02–0.72) and their 2050 savings higher. In New York, both years are higher.
+- **Price suppression** (Central, sensitivity only; undiscounted nominal):
+
+  | Utility | Price suppression $B | Added to customer savings $B |
+  |---|---|---|
+  | Con Edison | 3.84 | 2.69 (to $43.08B) |
+  | Dominion | 1.35 | 0.95 |
+  | Pepco | 0.04 | 0.03 |
+  | RG&E | 0.03 | 0.02 |
+
+  For Con Edison it is over a quarter of the capacity layer ($14.3B with suppression), which is why it stays out of every scenario.
+
+**Calibration.**
+
+*Brattle, New York's Grid Flexibility Potential (Jan 2025, Vol. I, p.8):*
+- Generation capacity is $2,029M a year of avoided cost in 2040 (2024 $), for 8.5 GW of cost-effective potential measured at the NYISO-coincident peak. That is $239/kW-yr per coincident kW.
+- At the long-run price, the avoided-obligation formulation gives $213/kW-yr (Con Edison, which buys the Rest of State share at the lower price) and $243/kW-yr (RG&E) per obligation kW in 2040 (2024 $, deflated at 2.5%). Per kW, the two match.
+- The difference is in the MW:
+  - Brattle's potential is 21% (Con Edison) and 24% (RG&E) of each utility's NYISO-coincident summer peak (p.46).
+  - In 2040, Central's accredited obligation is 12.4% of Con Edison's peak and 20.5% of RG&E's (18.3% / 24.9% Ambitious).
+  - Combined, Con Edison and RG&E carry 44% of the 2026 NYCA coincident peak, so a pro-rata share of Brattle's $2,029M would be $892M. The model gives $400M Central and $575M Ambitious (45% and 64%).
+- Under the current formulation the same 2040 figure is $232M Central, at $114/kW-yr (Con Edison) and $69/kW-yr (RG&E): today's price grown with inflation, without the reserve margin.
+- The new formulation therefore moves the New York capacity value per kW to Brattle's level. The remaining gap is the MW of flexibility the scenarios assume, not the price.
+
+*Brattle, An Assessment of Electrification Impacts on the Pepco DC Distribution System (Nov 2025):*
+- The study is distribution-only. It "does not assess value to the bulk system", so it offers no calibration point for the capacity layer.
+- It finds flexibility reduces Pepco DC's 2025–2040 load-growth capex by $58–868M (2025 $; 4–54%), with value concentrated where overloads are short (2–5 hours a day, 1–6 days a year).
+- It supports the coincidence adjustment: the system is winter-peaking, while managed EV charging relieves mainly summer-peaking locations, so distribution relief and system-peak relief do not coincide in full.
+
+**Limitations.**
+- The obligation factors are applied to the price inputs as given. The NYISO ICAP-to-UCAP translation is not modelled (`_VERIFY`).
+- Con Edison's Rest of State price is RG&E's 2026 price input (`_VERIFY`), held in a fixed ratio to the NYC price.
+- `local_coincidence` is an assumption pending feeder load shapes.
+- PJM accreditation is for 2028/29. Ratings change each auction, and most fall as winter risk grows (2029/30: 4-hour storage 57%).
+- Price suppression uses a linear demand-curve slope with fixed supply. It ignores the PJM cap and floor beyond 2029 and any supply response before `long_run_year`.
 
 ### 3.7 Wholesale energy (layer 6)
 
@@ -1022,7 +1143,7 @@ Every input has a `source`, an `as_of` date and a `status`:
 | `_VERIFY` | An estimate, assumption or proxy awaiting confirmation; `source` says why and what would confirm it |
 | `setting` | A model switch or mode choice, not a measured value |
 
-Of the measured inputs (sourced, derived or `_VERIFY`, i.e. excluding settings), about half are `_VERIFY`: Con Edison 50%, Dominion 47%, Pepco 54%, RG&E 69%. As a share of all status-tagged inputs, including the settings that each new feature adds, the figures are 36%, 34%, 37% and 47%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares); the number of `_VERIFY` inputs barely changed. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
+Of the measured inputs (sourced, derived or `_VERIFY`, i.e. excluding settings), about half are `_VERIFY`: Con Edison 48%, Dominion 47%, Pepco 52%, RG&E 64%. As a share of all status-tagged inputs, including the settings that each new feature adds, the figures are 34%, 33%, 37% and 44%. The shares fell when published-plan BAU was added, mostly because its new inputs are settings (basis, paths, addressable shares), and again with the avoided-obligation capacity inputs (3.6a), most of which are sourced from PJM, NYISO and NYSRC publications. [ASSUMPTIONS.md](ASSUMPTIONS.md) has the counts by layer.
 
 **Proxies used where a utility lacks its own data:**
 - **Network loading bands and the constrained sub-band:** Dominion's grid utilization filing, applied to Con Edison, RG&E and Pepco.

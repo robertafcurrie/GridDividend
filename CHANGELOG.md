@@ -6,6 +6,65 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-01: Alternative capacity formulation, avoided obligation (off by default; this commit)
+
+**Added.**
+- `capacity.formulation`: `'embedded'` (default, the current formulation, unchanged) or `'avoided_obligation'` (METHODOLOGY 3.6a). The alternative values the capacity layer as follows:
+  - **(a) Contribution to peak:** the avoided obligation from the contribution to the RTO / NYCA peak. PJM FPR 0.926; NYC LCR 86.4% plus the rest of the NYCA requirement at the Rest of State price; NYCA 124.5%.
+  - **(b) Accreditation by type:** PJM 2028/29 ELCC ratings; NYISO 2026-27 capacity accreditation factors; storage by duration; efficiency at 1.0 through the load forecast.
+  - **(c) Coincidence:** the zone's coincident / non-coincident peak, plus `local_coincidence` for locally dispatched flexible MW.
+  - **(d) Auction lag:** PJM 3 years, NYISO 1.
+  - **(e) Long-run price:** the avoided price trends to the long-run net CONE by 2040.
+  - **(f) Price suppression:** an off-by-default sensitivity (`suppression_enabled`), never in any scenario.
+- **New inputs:** 15 capacity inputs per utility (17 for Con Edison, which adds the Rest of State tranche), each with a source, as-of date and status. They are in the assumptions register and kept out of the tornado while the formulation is `'embedded'`.
+- **New output columns:** `capacity_avoided_m`, `capacity_suppression_m`, `capacity_obligation_mw`, `capacity_avoided_price_m_per_mw_yr`.
+- **New table:** `engine.layers.capacity_formulation_table()`.
+- **New tests** (20; 325 in total). Defaults are embedded with suppression off. With neutral settings, the new formulation reproduces the embedded results. BAU is unchanged. Also tested: the lag and obligation identities, the suppression window, and the table.
+
+**Effect on results:** none by default. v1.0, CORRECTED, the three pins, the layer fixtures and the exports are unchanged (regenerated exports differ only in their commit metadata, so they are not recommitted).
+
+**If switched on** (utility-forecast pace; $B undiscounted nominal, NPV 3% in 2026 $ in brackets; monthly savings $/month nominal):
+
+| Utility | Scenario | Formulation | Capacity layer $B (NPV 3%) | Customer savings $B (NPV 3%) | Monthly saving 2035 ($) | Monthly saving 2050 ($) |
+|---|---|---|---|---|---|---|
+| Con Edison | Cautious | current | 1.38 (0.86) | 11.81 (7.08) | 4.75 | 27.74 |
+| Con Edison | Cautious | avoided obligation | 2.29 (1.40) | 12.45 (7.46) | 5.05 | 29.02 |
+| Con Edison | Central | current | 6.82 (4.23) | 37.85 (22.40) | 16.13 | 105.69 |
+| Con Edison | Central | avoided obligation | 10.45 (6.37) | 40.39 (23.90) | 17.28 | 111.10 |
+| Con Edison | Ambitious | current | 9.79 (6.16) | 56.78 (33.94) | 24.52 | 139.53 |
+| Con Edison | Ambitious | avoided obligation | 14.61 (9.01) | 60.16 (35.93) | 26.09 | 146.21 |
+| RG&E | Cautious | current | 0.04 (0.03) | 1.53 (0.95) | 4.46 | 14.17 |
+| RG&E | Cautious | avoided obligation | 0.13 (0.08) | 1.59 (0.98) | 4.58 | 14.60 |
+| RG&E | Central | current | 0.60 (0.37) | 3.80 (2.33) | 10.88 | 37.56 |
+| RG&E | Central | avoided obligation | 1.68 (1.02) | 4.56 (2.78) | 12.17 | 43.88 |
+| RG&E | Ambitious | current | 0.73 (0.46) | 6.17 (3.80) | 16.54 | 55.13 |
+| RG&E | Ambitious | avoided obligation | 1.98 (1.20) | 7.04 (4.32) | 18.05 | 62.22 |
+| Dominion | Cautious | current | 1.27 (0.79) | 6.04 (3.74) | 2.77 | 5.60 |
+| Dominion | Cautious | avoided obligation | 1.67 (1.00) | 6.32 (3.88) | 2.75 | 5.78 |
+| Dominion | Central | current | 6.30 (3.95) | 19.31 (11.76) | 6.64 | 15.79 |
+| Dominion | Central | avoided obligation | 7.25 (4.37) | 19.97 (12.06) | 6.44 | 16.32 |
+| Dominion | Ambitious | current | 18.66 (11.74) | 47.07 (28.74) | 15.54 | 36.69 |
+| Dominion | Ambitious | avoided obligation | 20.47 (12.36) | 48.34 (29.18) | 14.82 | 37.94 |
+| Pepco MD | Cautious | current | 0.59 (0.37) | 2.29 (1.46) | 6.65 | 11.75 |
+| Pepco MD | Cautious | avoided obligation | 0.85 (0.51) | 2.48 (1.56) | 6.63 | 12.45 |
+| Pepco MD | Central | current | 1.09 (0.69) | 4.35 (2.73) | 11.01 | 24.31 |
+| Pepco MD | Central | avoided obligation | 1.29 (0.78) | 4.49 (2.79) | 10.80 | 25.10 |
+| Pepco MD | Ambitious | current | 1.86 (1.18) | 6.07 (3.80) | 14.55 | 33.15 |
+| Pepco MD | Ambitious | avoided obligation | 2.10 (1.28) | 6.24 (3.87) | 14.09 | 34.26 |
+
+- **Customer savings rise everywhere:** Central +$2.5B Con Edison, +$0.8B RG&E, +$0.7B Dominion, +$0.1B Pepco.
+- **Shared savings earnings rise too** (Central, $B undiscounted): Con Edison 13.01 → 14.10, RG&E 1.23 → 1.56, Dominion 4.12 → 4.41, Pepco 0.43 → 0.49.
+- **PJM 2035 savings dip slightly:** the 3-year lag and the 0.926 FPR lower Dominion's and Pepco's 2035 monthly savings by $0.02–0.72; their 2050 savings are higher.
+- **Price suppression (Central sensitivity):** adds $2.69B to Con Edison's customer savings and $0.95B to Dominion's.
+
+**Calibration.**
+- **Brattle New York (2040, 2024 $):** generation capacity is $2,029M a year for 8.5 GW of NYISO-coincident potential, $239/kW-yr. The new formulation gives $213 (Con Edison) and $243 (RG&E) per obligation kW, against $114 and $69 under the current formulation. The remaining gap to a pro-rata share of Brattle's total ($892M against $400M Central) is the MW of flexibility (12.4% and 20.5% of peak, against Brattle's 21% and 24%), not the price.
+- **Brattle Pepco DC:** the study is distribution-only and assesses no bulk-system value, so it gives no capacity calibration point. It supports the coincidence adjustment: a winter-peaking system, with EV charging relieving summer-peaking locations.
+
+**Docs.** METHODOLOGY 3.6a; assumptions register regenerated. The `_VERIFY` shares of measured inputs are now Con Edison 48%, Dominion 47%, Pepco 52%, RG&E 64%, updated in CLAUDE.md, README and the RG&E note.
+
+---
+
 ## 2026-11-01: Export fast-start runs (`8756a89` script; exports and tests in this commit)
 
 - **Added, per utility, pace and scenario:** `fast_start`, with `yearly`, `waterfall_usd_month`, `value_flows_m` and `headline`, run at the fast-start defaults (first savings year 2027; near-term ramps as in the JSON).

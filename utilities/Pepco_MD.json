@@ -1008,6 +1008,120 @@
             "source": "PJM 2027/2028 Base Residual Auction: RTO-wide clearing price at the FERC-approved cap $333.44/MW-day (2027/2028 BRA planning parameters and results) x 365 / 1e6 = $0.12171M per MW-year, applied from 2027 (published-plan BAU only), then price_growth.",
             "as_of": "2026-10-31",
             "status": "derived"
+          },
+          "formulation": {
+            "value": "embedded",
+            "unit": "'embedded' | 'avoided_obligation'",
+            "source": "Setting. 'embedded' (default, the current formulation): firm flexible MW (programs derates) + efficiency MW x the capacity price on the bill line. 'avoided_obligation': avoided capacity obligation from the contribution to the RTO / NYCA peak, accredited by resource type, coincidence-adjusted, lagged by the auction cycle and priced on the long-run avoided capacity price path (METHODOLOGY 3.6a). The BAU capacity line is the same in both.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "obligation_factor": {
+            "value": 0.926,
+            "unit": "UCAP MW per MW of coincident peak",
+            "source": "PJM, 2027/2028 RPM BRA Planning Period Parameters (26 Aug 2025), Table 1: Forecast Pool Requirement 0.926 = (1 + IRM 20.00%) x pool-wide accredited UCAP factor 77.20%. An LSE's UCAP obligation = Peak Load Contribution (share of the 5 coincident peaks) x FPR (x zonal scaling). 2028/29 FPR 0.9401 (PJM MRC, 13 Feb 2026).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "system_coincidence": {
+            "value": 0.9625,
+            "unit": "share",
+            "source": "Derived: PJM 2026 Load Forecast Report (Jan 2026), PEPCO zone 2026 summer peak at the RTO coincident peak 5,778 MW (Table B-10) / zone non-coincident summer peak 6,003 MW (Table B-1). Zone includes Pepco DC.",
+            "as_of": "2026-11-01",
+            "status": "derived"
+          },
+          "local_coincidence": {
+            "low": 0.5,
+            "central": 0.75,
+            "high": 1.0,
+            "unit": "share",
+            "source": "Assumption (_VERIFY): share of a locally dispatched flexible MW's reduction (feeder or substation peak relief, the deferral layer's locational_match share) that also falls in the system's peak hours. High 1.0 = full alignment (what the current formulation credits). Low 0.5 proxies the ~50% capacity credit Brattle finds when flexibility is used for a need other than the one its dispatch targets (New York's Grid Flexibility Potential, Vol. I, Jan 2025, p.30: ~50% ability of grid flexibility to reduce distribution loading, range across programs); central = midpoint. Brattle allocates generation capacity value to the top 50 hours of statewide net load and distribution value to the top 50 hours of utility-region load (p.31) and notes the two 'may not fully temporally align'; Brattle's Pepco DC study (Nov 2025) finds managed EV charging relieves mainly the summer-peaking locations of a winter-peaking system. Confirm with feeder load shapes against RTO/NYCA peak hours.",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "accr_dr": {
+            "value": 0.91,
+            "unit": "share",
+            "source": "PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Demand Resource 91% (92% in 2027/28).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "accr_storage_by_duration": {
+            "value": {
+              "4": 0.59,
+              "6": 0.68,
+              "8": 0.71,
+              "10": 0.78
+            },
+            "unit": "{hours: share}",
+            "source": "PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: 4-hr Storage 59%, 6-hr 68%, 8-hr 71%, 10-hr 78%.",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "storage_duration_hr": {
+            "value": 4,
+            "unit": "hours",
+            "source": "Setting: storage duration used to pick accr_storage from accr_storage_by_duration (4-hour, the duration of the existing storage cost and derate inputs).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "accr_der": {
+            "value": 0.07,
+            "unit": "share",
+            "source": "PJM, ELCC Class Ratings for the 2028/2029 Base Residual Auction: Fixed-Tilt Solar 7% (Tracking 10%).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
+          },
+          "accr_ee": {
+            "value": 1.0,
+            "unit": "share of measured peak kW",
+            "source": "Energy efficiency lowers the peak load forecast, so its measured peak kW (ee_kw_per_mwh, EmPOWER summer peak-period basis) reduces the obligation one for one. PJM: FERC accepted removal of Energy Efficiency Resources from the supply side of RPM from the 2026/2027 BRA, with efficiency recognised on the demand side through the load forecast (Docket ER24-2995, order 5 Nov 2024; affirmed D.C. Cir. No. 25-1091, Feb 2026). NYISO: efficiency is netted in the Gold Book / ICAP peak forecast. _VERIFY: the forecast may not credit measured savings in full.",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "auction_lag_years": {
+            "low": 3,
+            "central": 3,
+            "high": 1,
+            "unit": "years",
+            "source": "PJM RPM: the Base Residual Auction procures capacity about three years before the delivery year (PJM Manual 18; the 2026/27-2029/30 auctions ran on a compressed schedule), so the RTO quantity reflects a load reduction in the forecast used ~3 years ahead (low and central). High 1: an LSE's capacity obligation is allocated by its Peak Load Contribution, set from the previous summer's 5 coincident peaks, so the zone's customers pay less one year after the reduction (the RTO total is unchanged until the forecast catches up).",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "avoided_price_path": {
+            "value": "long_run",
+            "unit": "'long_run' | 'today'",
+            "source": "Setting ('avoided_obligation' formulation only). 'long_run' (default): avoided capacity is priced on the long-run path, from today's clearing price (and published auction prices) trending to the long-run net cost of new entry (long_run_price_m_per_mw_yr) by long_run_year, then with inflation, whatever price_path the bill line uses. 'today': the bill-line price path (consistency check).",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "suppression_enabled": {
+            "value": false,
+            "unit": "bool",
+            "source": "Setting. Capacity price suppression (lower clearing price on the remaining obligation) as a separate sensitivity, 'avoided_obligation' formulation only. Off in every scenario; never in the central case.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "suppression_elasticity": {
+            "value": 16.7,
+            "unit": "% price change per 1% of requirement",
+            "source": "Derived (_VERIFY): slope of PJM's proposed RTO VRR curve (PJM MRC, 23 Jul 2025, VRR curve comparison, informational): price falls from 0.5 x price cap at 101.5% of the Reliability Requirement to $0 at 104.5%, i.e. 0.5 / 0.03 = 16.7 x the cap price per unit of requirement. The curve in force for 2026/27-2027/28 has the cap and floor (Docket ER25-1357), under which the 2027/28 and 2028/29 auctions cleared at the cap, so the slope there is 0.",
+            "as_of": "2026-11-01",
+            "status": "_VERIFY"
+          },
+          "suppression_start_year": {
+            "value": 2030,
+            "unit": "year",
+            "source": "Setting (_VERIFY): first delivery year without the FERC-approved cap and floor (in force for the 2026/27-2028/29 BRAs; secondary sources report an extension through 2029/30). Clearing at the cap, a lower obligation does not lower the price.",
+            "as_of": "2026-11-01",
+            "status": "setting"
+          },
+          "market_peak_mw": {
+            "value": 164579,
+            "unit": "MW",
+            "source": "PJM, 2027/2028 BRA Planning Period Parameters: forecast RTO peak load 164,579 MW (market size for price suppression).",
+            "as_of": "2026-11-01",
+            "status": "sourced"
           }
         }
       },
