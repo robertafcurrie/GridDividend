@@ -6,6 +6,39 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Housekeeping: stale references fixed (this commit)
+
+**Effect on results:** none. Docs only; the exports are regenerated so they record this commit.
+
+**Checked.**
+- **Repository:** the working tree was clean, and `main` was level with `origin/main`.
+- **README:** the results tables match a fresh run under the current defaults (split transmission, avoided-obligation capacity, by-sales allocation). All 12 result rows were regenerated and compared.
+- **METHODOLOGY tables:** 3.6a, 3.8a and 3.10b were regenerated earlier today.
+- **Notebooks:** all three state notebooks were last run on the current code.
+
+**Fixed (stale against the current defaults).**
+- **METHODOLOGY 3.3a:** Pepco's transmission-plan range now gives the current 2050 BAU bills and savings: $443 / $432 / $412, with savings of $24.55 / $23.58 / $21.74. The old values ($419, $23.05, etc.) were from an earlier version of the model.
+- **METHODOLOGY 3.6a:**
+  - The capacity deltas are restated for the current default (Con Edison Central $37.2B → $39.7B).
+  - The price-suppression total is now $42.42B (was $43.08B).
+- **METHODOLOGY 3.10:** the earnings-attributable example uses the current run (Con Edison Central total $13.82B; the old $2.26B was from the model-derived BAU).
+- **METHODOLOGY header:** lists split transmission and by-sales allocation among the current defaults.
+- **METHODOLOGY section 8 test list:**
+  - The transmission split tests and the New York reallocation export test are added.
+  - The value-layer test row notes that Pepco's transmission contribution can be 0.
+  - The 1b09e20 and 212efce rows note that they run the single transmission formulation.
+- **CLAUDE.md:** the transmission bullet no longer opens with the single formula as if it were the layer.
+- **Utility data notes** (`docs/utilities/*.md`): avoided transmission is described by the split formulation (load-driven share, realisation, zonal share), with the single formulation's rate as the option.
+
+**The parked dividend advance outside its own section** (METHODOLOGY 3.10a, which now opens with a status line). It is labelled a parked option, off by default and not in the headline results, in:
+- the README layer list;
+- METHODOLOGY 3.10b (the allocation formula and the bill-cap note);
+- METHODOLOGY's short glossary;
+- `docs/GLOSSARY.md`;
+- CLAUDE.md.
+
+The exports keep its blocks for reference, and the explorer guide says to ignore them. The validation test list still names its tests, which run.
+
 ## 2026-11-02: Explorer guide (this commit)
 
 **Effect on results:** none. Docs only.

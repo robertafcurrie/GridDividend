@@ -46,7 +46,10 @@ The local consumer utility tax varies by locality and is excluded. The published
   - distribution losses (3.9%, Metric iii).
 - **Large-load upgrade delay:** 4 / 6 / 7 years, from the large-load queue application (SCC PUR-2026-00011). The same filing sets the low backlog clearance rate.
 - **Capacity price:** PJM DOM 2026/27 BRA, $329.17/MW-day ($0.12M per MW-year).
-- **Avoided transmission:** PJM network service rate, DOM zone, $85.19/kW-year (June 2026).
+- **Avoided transmission** (split formulation, the default; METHODOLOGY 3.8a):
+  - Transmission upgrades deferred: the load-driven share (0.300 / 0.667 / 0.746, derived from PJM's 2024 RTEP drivers) of the published transmission rate base path, realisation 0 / 0.5 / 1.0 (PJM plans it).
+  - Lower share of zonal transmission costs: DOM zone network service peak load 24,678 MW (ATRR / NITS rate, June 2026), Dominion's share 0.810. Reported separately as a cost shift to the zone's co-operative and municipal customers; not in savings or earnings.
+  - The single formulation (option) uses the network service rate, $85.19/kW-year (June 2026).
 - **Efficiency:** SCC 2025 DSM report (VCEA savings targets).
 - **Flexible MW paths:**
   - Demand response: Dominion 2025 IRP Update, DSM 341 MW in 2025 and 1,076 MW by 2030 (efficiency and demand response together), less the efficiency part (the IRP's DSM energy savings, 1,462 GWh and 3,011 GWh, x `ee_kw_per_mwh`): 181.2 MW today and 746.9 MW in 2030–2035.

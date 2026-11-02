@@ -42,7 +42,7 @@ The published check is Con Edison's 2025 average 600 kWh NYC bill, $218.55/month
 - **Demand response today:** 466.2 MW (DLM program report, Case 14-E-0423).
 - **Flexible MW paths, Central:** Brattle, *New York's Grid Flexibility Potential* (January 2025, for NYSERDA and DPS).
 - **Upgrade delays:** Con Edison E-Mobility Interconnection Guide (April 2026). Ordinary load 0.5 / 1.5 / 3 years; large loads 2 / 3 / 6 years.
-- **Network cost and losses:** marginal transmission cost $40.67/kW-year and average losses 4.24%, both from the Con Edison BCA handbook.
+- **Network cost and losses:** average losses 4.24% (Con Edison BCA handbook). Avoided transmission (split formulation, the default; METHODOLOGY 3.8a): transmission upgrades deferred = the load-driven share (0.25 / 0.5 / 0.75, from the 2025 local transmission plan) of the transmission share of the capital plan (0.304, Form 1), realisation 0.5 / 0.8 / 1.0 (Con Edison plans its own local transmission); no zonal allocation effect in New York. The single formulation (option) uses the handbook's marginal transmission cost, $40.67/kW-year.
 - **Upgrade cost:** $3.0 / 4.0 / 7.1M per MW (notebook Section 1; Idlewild $7.1M/MW).
 
 ## Data-centre growth (layered model)

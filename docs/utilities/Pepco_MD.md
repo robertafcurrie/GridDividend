@@ -53,7 +53,10 @@ The base rates in effect at the as-of date are pre-case, so the authorised resid
 - **Demand response path:** the DRIVE Act proposal (Case 9761, up to 185 MW of flexible load).
 - **Ramp limits:** Energy Wise Rewards additions, 2009–2025. These are used for all four utilities.
 - **Capacity price:** PJM PEPCO zone 2026/27 BRA, $329.17/MW-day ($0.12015M per MW-year), the same price as the capacity carve-out. The earlier model reads `PJM.json` (2027/28, $333.44/MW-day, growing at inflation).
-- **Avoided transmission:** PJM network service rate, PEPCO zone, $60.49/kW-year.
+- **Avoided transmission** (split formulation, the default; METHODOLOGY 3.8a):
+  - Transmission upgrades deferred: the load-driven share is 0 / 0 / 0.300 (the PEPCO zone's 2024 RTEP projects are all equipment condition), so it is 0 at Central; realisation 0 / 0.5 / 1.0 (PJM plans it).
+  - Lower share of zonal transmission costs: PEPCO zone network service peak load 6,016 MW (ATRR / NITS rate, June 2026), Pepco MD's share 0.606. Reported separately as a cost shift to Pepco DC and SMECO customers; not in savings or earnings.
+  - The single formulation (option) uses the network service rate, $60.49/kW-year.
 - **Losses:** 4.92% (EIA-861).
 - **Upgrade cost:** $1.74 / 2.2 / 3.08M per MW (White Flint, Order No. 92607).
 

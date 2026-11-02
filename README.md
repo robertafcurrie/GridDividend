@@ -47,7 +47,7 @@ Each layer has its own switch and low / central / high inputs, each with a sourc
 7. **Avoided transmission:** transmission upgrades deferred, the load-driven share of each utility's published transmission investment that a lower planning peak defers. In PJM, a lower peak also lowers these customers' share of fixed zonal transmission costs. That is a cost shift to other customers in the zone, so it is reported separately, outside customer savings and the utility's earnings.
 8. **Avoided distribution losses:** marginal losses avoided by efficiency and peak reduction.
 9. **Additional savings objective** (off by default): savings the utility commits to find by means the model does not specify, as a share of a base, net of cost to achieve. It is additional to the other layers by assumption.
-10. **Shared savings mechanism:** the utility's share of the savings pool. Optional, off by default: a **fast start** (first savings year 2027), and a **customer dividend advance**, an early bill credit recovered later from the pool.
+10. **Shared savings mechanism:** the utility's share of the savings pool. Optional, off by default: a **fast start** (first savings year 2027), and a **customer dividend advance** (a parked option: kept in the code, off by default and not in the headline results; the exports carry its blocks for reference; METHODOLOGY 3.10a), an early bill credit recovered later from the pool.
 11. **ROE lever:** the allowed return in shared savings relative to BAU, a separate lever outside the pool.
 
 **The network.** The distribution network has explicit capacity in loading bands, including a constrained sub-band of load above the planning limit (from Dominion's grid-utilization filing).

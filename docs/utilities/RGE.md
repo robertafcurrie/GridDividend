@@ -41,7 +41,7 @@ RG&E does not show DLM, EV Make Ready or CES as separate lines. Over half of the
 - **Demand response today:** 7.4 MW (NYSEG/RG&E 2025 DR annual report, Case 14-E-0423).
 - **Flexible MW paths, Central:** Brattle New York flexibility potential study (scaled to RG&E).
 - **Capacity price:** NYISO Rest of State, $0.07244M per MW-year (2026 monthly spot prices; `_VERIFY`). The layered model uses this zone; the earlier model uses G-H-I.
-- **Network cost and losses:** marginal transmission cost $3.25/kW-year and average losses 6.93%, both from the RG&E BCA handbook.
+- **Network cost and losses:** average losses 6.93% (RG&E BCA handbook). Avoided transmission (split formulation, the default; METHODOLOGY 3.8a): transmission upgrades deferred = the load-driven share (0 / 0.25 / 0.5, `_VERIFY`: no Rochester project is attributed to load) of the transmission share of the capital plan (0.205, Form 1), realisation 0.5 / 0.8 / 1.0; no zonal allocation effect in New York. The single formulation (option) uses the handbook's marginal transmission cost, $3.25/kW-year (checked: still prescribed by the NYSEG/RG&E BCA Handbook v5.0, Table 9-3).
 - **Upgrade cost:** $0.8 / 1.5 / 3.0M per MW (notebook Section 1 notes).
 
 ## Published-plan BAU

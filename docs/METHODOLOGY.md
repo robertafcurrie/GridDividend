@@ -1,6 +1,6 @@
 # GridDividend methodology
 
-*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 2 November 2026: published-plan BAU (business as usual, following the utility's own investment plan; 2.5, 3.3a), avoided-obligation capacity (the capacity the utility no longer has to buy; 3.6a), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
+*The layered model (`engine/layers.py`, Section 13 of each state notebook). As of 2 November 2026: published-plan BAU (business as usual, following the utility's own investment plan; 2.5, 3.3a), avoided-obligation capacity (the capacity the utility no longer has to buy; 3.6a), split transmission (transmission upgrades deferred in savings, the lower share of zonal transmission costs reported separately; 3.8a), customer allocation by sales (3.10b), after the code fixes in the CHANGELOG entry "Code fixes from the independent check".*
 
 This document explains how GridDividend works. It is written for a policy reader who is comfortable with numbers but is not a modeller. Sections marked **Technical detail** give the equations and code-level behaviour; they can be skipped without losing the thread.
 
@@ -481,9 +481,9 @@ transmission line_t = transmission line_2026 x (transmission rate base_t / syste
 After the plan, its growth tapers to `transmission_growth` by `taper_year`. Inputs:
 - **Dominion:** the transmission rider rate base path from the Q4 2025 slides ($13.5B in 2025 to $23.7B in 2030).
 - **Pepco:** derived from Exelon's transmission capex at the model's 3.5% decay. Exelon publishes transmission rate base only company-wide (+15.3% a year, 2025–2029), so the range is shown:
-  - Exelon-wide growth: Pepco's 2050 BAU bill $443/month, saving $25.79;
-  - derived path (central): $419, saving $23.05;
-  - no plan (2.5% growth): $401, saving $20.92.
+  - Exelon-wide growth: Pepco's 2050 BAU bill $443/month, saving $24.55;
+  - derived path (central): $432, saving $23.58;
+  - no plan (2.5% growth): $412, saving $21.74.
 
 **Interactions.**
 - BAU bills rise with the plan, so the same percentage of avoided spending is worth more than under the model-derived BAU.
@@ -747,7 +747,7 @@ The six elements:
 | Pepco MD | Ambitious | avoided obligation (default) | 2.10 (1.28) | 5.72 (3.54) | 12.63 | 31.78 |
 
 - **The earnings opportunity grows with the avoided capacity.** The avoided-obligation formulation raises customer savings in every utility and scenario:
-  - Con Edison Central: +$2.5B, from $37.8B to $40.4B.
+  - Con Edison Central: +$2.5B, from $37.2B to $39.7B.
   - RG&E Central: +$0.8B.
   - Dominion Central: +$0.7B.
   - Pepco Central: +$0.1B.
@@ -760,7 +760,7 @@ The six elements:
 
   | Utility | Price suppression $B | Added to customer savings $B |
   |---|---|---|
-  | Con Edison | 3.84 | 2.69 (to $43.08B) |
+  | Con Edison | 3.84 | 2.69 (to $42.42B) |
   | Dominion | 1.35 | 0.95 |
   | Pepco | 0.04 | 0.03 |
   | RG&E | 0.03 | 0.02 |
@@ -1054,7 +1054,7 @@ earnings_t = utility_share x max(0, net_t)
   - Each contribution is the change in the cumulative pool when the layer is added, which does not depend on the mechanism.
   - The undiscounted column uses undiscounted pool contributions; the NPV column uses NPV contributions.
   - The split sums to total earnings (tested).
-- **Programs takes a negative share.** Its costs come before the savings they enable, so it lowers the pool. Con Edison Central: programs −$2.00B, deferral +$0.90B, capacity +$2.13B, transmission +$0.72B, losses +$0.33B, wholesale +$0.20B, load enabled −$0.02B; total $2.26B.
+- **Programs takes a negative share.** Its costs come before the savings they enable, so it lowers the pool. Con Edison Central: programs −$2.59B, deferral +$12.58B, capacity +$3.14B, transmission +$0.41B, losses +$0.31B, wholesale +$0.20B, load enabled −$0.24B; total $13.82B.
 - This replaces an order-dependent split in which carry-forward gave programs, deferral and load enabled zero.
 
 **Value creation is held constant across utility shares.** Changing `utility_share` changes only how the pool is divided. It sets shared savings earnings and the matching per-kWh rider. The flexible MW deployed, the reinforcement deferred, the capacity and energy avoided, the rate base and sales all stay the same. So customer savings plus shared savings earnings is identical at every share (exactly so in every year, since the pool itself does not depend on the share), and the utility-share sweep in the results export (0.20 / 0.30 / 0.40) shows the same value divided differently.
@@ -1076,7 +1076,7 @@ Both options are off by default, and with the defaults every output is identical
 - `near_term_ramp_programs_mw` {year: fraction}: flexible MW as that fraction of the way from today's programs to the 2035 target, still subject to the ramp limit.
 - `near_term_ramp_addressable` {year: fraction}: replaces the addressable-share ramp in that year and scales the growth cap.
 
-**Customer dividend advance** (`advance_enabled`, default off). Customers receive part of their expected savings early, as a level annual bill credit, and repay it later through a rider. The defaults below apply once the advance is enabled.
+**Customer dividend advance** (`advance_enabled`, default off). *Status: parked. Kept in the code and tested, with blocks in the exports for reference, but not part of the headline results or the explorer guide.* Customers receive part of their expected savings early, as a level annual bill credit, and repay it later through a rider. The defaults below apply once the advance is enabled.
 
 ```
 base_t      = the sizing scenario's recoverable savings (advance off, every other input as given), from advance_start_year:
@@ -1142,7 +1142,7 @@ The network saving net of the utility's earnings is the part that a shared-savin
 
 ```
 network net of earnings N_t = (BAU - SS) distribution RR + transmission upgrades deferred (New York only)
-                              - shared savings earnings (incl. any advance)   ($M)
+                              - shared savings earnings (incl. any dividend advance recovery, a parked option, 3.10a)   ($M)
 reallocated P_t             = max(0, N_t)
 residential_t               = (customer savings_t - P_t) x sales share + P_t x residential share (option)
 non-residential_t           = customer savings_t - residential_t
@@ -1153,7 +1153,7 @@ non-residential $/month     = non-residential_t / (non-residential customers x 1
 ```
 
 **The setting drives the engine.**
-- The residential bill carries the adjustment line, so the average and benchmark bills, the headline monthly savings and the dividend advance's residential bill cap all use the allocated residential bill.
+- The residential bill carries the adjustment line, so the average and benchmark bills, the headline monthly savings and (when the parked dividend advance is switched on, 3.10a) its residential bill cap all use the allocated residential bill.
 - The value flows split residential and business by the option.
 - Totals, the pool, earnings and every value source are unchanged.
 - With `'by_sales'` there is no adjustment line, so every output is identical to before.
@@ -1416,7 +1416,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_bands_sum_to_network_totals` | Bands sum to network load and capacity |
 | `test_ramp_limit_respected` | MW growth never exceeds the ramp limit |
 | `test_access_zero_with_layers_off` | No access benefits without layers |
-| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off and the embedded capacity formulation: BAU exactly; shared savings exactly except the columns the code fixes change, and except where this commit's data changes apply (Dominion's demand-response path, Pepco's capacity price) |
+| `test_network_defaults_reproduce_1b09e20` | The network block reproduces the pinned 1b09e20 outputs with the sub-band and new layers off, the single transmission formulation and the embedded capacity formulation: BAU exactly; shared savings exactly except the columns the code fixes change, and except where this commit's data changes apply (Dominion's demand-response path, Pepco's capacity price) |
 | `test_full_utilisation_long_lead_gives_bau_queue` | A tight network produces waiting load in BAU |
 | `test_subband_gives_bau_queue_and_keeps_totals` | The sub-band creates waiting load and keeps totals |
 | `test_mean_utilisation_shift` | The mean shift hits its target |
@@ -1426,7 +1426,7 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_upgrade_delay_mw_years_identity` | Delay MW-years equal the sum of MW waiting |
 | `test_upgrade_delay_inputs_drive_the_wait` | With the backlog cleared at once, BAU waits for requests in 2028–2045 never exceed the input delay; BAU MW-years rise from low to central to high delays; slower clearance leaves more MW above the planning limit; no priority never shortens the wait |
 | `test_flexibility_never_lengthens_upgrade_delay` | SS total delay MW-years and MW affected ≤ BAU |
-| `test_value_layers_add_savings_and_sum` | Each value layer adds savings and lowers the 2050 bill; contributions and the waterfall sum to the full case |
+| `test_value_layers_add_savings_and_sum` | Each value layer adds savings and lowers the 2050 bill (transmission may be 0 where nothing is load-driven, Pepco, since the lower share of zonal transmission costs is outside the headline); contributions and the waterfall sum to the full case |
 | `test_wholesale_counts_only_load_shifting` | Wholesale value is zero without incremental flexible MW |
 | `test_losses_energy_value_only_above_average` | Loss energy value is zero at a multiplier of 1 |
 | `test_roe_lever` | ROE moves the bill and equity return, not shared savings earnings; neutral at 0 |
@@ -1458,17 +1458,24 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 | `test_advance_cautious_sized_and_realized_clears` | Sized and realised Cautious, both sources and both financing options: no balance left in 2050 |
 | `test_rge_data_centres_follow_gold_book_zone_b` | RG&E's data-centre load = 300 MW + Gold Book Zone B increments × its zone share; high = 5%/yr |
 | `test_capacity_formulation_default_avoided_obligation` | The default is `'avoided_obligation'` with suppression off; every capacity input has a status; `local_coincidence` (0.5 to 1.0) is in the tornado, and obligation-only inputs leave it under `'embedded'` |
-| `test_capacity_formulations_reproduce_212efce` | The default reproduces 212efce's avoided-obligation runs exactly, and `'embedded'` reproduces that commit's default runs exactly (fixture `layers_212efce_capacity.json`) |
+| `test_capacity_formulations_reproduce_212efce` | The default reproduces 212efce's avoided-obligation runs exactly, and `'embedded'` reproduces that commit's default runs exactly (fixture `layers_212efce_capacity.json`) (both with the single transmission formulation of that time) |
 | `test_capacity_obligation_neutral_settings_reproduce_embedded` | With accreditation = the programs derates, coincidence 1, obligation 1, no lag and the bill-line price, the avoided-obligation results equal the embedded ones |
 | `test_capacity_obligation_identities` | BAU unchanged; credit = lagged obligation x obligation factor x long-run avoided price; the long-run price is reached by `long_run_year`; a longer lag or lower coincidence never raises the layer |
 | `test_capacity_price_suppression_sensitivity` | Suppression is zero before its start year and from `long_run_year`, never negative, adds savings only when on, and is ignored under `'embedded'` |
 | `test_capacity_formulation_table` | Both formulations for every scenario; the default row matches `system_summary()` |
+| `test_transmission_default_split_and_inputs` | The default is `'split'` with the avoided build on and `allocation_in_headline` off; realisation by planner (New York = the growth-capex addressable share, PJM 0 / 0.5 / 1.0); split-only inputs have a status; the tornado excludes `avoidable_share` while split and split-only inputs while single |
+| `test_transmission_formulations_reproduce_fe90816` | `'single'` reproduces fe90816's default runs exactly, and the default reproduces the split runs (fixture `layers_fe90816_transmission.json`) |
+| `test_transmission_split_identities` | By default only (b) counts; in PJM the cost shifted equals (a), which matches an independent share calculation; (a) is 0 in New York; no avoided build before the transition year plus the lag |
+| `test_transmission_allocation_outside_pool_and_headline` | (a) never changes the pool or earnings; the switch adds exactly (a) to headline customer savings and the bills |
+| `test_transmission_avoided_build_switch_and_scenarios` | (b) off gives no avoided build; PJM Cautious realisation 0; a longer lag never brings the avoided build forward |
+| `test_transmission_new_york_overlap_removed` | No plan dollar is deferred by both the deferral layer and (b) |
+| `test_transmission_formulation_table` | Single and split, (b) off and on, for every scenario; the default row matches `system_summary()` |
 
 `tests/test_assumptions_register.py` checks two things:
 - The assumptions register matches the JSON.
 - Every layered input has a valid status.
 
-`tests/test_export.py` checks that the exports balance and match direct runs. The allocation tests check three things: `allocation_sweep` by_sales reproduces the existing export fields exactly; residential + non-residential equal customer savings under every option, with the load-following parts unchanged; the per_customer residential share equals the residential share of EIA-861 customer counts; and where residential customers' share of customers exceeds their share of sales, per_customer residential savings are at least the by_sales ones, for every utility, scenario and pace. `test_customer_allocation_drives_bill_and_advance_cap` (layers) checks four things: the allocation moves only the residential bill; totals, earnings and BAU are unchanged; the adjustment is a credit; and with the advance on, the cap holds on the allocated bill. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
+`tests/test_export.py` checks that the exports balance and match direct runs. New York's transmission upgrades deferred are in the reallocated network saving and PJM's are not; the engine's reallocated pool equals the export's. The allocation tests check three things: `allocation_sweep` by_sales reproduces the existing export fields exactly; residential + non-residential equal customer savings under every option, with the load-following parts unchanged; the per_customer residential share equals the residential share of EIA-861 customer counts; and where residential customers' share of customers exceeds their share of sales, per_customer residential savings are at least the by_sales ones, for every utility, scenario and pace. `test_customer_allocation_drives_bill_and_advance_cap` (layers) checks four things: the allocation moves only the residential bill; totals, earnings and BAU are unchanged; the adjustment is a credit; and with the advance on, the cap holds on the allocated bill. `test_program_costs_enter_once` sets every flexible cost per kW-year and the efficiency levelised cost to zero. Customer savings plus shared savings earnings then rise by exactly the original run's `program_costs` flow, and every value source is unchanged, so program costs enter the results once.
 
 `tests/test_regression.py` pins the earlier model: the v1.0 BASE results for Con Edison, Dominion and Pepco, plus the correction-flag checks.
 
@@ -1587,7 +1594,7 @@ The full plain-language glossary, in three groups (parts of a bill, how rates ar
 | **Deferrable share** | The network model's cumulative reinforcement avoided as a share of BAU reinforcement; caps growth-driven avoidance with the addressable share |
 | **Electrification pace** | Utility forecast (central: BAU load calibrated to the utility's own forecast) or state policy (the model's electrification assumptions) |
 | **Additional savings objective** | Savings the utility commits to find by unspecified means, as a share of a base, net of cost to achieve; additional to the other layers by assumption |
-| **Customer dividend advance** | Level bill credit paid early, sized on recoverable savings, securitised, and recovered through a bill-savings rider (or from the pool), with a true-up and a cap |
+| **Customer dividend advance** | Level bill credit paid early, sized on recoverable savings, securitised, and recovered through a bill-savings rider (or from the pool), with a true-up and a cap. A parked option, off by default and not in the headline results (3.10a) |
 | **Fast start** | First savings year 2027 instead of the transition year, with separate near-term ramps for capacity, programs MW and the plan's addressable shares |
 | **Load link** | Scaling of the plan's growth-driven capex by the model's load growth relative to the plan's assumed load growth |
 | **Taper year** | Year by which BAU capex growth reaches load growth on the taper path |
