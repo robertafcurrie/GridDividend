@@ -3,7 +3,7 @@
   "utility": "DomVA",
   "name": "Virginia Electric and Power Company (Dominion Energy Virginia)",
   "short_name": "Dominion VA",
-  "source_commit": "d2a5077f52b6c849e1f174a84d5e6b01457b6bd3",
+  "source_commit": "4d5f09649b8443f80299de3c59f721b772f0eeb6",
   "source_modified_since_commit": false,
   "generated": "2026-11-02",
   "dollar_basis": "Nominal dollars. Cumulative figures undiscounted unless labelled npv3_2026 (NPV at 3%, 2026 dollars). Bills are the average residential bill, $/month.",
@@ -7742,7 +7742,7 @@
         "residential": {
          "load_following": {
           "capacity": 512.278780826978,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 76.63261199816885,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1581.9255983311928,
@@ -7757,7 +7757,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1154.7527220268391,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 172.7413287703598,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3565.896068870866,
@@ -7774,7 +7774,7 @@
         "residential": {
          "load_following": {
           "capacity": 305.5927583993268,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 47.49612889083151,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 980.3079653099735,
@@ -7789,7 +7789,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 688.85162298475,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 107.06335334422057,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2209.7602589333505,
@@ -8046,7 +8046,7 @@
         "residential": {
          "load_following": {
           "capacity": 512.278780826978,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 76.63261199816885,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1581.9255983311928,
@@ -8061,7 +8061,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1154.7527220268391,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 172.7413287703598,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3565.896068870866,
@@ -8078,7 +8078,7 @@
         "residential": {
          "load_following": {
           "capacity": 305.5927583993268,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 47.49612889083151,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 980.3079653099735,
@@ -8093,7 +8093,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 688.85162298475,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 107.06335334422057,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2209.7602589333505,
@@ -8351,7 +8351,7 @@
         "residential": {
          "load_following": {
           "capacity": 512.278780826978,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 76.63261199816885,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1581.9255983311928,
@@ -8366,7 +8366,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1154.7527220268391,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 172.7413287703598,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3565.896068870866,
@@ -8383,7 +8383,7 @@
         "residential": {
          "load_following": {
           "capacity": 305.5927583993268,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 47.49612889083151,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 980.3079653099735,
@@ -8398,7 +8398,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 688.85162298475,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 107.06335334422057,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2209.7602589333505,
@@ -16105,7 +16105,7 @@
         "residential": {
          "load_following": {
           "capacity": 2206.4004985100805,
-          "transmission": 515.5227289881815,
+          "transmission_load_following": 515.5227289881815,
           "losses": 284.4845890471736,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 2977.816746298637,
@@ -16120,7 +16120,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 4973.555565629459,
-          "transmission": 1162.06506466031,
+          "transmission_load_following": 1162.06506466031,
           "losses": 641.2706633028868,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 6712.442760042518,
@@ -16137,7 +16137,7 @@
         "residential": {
          "load_following": {
           "capacity": 1328.3522201030735,
-          "transmission": 292.3135504886543,
+          "transmission_load_following": 292.3135504886543,
           "losses": 177.95076599127484,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1845.331713899494,
@@ -16152,7 +16152,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 2994.3038817617926,
-          "transmission": 658.9183092206014,
+          "transmission_load_following": 658.9183092206014,
           "losses": 401.1275483311294,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4159.652711416138,
@@ -16409,7 +16409,7 @@
         "residential": {
          "load_following": {
           "capacity": 2206.4004985100805,
-          "transmission": 515.5227289881815,
+          "transmission_load_following": 515.5227289881815,
           "losses": 284.4845890471736,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 2977.816746298637,
@@ -16424,7 +16424,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 4973.555565629459,
-          "transmission": 1162.06506466031,
+          "transmission_load_following": 1162.06506466031,
           "losses": 641.2706633028868,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 6712.442760042518,
@@ -16441,7 +16441,7 @@
         "residential": {
          "load_following": {
           "capacity": 1328.3522201030735,
-          "transmission": 292.3135504886543,
+          "transmission_load_following": 292.3135504886543,
           "losses": 177.95076599127484,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1845.331713899494,
@@ -16456,7 +16456,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 2994.3038817617926,
-          "transmission": 658.9183092206014,
+          "transmission_load_following": 658.9183092206014,
           "losses": 401.1275483311294,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4159.652711416138,
@@ -16714,7 +16714,7 @@
         "residential": {
          "load_following": {
           "capacity": 2206.4004985100805,
-          "transmission": 515.5227289881815,
+          "transmission_load_following": 515.5227289881815,
           "losses": 284.4845890471736,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 2977.816746298637,
@@ -16729,7 +16729,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 4973.555565629459,
-          "transmission": 1162.06506466031,
+          "transmission_load_following": 1162.06506466031,
           "losses": 641.2706633028868,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 6712.442760042518,
@@ -16746,7 +16746,7 @@
         "residential": {
          "load_following": {
           "capacity": 1328.3522201030735,
-          "transmission": 292.3135504886543,
+          "transmission_load_following": 292.3135504886543,
           "losses": 177.95076599127484,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1845.331713899494,
@@ -16761,7 +16761,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 2994.3038817617926,
-          "transmission": 658.9183092206014,
+          "transmission_load_following": 658.9183092206014,
           "losses": 401.1275483311294,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4159.652711416138,
@@ -24468,7 +24468,7 @@
         "residential": {
          "load_following": {
           "capacity": 6266.438030407166,
-          "transmission": 3404.4024747577378,
+          "transmission_load_following": 3404.4024747577378,
           "losses": 794.3800029955765,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6327.702393324771,
@@ -24483,7 +24483,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14125.485270624938,
-          "transmission": 7674.030570337406,
+          "transmission_load_following": 7674.030570337406,
           "losses": 1790.650921168356,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14263.584275483465,
@@ -24500,7 +24500,7 @@
         "residential": {
          "load_following": {
           "capacity": 3782.6551072009147,
-          "transmission": 1931.1530187706614,
+          "transmission_load_following": 1931.1530187706614,
           "losses": 498.38816264600365,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 3921.231861239894,
@@ -24515,7 +24515,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8526.668378646513,
-          "transmission": 4353.1067234052625,
+          "transmission_load_following": 4353.1067234052625,
           "losses": 1123.4411983888276,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 8839.041035733402,
@@ -24772,7 +24772,7 @@
         "residential": {
          "load_following": {
           "capacity": 6266.438030407166,
-          "transmission": 3404.4024747577378,
+          "transmission_load_following": 3404.4024747577378,
           "losses": 794.3800029955765,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6327.702393324771,
@@ -24787,7 +24787,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14125.485270624938,
-          "transmission": 7674.030570337406,
+          "transmission_load_following": 7674.030570337406,
           "losses": 1790.650921168356,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14263.584275483465,
@@ -24804,7 +24804,7 @@
         "residential": {
          "load_following": {
           "capacity": 3782.6551072009147,
-          "transmission": 1931.1530187706614,
+          "transmission_load_following": 1931.1530187706614,
           "losses": 498.38816264600365,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 3921.231861239894,
@@ -24819,7 +24819,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8526.668378646513,
-          "transmission": 4353.1067234052625,
+          "transmission_load_following": 4353.1067234052625,
           "losses": 1123.4411983888276,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 8839.041035733402,
@@ -25077,7 +25077,7 @@
         "residential": {
          "load_following": {
           "capacity": 6266.438030407166,
-          "transmission": 3404.4024747577378,
+          "transmission_load_following": 3404.4024747577378,
           "losses": 794.3800029955765,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6327.702393324771,
@@ -25092,7 +25092,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14125.485270624938,
-          "transmission": 7674.030570337406,
+          "transmission_load_following": 7674.030570337406,
           "losses": 1790.650921168356,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14263.584275483465,
@@ -25109,7 +25109,7 @@
         "residential": {
          "load_following": {
           "capacity": 3782.6551072009147,
-          "transmission": 1931.1530187706614,
+          "transmission_load_following": 1931.1530187706614,
           "losses": 498.38816264600365,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 3921.231861239894,
@@ -25124,7 +25124,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8526.668378646513,
-          "transmission": 4353.1067234052625,
+          "transmission_load_following": 4353.1067234052625,
           "losses": 1123.4411983888276,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 8839.041035733402,
@@ -32828,7 +32828,7 @@
         "residential": {
          "load_following": {
           "capacity": 528.0502808440117,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 79.7360070954937,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1656.8551666071826,
@@ -32843,7 +32843,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1190.304033650006,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 179.7368438498161,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3734.798483269754,
@@ -32860,7 +32860,7 @@
         "residential": {
          "load_following": {
           "capacity": 314.6103256500307,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 49.31250436479184,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 1024.163235368325,
@@ -32875,7 +32875,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 709.1785635462943,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 111.1577343751751,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2308.616573835466,
@@ -33132,7 +33132,7 @@
         "residential": {
          "load_following": {
           "capacity": 528.0502808440117,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 79.7360070954937,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1656.8551666071826,
@@ -33147,7 +33147,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1190.304033650006,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 179.7368438498161,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3734.798483269754,
@@ -33164,7 +33164,7 @@
         "residential": {
          "load_following": {
           "capacity": 314.6103256500307,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 49.31250436479184,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 1024.163235368325,
@@ -33179,7 +33179,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 709.1785635462943,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 111.1577343751751,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2308.616573835466,
@@ -33437,7 +33437,7 @@
         "residential": {
          "load_following": {
           "capacity": 528.0502808440117,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 79.7360070954937,
           "wholesale": 1.3436974578711087,
           "efficiency_energy": 1656.8551666071826,
@@ -33452,7 +33452,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 1190.304033650006,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 179.7368438498161,
           "wholesale": 3.028894334745581,
           "efficiency_energy": 3734.798483269754,
@@ -33469,7 +33469,7 @@
         "residential": {
          "load_following": {
           "capacity": 314.6103256500307,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 49.31250436479184,
           "wholesale": 0.8335802284426483,
           "efficiency_energy": 1024.163235368325,
@@ -33484,7 +33484,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 709.1785635462943,
-          "transmission": 0.0,
+          "transmission_load_following": 0.0,
           "losses": 111.1577343751751,
           "wholesale": 1.879014071728677,
           "efficiency_energy": 2308.616573835466,
@@ -41186,7 +41186,7 @@
         "residential": {
          "load_following": {
           "capacity": 2235.3836416438653,
-          "transmission": 403.2963333921578,
+          "transmission_load_following": 403.2963333921578,
           "losses": 290.722017889159,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 3118.8641656213604,
@@ -41201,7 +41201,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 5038.887889901416,
-          "transmission": 909.0900427619515,
+          "transmission_load_following": 909.0900427619515,
           "losses": 655.330757539279,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 7030.384664906984,
@@ -41218,7 +41218,7 @@
         "residential": {
          "load_following": {
           "capacity": 1344.705818237493,
-          "transmission": 228.5600186745086,
+          "transmission_load_following": 228.5600186745086,
           "losses": 181.60144932802478,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1927.8848742573348,
@@ -41233,7 +41233,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 3031.1673292974665,
-          "transmission": 515.2083466834757,
+          "transmission_load_following": 515.2083466834757,
           "losses": 409.3567326701033,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4345.7398385878805,
@@ -41490,7 +41490,7 @@
         "residential": {
          "load_following": {
           "capacity": 2235.3836416438653,
-          "transmission": 403.2963333921578,
+          "transmission_load_following": 403.2963333921578,
           "losses": 290.722017889159,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 3118.8641656213604,
@@ -41505,7 +41505,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 5038.887889901416,
-          "transmission": 909.0900427619515,
+          "transmission_load_following": 909.0900427619515,
           "losses": 655.330757539279,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 7030.384664906984,
@@ -41522,7 +41522,7 @@
         "residential": {
          "load_following": {
           "capacity": 1344.705818237493,
-          "transmission": 228.5600186745086,
+          "transmission_load_following": 228.5600186745086,
           "losses": 181.60144932802478,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1927.8848742573348,
@@ -41537,7 +41537,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 3031.1673292974665,
-          "transmission": 515.2083466834757,
+          "transmission_load_following": 515.2083466834757,
           "losses": 409.3567326701033,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4345.7398385878805,
@@ -41795,7 +41795,7 @@
         "residential": {
          "load_following": {
           "capacity": 2235.3836416438653,
-          "transmission": 403.2963333921578,
+          "transmission_load_following": 403.2963333921578,
           "losses": 290.722017889159,
           "wholesale": 165.19636089696337,
           "efficiency_energy": 3118.8641656213604,
@@ -41810,7 +41810,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 5038.887889901416,
-          "transmission": 909.0900427619515,
+          "transmission_load_following": 909.0900427619515,
           "losses": 655.330757539279,
           "wholesale": 372.37721833168405,
           "efficiency_energy": 7030.384664906984,
@@ -41827,7 +41827,7 @@
         "residential": {
          "load_following": {
           "capacity": 1344.705818237493,
-          "transmission": 228.5600186745086,
+          "transmission_load_following": 228.5600186745086,
           "losses": 181.60144932802478,
           "wholesale": 104.44686072595508,
           "efficiency_energy": 1927.8848742573348,
@@ -41842,7 +41842,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 3031.1673292974665,
-          "transmission": 515.2083466834757,
+          "transmission_load_following": 515.2083466834757,
           "losses": 409.3567326701033,
           "wholesale": 235.4387908391444,
           "efficiency_energy": 4345.7398385878805,
@@ -49544,7 +49544,7 @@
         "residential": {
          "load_following": {
           "capacity": 6334.962312819816,
-          "transmission": 2651.059365531032,
+          "transmission_load_following": 2651.059365531032,
           "losses": 808.16976711547,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6627.42066642873,
@@ -49559,7 +49559,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14279.949216043888,
-          "transmission": 5975.8829238638,
+          "transmission_load_following": 5975.8829238638,
           "losses": 1821.7351047213995,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14939.193933079016,
@@ -49576,7 +49576,7 @@
         "residential": {
          "load_following": {
           "capacity": 3820.7599727244624,
-          "transmission": 1503.0861147596713,
+          "transmission_load_following": 1503.0861147596713,
           "losses": 506.459126398142,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 4096.6529414733,
@@ -49591,7 +49591,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8612.56242468674,
-          "transmission": 3388.1801226619727,
+          "transmission_load_following": 3388.1801226619727,
           "losses": 1141.6343535827953,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 9234.466295341865,
@@ -49848,7 +49848,7 @@
         "residential": {
          "load_following": {
           "capacity": 6334.962312819816,
-          "transmission": 2651.059365531032,
+          "transmission_load_following": 2651.059365531032,
           "losses": 808.16976711547,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6627.42066642873,
@@ -49863,7 +49863,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14279.949216043888,
-          "transmission": 5975.8829238638,
+          "transmission_load_following": 5975.8829238638,
           "losses": 1821.7351047213995,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14939.193933079016,
@@ -49880,7 +49880,7 @@
         "residential": {
          "load_following": {
           "capacity": 3820.7599727244624,
-          "transmission": 1503.0861147596713,
+          "transmission_load_following": 1503.0861147596713,
           "losses": 506.459126398142,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 4096.6529414733,
@@ -49895,7 +49895,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8612.56242468674,
-          "transmission": 3388.1801226619727,
+          "transmission_load_following": 3388.1801226619727,
           "losses": 1141.6343535827953,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 9234.466295341865,
@@ -50153,7 +50153,7 @@
         "residential": {
          "load_following": {
           "capacity": 6334.962312819816,
-          "transmission": 2651.059365531032,
+          "transmission_load_following": 2651.059365531032,
           "losses": 808.16976711547,
           "wholesale": 412.51220507705426,
           "efficiency_energy": 6627.42066642873,
@@ -50168,7 +50168,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 14279.949216043888,
-          "transmission": 5975.8829238638,
+          "transmission_load_following": 5975.8829238638,
           "losses": 1821.7351047213995,
           "wholesale": 929.8639910734639,
           "efficiency_energy": 14939.193933079016,
@@ -50185,7 +50185,7 @@
         "residential": {
          "load_following": {
           "capacity": 3820.7599727244624,
-          "transmission": 1503.0861147596713,
+          "transmission_load_following": 1503.0861147596713,
           "losses": 506.459126398142,
           "wholesale": 260.8534606769306,
           "efficiency_energy": 4096.6529414733,
@@ -50200,7 +50200,7 @@
         "non_residential": {
          "load_following": {
           "capacity": 8612.56242468674,
-          "transmission": 3388.1801226619727,
+          "transmission_load_following": 3388.1801226619727,
           "losses": 1141.6343535827953,
           "wholesale": 588.0025779723717,
           "efficiency_energy": 9234.466295341865,
