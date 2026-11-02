@@ -43,7 +43,7 @@ Each layer has its own switch and low / central / high inputs, each with a sourc
 4. **Load enabled:** headroom lets load waiting for the network connect sooner (residential bill effect only).
 5. **Capacity:** the avoided capacity obligation. It counts the contribution to the RTO / NYCA peak, accredited by resource type and adjusted for coincidence with the system peak, after the auction lag, at the long-run avoided capacity price (METHODOLOGY 3.6a). The earlier firm-MW-at-today's-price formulation remains an option.
 6. **Wholesale energy:** flexible load shifted from on-peak to off-peak hours.
-7. **Avoided transmission:** transmission cost avoided by peak reduction.
+7. **Avoided transmission:** transmission upgrades deferred, the load-driven share of each utility's published transmission investment that a lower planning peak defers. In PJM, a lower peak also lowers these customers' share of fixed zonal transmission costs. That is a cost shift to other customers in the zone, so it is reported separately, outside customer savings and the utility's earnings.
 8. **Avoided distribution losses:** marginal losses avoided by efficiency and peak reduction.
 9. **Additional savings objective** (off by default): savings the utility commits to find by means the model does not specify, as a share of a base, net of cost to achieve. It is additional to the other layers by assumption.
 10. **Shared savings mechanism:** the utility's share of the savings pool. Optional, off by default: a **fast start** (first savings year 2027), and a **customer dividend advance**, an early bill credit recovered later from the pool.
@@ -67,14 +67,14 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 
 | | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| **Customer savings 2026–2050, $B undiscounted** | **40.4** (12.4–60.2) | **20.0** (6.3–48.3) | **4.5** (2.5–6.2) | **4.6** (1.6–7.0) |
-| Customer savings, $B NPV 3% (2026 $) | 23.9 (7.5–35.9) | 12.1 (3.9–29.2) | 2.8 (1.6–3.9) | 2.8 (1.0–4.3) |
-| Average residential bill, $/month lower in 2035 | 17.28 (5.05–26.09) | 6.44 (2.75–14.82) | 10.80 (6.63–14.09) | 12.17 (4.58–18.05) |
-| Average residential bill, $/month lower in 2050 | 111.10 (29.02–146.21) | 16.32 (5.78–37.94) | 25.10 (12.45–34.26) | 43.88 (14.60–62.22) |
-| 2050 saving as % of the BAU delivery bill | 23% (6%–30%) | 13% (5%–30%) | 16% (8%–22%) | 10% (3%–14%) |
+| **Customer savings 2026–2050, $B undiscounted** | **39.7** (11.0–62.9) | **18.9** (5.9–49.4) | **4.2** (2.3–5.7) | **4.8** (1.6–7.4) |
+| Customer savings, $B NPV 3% (2026 $) | 23.4 (6.6–37.3) | 11.3 (3.6–29.4) | 2.6 (1.5–3.5) | 2.9 (1.0–4.5) |
+| Average residential bill, $/month lower in 2035 | 14.64 (4.33–22.63) | 5.63 (2.60–12.62) | 9.96 (6.18–12.63) | 11.65 (4.47–17.55) |
+| Average residential bill, $/month lower in 2050 | 112.09 (25.07–158.67) | 16.05 (5.46–41.33) | 23.58 (11.56–31.78) | 48.96 (15.75–69.51) |
+| 2050 saving as % of the BAU delivery bill | 23% (5%–32%) | 13% (4%–33%) | 15% (7%–20%) | 11% (4%–16%) |
 | New flexible MW by 2050 | 3,576 (466–3,729) | 2,547 (181–7,014) | 327 (169–660) | 545 (7–545) |
 | Upgrade Delay avoided, MW-years (MW waiting in BAU) | 178 (31–215) of 141 MW | 482 (32–637) of 373 MW | 36 (11–49) of 23 MW | 24 (1–26) of 17 MW |
-| Shared savings earnings, $B undiscounted | 14.10 (3.73–19.36) | 4.41 (0.50–11.89) | 0.49 (0.09–0.97) | 1.56 (0.48–2.22) |
+| Shared savings earnings, $B undiscounted | 13.82 (3.10–20.54) | 3.95 (0.31–12.36) | 0.36 (0.02–0.75) | 1.65 (0.48–2.37) |
 
 **Published-plan vs model-derived BAU (Central).** The published plans call for more distribution spending than the network model generated, so there is more to defer and right-size. The model-derived BAU remains selectable (`bau_plan.basis: 'model'`).
 
@@ -82,28 +82,28 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 |---|---|---|---|---|
 | BAU average bill 2050, $/month: model → plan | 512 → 653 | 299 → 334 | 424 → 432 | 337 → 580 |
 | BAU distribution capex 2026–2050, $B: model → plan | 150 → 220 | 50 → 80 | 9 → 8 | 8 → 28 |
-| Customer savings, $B undiscounted: model → plan | 14.0 → 40.4 | 13.0 → 20.0 | 3.8 → 4.5 | 1.5 → 4.6 |
-| 2050 bill $/month lower: model → plan | 22.89 → 111.10 | 10.15 → 16.32 | 16.42 → 25.10 | 6.93 → 43.88 |
-| Shared savings earnings, $B: model → plan | 2.77 → 14.10 | 1.40 → 4.41 | 0.17 → 0.49 | 0.25 → 1.56 |
+| Customer savings, $B undiscounted: model → plan | 12.3 → 39.7 | 11.4 → 18.9 | 3.6 → 4.2 | 1.5 → 4.8 |
+| 2050 bill $/month lower: model → plan | 19.12 → 112.09 | 9.11 → 16.05 | 15.46 → 23.58 | 6.68 → 48.96 |
+| Shared savings earnings, $B: model → plan | 2.08 → 13.82 | 0.72 → 3.95 | 0.09 → 0.36 | 0.25 → 1.65 |
 
 **Additional opportunity if electrification follows state policy.** Central BAU load follows each utility's own forecast. If electrification instead follows state policy (the model's earlier assumptions), load grows faster, the plans' growth-driven spending scales up, and there is more to defer. Customer savings, $B undiscounted:
 
 | | Con Edison | Dominion VA | Pepco MD | RG&E |
 |---|---|---|---|---|
-| Cautious: utility forecast → state policy (additional) | 12.4 → 14.9 (+2.5) | 6.3 → 6.6 (+0.3) | 2.5 → 2.8 (+0.3) | 1.6 → 2.1 (+0.5) |
-| Central: utility forecast → state policy (additional) | 40.4 → 52.0 (+11.6) | 20.0 → 20.9 (+1.0) | 4.5 → 5.2 (+0.7) | 4.6 → 6.9 (+2.3) |
-| Ambitious: utility forecast → state policy (additional) | 60.2 → 89.6 (+29.4) | 48.3 → 54.0 (+5.7) | 6.2 → 7.3 (+1.1) | 7.0 → 10.5 (+3.4) |
-| Central 2050 saving, $/month: utility forecast → state policy | 111.10 → 130.00 | 16.32 → 16.03 | 25.10 → 27.99 | 43.88 → 65.67 |
+| Cautious: utility forecast → state policy (additional) | 11.0 → 13.2 (+2.3) | 5.9 → 6.2 (+0.3) | 2.3 → 2.6 (+0.3) | 1.6 → 2.1 (+0.5) |
+| Central: utility forecast → state policy (additional) | 39.7 → 48.9 (+9.2) | 18.9 → 19.6 (+0.7) | 4.2 → 4.9 (+0.7) | 4.8 → 6.7 (+2.0) |
+| Ambitious: utility forecast → state policy (additional) | 62.9 → 85.8 (+22.9) | 49.4 → 53.6 (+4.1) | 5.7 → 6.8 (+1.1) | 7.4 → 10.3 (+2.9) |
+| Central 2050 saving, $/month: utility forecast → state policy | 112.09 → 123.77 | 16.05 → 15.57 | 23.58 → 26.62 | 48.96 → 64.11 |
 
-**In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 7 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.5 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
+**In context.** The 2050 monthly saving (Central) is about 16 times Con Edison's latest residential rate-case increase ($6.81/month, rate year 1 at 600 kWh, Case 25-E-0072), 8 times RG&E's temporary-rate increase (+4.0% of electric revenue, about $6.38/month on the modelled bill), 6 times Pepco's ($3.94/month, Order No. 92607) and 1.4 times Dominion's ($11.24/month in 2026 at 1,000 kWh, PUR-2025-00058). The saving is in 2050 dollars and the increases in their rate years; see the CHANGELOG for 2035 multiples.
 
-**Residential vs non-residential.** By default the pool's customer share is split by sales, as today's delivery rates do. `mechanism.customer_allocation` can split it equally per customer (EIA-861 counts) or by a custom share. Costs follow the benefits they buy, and only savings are reallocated: the network revenue-requirement reduction net of earnings. Program costs and load-following savings stay split by sales. Per customer, Central residential savings rise from $10.5B to $26.2B for Con Edison, $6.1B to $10.3B for Dominion, $1.9B to $3.2B for RG&E and $1.8B to $2.2B for Pepco (METHODOLOGY 3.10b; export `allocation_sweep`).
+**Residential vs non-residential.** By default the pool's customer share is split by sales, as today's delivery rates do. `mechanism.customer_allocation` can split it equally per customer (EIA-861 counts) or by a custom share. Costs follow the benefits they buy, and only savings are reallocated: the network revenue-requirement reduction net of earnings. Program costs and load-following savings stay split by sales. Per customer, Central residential savings rise from $10.3B to $20.8B for Con Edison, $5.8B to $10.2B for Dominion, $2.0B to $3.2B for RG&E and $1.7B to $2.1B for Pepco (METHODOLOGY 3.10b; export `allocation_sweep`).
 
 **How each utility got here, 2021–2026.** A look-back module (`engine/lookback.py`, METHODOLOGY section 12) tracks the residential bill like for like (EIA-861, 2021–2025, delivery and supply), with the 2026 tariff bill shown separately. It bridges the distribution revenue requirement from 2021 to 2026 (FERC Form 1 plus the approved 2026 rate-case step), in detail and grouped into capital, cost of capital and operating drivers. It itemises Dominion's Virginia riders and tracks supply-side prices. It also lists every rate case, asked against granted, with totals. Every figure carries a source and a status.
 
 **What customer savings include.** They count what all customers pay for delivery (net of shared savings earnings), programs and capacity. On top of that they add:
 - The energy efficiency saves, valued at today's residential supply rate.
-- Wholesale energy, avoided transmission and avoided losses.
+- Wholesale energy, transmission upgrades deferred and avoided losses. The lower share of zonal transmission costs (PJM) is not included: it is reported separately with the cost shifted to other customers in the zone.
 
 Each component is reported separately in `system_summary()`.
 
@@ -182,7 +182,7 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel
   - The addressable shares (how much shared savings can defer or right-size) are settings.
 - **About half of the measured inputs are still `_VERIFY`.** By utility: Con Edison 47%, Dominion 46%, Pepco 52%, RG&E 63% of the measured inputs in `starting_bill` and `forward_assumptions` (33 / 32 / 36 / 43% of all status-tagged inputs, including settings) (counts by layer in [ASSUMPTIONS.md](docs/ASSUMPTIONS.md)). Each one carries the reason and what would confirm it.
 - **Proxies.** Con Edison, RG&E and Pepco use Dominion's measured network loading as a `_VERIFY` proxy until their own feeder data is found. New York uses PJM's price spreads for wholesale energy, and the other utilities use Con Edison's connection timelines for ordinary load.
-- **Avoided transmission is a range.** PJM's network service rates are average costs: a lower peak shifts cost within the zone in the short run and avoids upgrades in the long run, so the avoidable share runs from 0 to 1.
+- **Avoided transmission is split in two.** (b) transmission upgrades deferred counts in customer savings. Its realisation is 0 / 0.5 / 1.0 by scenario where PJM plans the transmission (Dominion, Pepco) and 0.5 / 0.8 / 1.0 where the utility plans its own (Con Edison, RG&E). (a) the lower share of zonal transmission costs is a cost shift within the PJM zone, reported separately and outside the pool. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.8a).
 - **ROE is a separate lever.** Central assumes no change in allowed ROE. Changing it moves bills and the utility's equity return, not shared savings earnings.
 - **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited.
 - **RG&E data is provisional** until the final order in Case 25-E-0379.

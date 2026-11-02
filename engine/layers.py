@@ -73,7 +73,8 @@ TRANSMISSION_FORMULATIONS = ('single', 'split')
 # Transmission inputs read only by the 'split' formulation (kept out of the tornado
 # while the formulation is 'single'); avoidable_share is read only by 'single'
 TRANSMISSION_SPLIT_PARAMS = ('allocation_effect', 'zone_nspl_mw', 'utility_share_of_zone', 'avoided_build_enabled',
-                             'load_driven_share', 'avoided_build_share', 'planning_lag_years', 'tx_capex_share_of_plan')
+                             'load_driven_share', 'avoided_build_share', 'planning_lag_years', 'tx_capex_share_of_plan',
+                             'allocation_in_headline')
 SCENARIOS = ('Cautious', 'Central', 'Ambitious')
 CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 'supply_energy',
               'capacity', 'transmission', 'taxes_and_fees')
@@ -1069,6 +1070,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
     tx_split = tx_form == 'split'
     tx_zonal = tx_split and tx.get('allocation_effect', 'none') == 'zonal_share'
     tx_s = tx['utility_share_of_zone'] if tx_zonal else 1.0
+    # (a) is a cost shift, not a saving: never in the pool; on the bill and in headline
+    # customer savings only with allocation_in_headline (off by default, for comparison)
+    tx_alloc_head = tx_zonal and bool(tx.get('allocation_in_headline', False))
     tx_build_on = tx_split and bool(tx.get('avoided_build_enabled', True)) and plan_on
     tx_ld = (transmission_plan_capex(a, plan) * tx['load_driven_share']) if tx_build_on else np.zeros(len(YEARS))
     tx_lag = int(round(tx.get('planning_lag_years', 7) or 7)) if tx_build_on else 0
@@ -1441,12 +1445,12 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     tx_ar = tx_ar * (1 - RATE_BASE_DECAY) + tx_av_capex
                     b_rr = tx_ar * (wacc + ptr * (1 + infl * 0.5) ** t) + RATE_BASE_DECAY * ar_open
                     tx_build, tx_build_oz = b_rr * tx_s, b_rr * (1 - tx_s)
-                tx_av = tx_alloc + tx_build
+                tx_av = tx_build + (tx_alloc if tx_alloc_head else 0.0)
             if Ll and active:      # marginal distribution losses avoided (above the average in retail rates)
                 loss_e = (ee_gwh * lo['avg_loss_pct'] * (lo['marginal_mult_energy'] - 1)) * sup_kwh
                 mw_loss = min(mw_firm * lo['avg_loss_pct'] * lo['marginal_mult_peak'], max(0.0, sys_peak - mw_red))
                 loss_p = mw_loss * price
-            vpool = (whl * bool(we.get('in_pool', True)) + tx_av * bool(tx.get('in_pool', True))
+            vpool = (whl * bool(we.get('in_pool', True)) + (tx_build if tx_split else tx_av) * bool(tx.get('in_pool', True))
                      + (loss_e + loss_p) * bool(lo.get('in_pool', True)))
             # ── Mechanism ────────────────────────────────────────────────────
             def _bills(adj_val):
@@ -2167,6 +2171,10 @@ def system_summary(run):
         'of which wholesale energy, load shifted ($B, undiscounted nominal)': whl.sum() / 1e3,
         'of which avoided transmission ($B, undiscounted nominal)': txa.sum() / 1e3,
         'of which avoided distribution losses ($B, undiscounted nominal)': loss.sum() / 1e3,
+        # transmission (a): a cost shift within the PJM zone, reported separately (in customer savings
+        # above only with transmission.allocation_in_headline; never in the pool)
+        'Lower share of zonal transmission costs ($B, undiscounted nominal)': col('transmission_allocation_m').sum() / 1e3,
+        'Cost shifted to other zone customers ($B, undiscounted nominal)': col('transmission_cost_shifted_m').sum() / 1e3,
         'of which ROE change, cost to customers ($B, undiscounted nominal)': -roe.sum() / 1e3,
         'Wires capex avoided or deferred ($B, undiscounted nominal)': capex.sum() / 1e3,
         'Wires capex avoided or deferred ($B, NPV 3%, 2026 $)': _npv(capex, yrs, 0.03) / 1e3,
@@ -2380,11 +2388,11 @@ def transmission_formulation_table(utility_json, params, scenarios=SCENARIOS, ov
     and the split formulation with the avoided build (b) off and on (METHODOLOGY 3.7a).
 
     Inputs: overrides added to every run.
-    Output: DataFrame indexed by (scenario, case): avoided transmission to the
-      utility's customers ($B undiscounted nominal and NPV 3%), of which (a)
-      allocation effect and (b) avoided build ($B undiscounted nominal); cost shifted
-      to other customers in the zone by (a) and the avoided build's benefit to other
-      zone customers ($B, PJM); transmission capex avoided ($B undiscounted nominal);
+    Output: DataFrame indexed by (scenario, case): avoided transmission counted in
+      customer savings ($B undiscounted nominal and NPV 3%: (b) the transmission
+      upgrades deferred, plus (a) only with allocation_in_headline); (b); (a) the lower
+      share of zonal transmission costs, reported separately, and the cost shifted to
+      other zone customers; the avoided build's benefit to other zone customers ($B, PJM); transmission capex avoided ($B undiscounted nominal);
       customer savings ($B undiscounted nominal and NPV 3%) and the 2035 and 2050
       monthly saving ($/month nominal).
     """
@@ -2399,11 +2407,12 @@ def transmission_formulation_table(utility_json, params, scenarios=SCENARIOS, ov
             b, s = r['bau'].set_index('year'), r['ss'].set_index('year')
             tx = s['transmission_avoided_m']
             rows.append({'scenario': sc, 'case': label,
-                         'Avoided transmission ($B, undiscounted nominal)': tx.sum() / 1e3,
-                         'Avoided transmission ($B, NPV 3%, 2026 $)': _npv(tx.values, YEARS, 0.03) / 1e3,
-                         'of which (a) allocation effect ($B, undiscounted nominal)': s['transmission_allocation_m'].sum() / 1e3,
-                         'of which (b) avoided build ($B, undiscounted nominal)': s['transmission_build_avoided_m'].sum() / 1e3,
-                         'Cost shifted to others in the zone by (a) ($B, undiscounted nominal)': s['transmission_cost_shifted_m'].sum() / 1e3,
+                         'Avoided transmission in customer savings ($B, undiscounted nominal)': tx.sum() / 1e3,
+                         'Avoided transmission in customer savings ($B, NPV 3%, 2026 $)': _npv(tx.values, YEARS, 0.03) / 1e3,
+                         '(b) transmission upgrades deferred ($B, undiscounted nominal)': s['transmission_build_avoided_m'].sum() / 1e3,
+                         '(a) lower share of zonal transmission costs, reported separately ($B, undiscounted nominal)':
+                             s['transmission_allocation_m'].sum() / 1e3,
+                         'Cost shifted to other zone customers ($B, undiscounted nominal)': s['transmission_cost_shifted_m'].sum() / 1e3,
                          'Avoided build benefit to others in the zone ($B, undiscounted nominal)': s['transmission_build_other_zone_m'].sum() / 1e3,
                          'Transmission capex avoided ($B, undiscounted nominal)': s['transmission_avoided_capex_m'].sum() / 1e3,
                          'Customer savings ($B, undiscounted nominal)': sm['Customer savings ($B, undiscounted nominal)'],

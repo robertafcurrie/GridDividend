@@ -1369,7 +1369,7 @@
       "transmission": {
         "enabled": true,
         "label": "Avoided transmission: transmission cost avoided by peak reduction",
-        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (setting formulation = split; default single): (a) allocation effect = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), with the cost shifted to other zone customers reported; (b) avoided build = load_driven_share x the published transmission investment, deferred by avoided_build_share x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. Transmission rates and returns are FERC-jurisdictional (METHODOLOGY 3.7a).",
+        "_note": "Firm flexible MW plus efficiency peak MW x transmission cost per kW-year x avoidable share. PJM NITS rates are average embedded costs: a lower zonal peak shifts cost within the zone in the short run (low 0%) and avoids network upgrades in the long run. New York values are marginal costs of service. Split formulation (default; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs = the change in the utility's share of the fixed zonal transmission revenue requirement (PJM network service peak load shares; 0 in New York), reported separately with the cost shifted to other zone customers, outside the pool and headline customer savings (allocation_in_headline off); (b) transmission upgrades deferred = load_driven_share x the published transmission investment, deferred by avoided_build_share (realisation: PJM 0 / 0.5 / 1.0; New York, which plans its own local transmission, 0.5 / 0.8 / 1.0 as the growth-capex addressable share) x min(1, planning-peak reduction planning_lag_years earlier / peak growth since 2026), through rate base at the model's carrying cost. 'single' formulation kept as an option. Transmission rates and returns are FERC-jurisdictional.",
         "params": {
           "cost_kw_yr": {
             "value": 40.67,
@@ -1402,9 +1402,9 @@
             "status": "setting"
           },
           "formulation": {
-            "value": "single",
+            "value": "split",
             "unit": "single | split",
-            "source": "Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'split' (METHODOLOGY 3.7a): (a) allocation effect + (b) avoided build, reported separately. Kept at 'single' until the author decides.",
+            "source": "Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside the pool and headline, + (b) transmission upgrades deferred. 'single' (the earlier default): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share, one value for both effects; kept as an option.",
             "as_of": "2026-11-02",
             "status": "setting"
           },
@@ -1416,13 +1416,13 @@
             "status": "setting"
           },
           "avoided_build_share": {
-            "low": 0.0,
-            "central": 0.5,
+            "low": 0.5,
+            "central": 0.8,
             "high": 1.0,
             "unit": "share of the load-driven investment deferral that planning realises",
-            "source": "Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility as a planning-peak reduction), Central 0.5 (half of the planning-peak reduction is credited in transmission planning, e.g. firm DR and flexible connections that the TO accepts as load modifiers), Ambitious 1.0 (fully credited). Context, not calibration: PJM 2024 RTEP Window 1 (Board approval Feb 2025: $4.65B regional + $1.27B local, driven by 10-15 GW of data-centre load growth); Duke Nicholas Institute, Rethinking Load Growth (Feb 2025: ~76-126 GW of new load could connect with 0.25-1% curtailment).",
+            "source": "Setting: the same realisation as the distribution growth-capex addressable share (bau_plan.addressable_growth, 0.5 / 0.8 / 1.0 by scenario), because the utility plans its local transmission itself, in its local transmission plan (NYISO local transmission owner planning process) and rate case, alongside distribution. Cautious 0.5, Central 0.8, Ambitious 1.0.",
             "as_of": "2026-11-02",
-            "status": "_VERIFY"
+            "status": "setting"
           },
           "planning_lag_years": {
             "low": 5,
@@ -1455,6 +1455,13 @@
             "source": "Derived from CECONY's 2025 Local Transmission Plan (NYISO LTPP, Dec 2025) and the Jan 2026 Reliability Needs Report: NYC 345/138 kV needs (250 MW in 2030 rising to 1,325 MW in 2035) are driven by (1) increasing load demand, (2) cumulative generation retirements, (3) no incremental new generation and (4) loss of generation as the design basis; three of the four named transmission projects are load-serving substations (Brooklyn Clean Energy Hub 345 kV, which also provides generation interconnection points for CLCPA resources; Eastern Queens 138 kV, \"driven by growing electric demand in Queens\" (2023 LTP); Sunset Park 345 kV, 2034), the fourth (4th Gowanus-Greenwood feeder) is reliability / retirement. Low = 1 of 4 needs drivers (0.25); high = 3 of 4 projects load-serving (0.75); central 0.5. Public policy (CLCPA) and retirement-driven spending excluded. Project costs are not published in the LTP, so the shares are counts, not dollars.",
             "as_of": "2026-11-02",
             "status": "derived"
+          },
+          "allocation_in_headline": {
+            "value": false,
+            "unit": "bool",
+            "source": "Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer savings. It is a cost shift to other customers in the zone, not a saving, so by default it is reported separately and never enters the shared-savings pool (the utility earns nothing on it), whatever this setting.",
+            "as_of": "2026-11-02",
+            "status": "setting"
           }
         }
       },

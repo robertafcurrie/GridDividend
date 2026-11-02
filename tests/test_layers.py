@@ -268,6 +268,8 @@ DATA_SINCE_7C9B = {'ConEd': {('system_needs', 'dc_growth'): 0.06}, 'RGE': {('sys
 # Capacity formulation before 2 Nov 2026 (the default is now 'avoided_obligation'); the pinned-output
 # tests written before then run the earlier formulation, which is kept as an option
 EMBEDDED = {('capacity', 'formulation'): 'embedded'}
+# The earlier transmission formulation, for fixtures written before split became the default
+SINGLE_TX = {('transmission', 'formulation'): 'single'}
 PLAN_FIXED = {('bau_plan', 'link_growth_to_load'): False}   # plan capex fixed regardless of load
 SUBBAND_ON = {'subband_enabled': True, 'flex_targeting_enabled': True}
 
@@ -293,6 +295,7 @@ def test_network_defaults_reproduce_1b09e20(key, nb, source):
             ov.update(MODEL_BAU)
             ov.update(DATA_SINCE_7C9B.get(key, {}))
             ov.update(EMBEDDED)
+            ov.update(SINGLE_TX)
         r = LY.project_layers(uj, p, scenario=scn, overrides=ov or None,
                               network={'subband_enabled': False} if cur else None,
                               enabled=NEW_LAYERS_OFF if cur else None)
@@ -463,7 +466,12 @@ def test_value_layers_add_savings_and_sum(key, nb):
     """Each value layer adds customer savings; the waterfall and the contributions sum to the full case."""
     uj, p = _utility(key, nb)
     lc = LY.layer_contributions(uj, p)
+    tx = LY.resolve(uj['forward_assumptions'])['transmission']
     for l in LY.VALUE_LAYERS:
+        if l == 'transmission' and tx['load_driven_share'] == 0:
+            # split default: (b) is 0 with no load-driven investment and (a) is outside the headline
+            assert lc.loc[l, 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(0, abs=1e-9)
+            continue
         assert lc.loc[l, 'Customer savings ($B, undiscounted nominal)'] > 0
         assert lc.loc[l, 'Monthly bill 2050 ($, nominal)'] < 0
     full = LY.project_layers(uj, p)
@@ -632,7 +640,7 @@ def test_model_bau_basis_reproduces_23fec60(key, nb):
     ref = json.load(open(_FIXTURE_23FE))['runs'][key]
     uj, p = _utility(key, nb)
     for sc, cols in ref.items():
-        r = LY.project_layers(uj, p, scenario=sc, overrides={**MODEL_BAU, **DATA_SINCE_7C9B.get(key, {}), **EMBEDDED})
+        r = LY.project_layers(uj, p, scenario=sc, overrides={**MODEL_BAU, **DATA_SINCE_7C9B.get(key, {}), **EMBEDDED, **SINGLE_TX})
         for col, d in cols.items():
             for case in ('bau', 'ss'):
                 exp = np.array([np.nan if v is None else v for v in d[case]], float)
@@ -998,12 +1006,12 @@ def test_capacity_formulation_default_avoided_obligation(key, nb):
 @pytest.mark.parametrize('key,nb', UTILS)
 def test_capacity_formulations_reproduce_212efce(key, nb):
     """The default reproduces 212efce's avoided-obligation runs exactly; the embedded option reproduces
-    that commit's default runs exactly."""
+    that commit's default runs exactly (both with the transmission formulation of that time, 'single')."""
     ref = json.load(open(_FIXTURE_212E))['runs'][key]
     uj, p = _utility(key, nb)
     for sc, forms in ref.items():
         for form, cols in forms.items():
-            r = LY.project_layers(uj, p, scenario=sc, overrides=EMBEDDED if form == 'embedded' else None)
+            r = LY.project_layers(uj, p, scenario=sc, overrides={**(EMBEDDED if form == 'embedded' else {}), **SINGLE_TX})
             for col, d in cols.items():
                 for case in ('bau', 'ss'):
                     np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{sc} {form} {col} {case}')
@@ -1124,29 +1132,41 @@ TX_NEW = ('transmission_allocation_m', 'transmission_cost_shifted_m', 'transmiss
           'transmission_build_other_zone_m', 'transmission_avoided_capex_m', 'transmission_deferral_fraction')
 
 
+_FIXTURE_TX = os.path.join(ROOT, 'tests', 'fixtures', 'layers_fe90816_transmission.json')
+
+
 @pytest.mark.parametrize('key,nb', UTILS)
-def test_transmission_default_single_and_split_inputs(key, nb):
-    """The default stays 'single' (new columns zero); split-only inputs have a status and stay out of the
-    tornado while single; avoided_build_share is 0 in Cautious; the lag is 7 (5 to 10)."""
+def test_transmission_default_split_and_inputs(key, nb):
+    """The default is 'split' with the avoided build on and the allocation effect outside the headline;
+    realisation by planner (New York = the growth-capex addressable share, PJM 0 / 0.5 / 1.0); split-only
+    inputs have a status; avoidable_share (single only) is out of the tornado; the lag is 7 (5 to 10)."""
     uj, p = _utility(key, nb)
     fa = uj['forward_assumptions']
     tp = fa['layers']['transmission']['params']
-    assert tp['formulation']['value'] == 'single'
+    assert tp['formulation']['value'] == 'split'
+    assert tp['avoided_build_enabled']['value'] is True and tp['allocation_in_headline']['value'] is False
     for k in LY.TRANSMISSION_SPLIT_PARAMS:
         if k in tp:
             assert tp[k]['status'] in ('sourced', 'derived', '_VERIFY', 'setting'), k
-    assert tp['avoided_build_share']['status'] == '_VERIFY' and tp['avoided_build_share']['low'] == 0.0
+    ab = tp['avoided_build_share']
+    if key in ('ConEd', 'RGE'):
+        ag = fa['bau_plan']['params']['addressable_growth']
+        assert (ab['low'], ab['central'], ab['high']) == (ag['low'], ag['central'], ag['high']) == (0.5, 0.8, 1.0)
+        assert ab['status'] == 'setting'
+    else:
+        assert (ab['low'], ab['central'], ab['high']) == (0.0, 0.5, 1.0) and ab['status'] == '_VERIFY'
     assert (tp['planning_lag_years']['low'], tp['planning_lag_years']['central'], tp['planning_lag_years']['high']) == (5, 7, 10)
     assert fa['scenarios']['Cautious']['levels']['transmission.avoided_build_share'] == 'low'
+    assert fa['scenarios']['Ambitious']['levels']['transmission.avoided_build_share'] == 'high'
     assert tp['load_driven_share']['status'] == ('_VERIFY' if key == 'RGE' else 'derived')
     keys = LY.assumption_keys(fa)
-    assert not [k for k in keys if k[0] == 'transmission' and k[1] in LY.TRANSMISSION_SPLIT_PARAMS]
-    assert ('transmission', 'avoidable_share') in keys
+    assert ('transmission', 'planning_lag_years') in keys and ('transmission', 'avoidable_share') not in keys
     fs = json.loads(json.dumps(fa))
-    fs['layers']['transmission']['params']['formulation']['value'] = 'split'
+    fs['layers']['transmission']['params']['formulation']['value'] = 'single'
     ks = LY.assumption_keys(fs)
-    assert ('transmission', 'planning_lag_years') in ks and ('transmission', 'avoidable_share') not in ks
-    s = LY.project_layers(uj, p)['ss']
+    assert not [k for k in ks if k[0] == 'transmission' and k[1] in LY.TRANSMISSION_SPLIT_PARAMS]
+    assert ('transmission', 'avoidable_share') in ks
+    s = LY.project_layers(uj, p, overrides=SINGLE_TX)['ss']
     for c in TX_NEW:
         assert (s[c] == 0).all(), c
     with pytest.raises(ValueError):
@@ -1154,13 +1174,26 @@ def test_transmission_default_single_and_split_inputs(key, nb):
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_formulations_reproduce_fe90816(key, nb):
+    """'single' reproduces fe90816's default runs exactly; the default reproduces this commit's split runs."""
+    ref = json.load(open(_FIXTURE_TX))['runs'][key]
+    uj, p = _utility(key, nb)
+    for sc, forms in ref.items():
+        for form, cols in forms.items():
+            r = LY.project_layers(uj, p, scenario=sc, overrides=SINGLE_TX if form == 'single' else None)
+            for col, d in cols.items():
+                for case in ('bau', 'ss'):
+                    np.testing.assert_array_equal(r[case][col].values, np.array(d[case]), err_msg=f'{sc} {form} {col} {case}')
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
 def test_transmission_split_identities(key, nb):
     uj, p = _utility(key, nb)
     tp = LY.resolve(uj['forward_assumptions'])['transmission']
-    r = LY.project_layers(uj, p, overrides=SPLIT)
+    r = LY.project_layers(uj, p)
     s, b = r['ss'], r['bau']
-    # avoided transmission to these customers = (a) + (b); BAU carries none of it
-    assert np.allclose(s['transmission_avoided_m'], s['transmission_allocation_m'] + s['transmission_build_avoided_m'])
+    # by default only (b) is counted; (a) is reported separately
+    assert np.allclose(s['transmission_avoided_m'], s['transmission_build_avoided_m'])
     for c in TX_NEW:
         assert (b[c] == 0).all(), c
     assert ((s['transmission_deferral_fraction'] >= 0) & (s['transmission_deferral_fraction'] <= 1)).all()
@@ -1168,10 +1201,11 @@ def test_transmission_split_identities(key, nb):
     if tp['allocation_effect'] == 'zonal_share':
         # (a): the fixed zonal ATRR is re-shared; what these customers save, the rest of the zone pays
         assert np.allclose(s['transmission_cost_shifted_m'], s['transmission_allocation_m'])
+        assert s['transmission_allocation_m'].sum() > 0
         sh = tp['utility_share_of_zone']
         # gross charge avoided at the unchanged rate (single formulation, avoidable share 1) = firm MW x rate;
         # the customers' saving is the drop in their share of the fixed ATRR: gross x (1 - s) Pz / (Pz - d)
-        gross = LY.project_layers(uj, p, overrides={('transmission', 'avoidable_share'): 1.0})['ss']['transmission_avoided_m']
+        gross = LY.project_layers(uj, p, overrides={**SINGLE_TX, ('transmission', 'avoidable_share'): 1.0})['ss']['transmission_avoided_m']
         pz, d = s['peak_mw'] / sh, s['firm_mw'].clip(upper=s['peak_mw'])
         expect = np.where(d > 0, gross * (1 - sh) * pz / (pz - d), 0.0)
         assert np.allclose(s['transmission_allocation_m'], expect, rtol=1e-9, atol=1e-12)
@@ -1181,24 +1215,49 @@ def test_transmission_split_identities(key, nb):
         assert (s['transmission_allocation_m'] == 0).all() and (s['transmission_cost_shifted_m'] == 0).all()
         assert (s['transmission_build_other_zone_m'] == 0).all()
     # no avoided build before the transition year + planning lag
-    first = int(tp_y) if (tp_y := uj['forward_assumptions']['layers']['programs']['params']['transition_year'].get('value')) else 2027
+    first = int(uj['forward_assumptions']['layers']['programs']['params']['transition_year']['value'])
     lag = int(tp['planning_lag_years'])
     assert (s.loc[s['year'] < first + lag, 'transmission_avoided_capex_m'] == 0).all()
 
 
 @pytest.mark.parametrize('key,nb', UTILS)
+def test_transmission_allocation_outside_pool_and_headline(key, nb):
+    """(a) never enters the pool, so shared savings earnings are the same whatever its size; the
+    off-by-default switch adds it to headline customer savings (and bills) exactly, and nothing else."""
+    uj, p = _utility(key, nb)
+    off = LY.project_layers(uj, p)
+    on = LY.project_layers(uj, p, overrides={('transmission', 'allocation_in_headline'): True})
+    s0, s1 = off['ss'], on['ss']
+    alloc = s0['transmission_allocation_m']
+    assert np.allclose(s0['savings_pool_m'], s1['savings_pool_m'])
+    assert np.allclose(s0['shared_savings_earnings_m'], s1['shared_savings_earnings_m'])
+    assert np.allclose(s1['transmission_avoided_m'], s0['transmission_build_avoided_m'] + alloc)
+    sm0, sm1 = LY.system_summary(off), LY.system_summary(on)
+    k = 'Customer savings ($B, undiscounted nominal)'
+    assert sm1[k] - sm0[k] == pytest.approx(alloc.sum() / 1e3, abs=1e-9)
+    assert sm0['Lower share of zonal transmission costs ($B, undiscounted nominal)'] == pytest.approx(alloc.sum() / 1e3)
+    assert sm0['Cost shifted to other zone customers ($B, undiscounted nominal)'] == pytest.approx(
+        s0['transmission_cost_shifted_m'].sum() / 1e3)
+    if alloc.sum() > 0:
+        assert s1.loc[s1['year'] == 2050, 'avg_bill_total'].iloc[0] < s0.loc[s0['year'] == 2050, 'avg_bill_total'].iloc[0]
+    else:
+        assert np.allclose(s0['avg_bill_total'], s1['avg_bill_total'])
+
+
+@pytest.mark.parametrize('key,nb', UTILS)
 def test_transmission_avoided_build_switch_and_scenarios(key, nb):
     uj, p = _utility(key, nb)
-    off = LY.project_layers(uj, p, overrides={**SPLIT, ('transmission', 'avoided_build_enabled'): False})['ss']
+    off = LY.project_layers(uj, p, overrides={('transmission', 'avoided_build_enabled'): False})['ss']
     assert (off['transmission_build_avoided_m'] == 0).all() and (off['transmission_avoided_capex_m'] == 0).all()
-    cau = LY.project_layers(uj, p, scenario='Cautious', overrides=SPLIT)['ss']
-    assert (cau['transmission_build_avoided_m'] == 0).all()           # Cautious: avoided_build_share 0
-    on = LY.project_layers(uj, p, overrides=SPLIT)['ss']
     tp = LY.resolve(uj['forward_assumptions'])['transmission']
+    cau = LY.project_layers(uj, p, scenario='Cautious')['ss']
+    if key in ('DomVA', 'PepcoMD'):
+        assert (cau['transmission_build_avoided_m'] == 0).all()      # PJM Cautious realisation 0
+    on = LY.project_layers(uj, p)['ss']
     if tp['load_driven_share'] > 0:
         assert on['transmission_build_avoided_m'].sum() > 0
         # a longer planning lag never brings the avoided build forward
-        late = LY.project_layers(uj, p, overrides={**SPLIT, ('transmission', 'planning_lag_years'): 10})['ss']
+        late = LY.project_layers(uj, p, overrides={('transmission', 'planning_lag_years'): 10})['ss']
         assert late['transmission_avoided_capex_m'].cumsum().le(on['transmission_avoided_capex_m'].cumsum() + 1e-9).all()
 
 
@@ -1225,14 +1284,15 @@ def test_transmission_formulation_table(key, nb):
     assert list(t.index) == [(sc, c[0]) for sc in LY.SCENARIOS for c in LY.TRANSMISSION_CASES]
     for sc in LY.SCENARIOS:
         sm = LY.system_summary(LY.project_layers(uj, p, scenario=sc))
-        assert t.loc[(sc, 'single'), 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(
+        assert t.loc[(sc, 'split, avoided build on'), 'Customer savings ($B, undiscounted nominal)'] == pytest.approx(
             sm['Customer savings ($B, undiscounted nominal)'], rel=1e-12)
-        for c in LY.TRANSMISSION_CASES[1:]:          # split cases: (a) + (b); single is one undivided value
+        for c in LY.TRANSMISSION_CASES[1:]:          # split cases: only (b) is in customer savings by default
             row = t.loc[(sc, c[0])]
-            assert row['Avoided transmission ($B, undiscounted nominal)'] == pytest.approx(
-                row['of which (a) allocation effect ($B, undiscounted nominal)']
-                + row['of which (b) avoided build ($B, undiscounted nominal)'], abs=1e-9)
-        assert t.loc[(sc, 'split, avoided build off'), 'of which (b) avoided build ($B, undiscounted nominal)'] == 0
+            assert row['Avoided transmission in customer savings ($B, undiscounted nominal)'] == pytest.approx(
+                row['(b) transmission upgrades deferred ($B, undiscounted nominal)'], abs=1e-9)
+            assert row['Cost shifted to other zone customers ($B, undiscounted nominal)'] == pytest.approx(
+                row['(a) lower share of zonal transmission costs, reported separately ($B, undiscounted nominal)'], abs=1e-9)
+        assert t.loc[(sc, 'split, avoided build off'), '(b) transmission upgrades deferred ($B, undiscounted nominal)'] == 0
 
 
 def test_rge_transmission_cost_documented():

@@ -244,6 +244,10 @@ def objective_sweep(uj, params, scenario, levels=OBJECTIVE_SWEEP):
     return out
 
 
+def _col(d, c):
+    return d[c] if c in d.columns else d['year'] * 0.0
+
+
 def run_block(uj, params, scenario, run=None):
     """The chart data for one run: yearly series, waterfalls and Sankey value flows."""
     run = run or LY.project_layers(uj, params, scenario=scenario)
@@ -258,6 +262,10 @@ def run_block(uj, params, scenario, run=None):
                    'rate_base_m': {'bau': _r(b['rate_base_m'], 1), 'shared_savings': _r(s['rate_base_m'], 1)},
                    'equity_return_m': {'bau': _r(b['equity_return_m'], 2), 'shared_savings': _r(s['equity_return_m'], 2)},
                    'shared_savings_earnings_m': _r(s['shared_savings_earnings_m'], 3),
+                   # transmission (a): a cost shift within the PJM zone, reported separately (not in
+                   # customer_savings_m or the pool unless transmission.allocation_in_headline)
+                   'lower_share_of_zonal_transmission_costs_m': _r(_col(s, 'transmission_allocation_m'), 3),
+                   'cost_shifted_to_other_zone_customers_m': _r(_col(s, 'transmission_cost_shifted_m'), 3),
                    'earnings_total_m': {'bau': _r(b['utility_earnings_m'], 2), 'shared_savings': _r(s['utility_earnings_m'], 2)},
                    'earnings_per_rate_base': {'bau': _r(b['utility_earnings_m'] / b['rate_base_m'], 6),
                                               'shared_savings': _r(s['utility_earnings_m'] / s['rate_base_m'], 6)}},
@@ -274,7 +282,9 @@ def headline(run):
             'shared_savings_earnings_b': sm['Shared savings earnings ($B, undiscounted nominal)'],
             'monthly_saving_2035': float(by.loc[2035, 'avg_bill_total'] - sy.loc[2035, 'avg_bill_total']),
             'monthly_saving_2050': float(by.loc[2050, 'avg_bill_total'] - sy.loc[2050, 'avg_bill_total']),
-            'bau_bill_2050': float(by.loc[2050, 'avg_bill_total'])}
+            'bau_bill_2050': float(by.loc[2050, 'avg_bill_total']),
+            'lower_share_of_zonal_transmission_costs_b': sm['Lower share of zonal transmission costs ($B, undiscounted nominal)'],
+            'cost_shifted_to_other_zone_customers_b': sm['Cost shifted to other zone customers ($B, undiscounted nominal)']}
 
 
 def fast_start_block(uj, params, scenario):
@@ -466,6 +476,7 @@ def build_export(key):
                         'fast_start_note': 'fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.',
                         'allocation_sweep_note': "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
                         'lookback_note': 'lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_trend: headline like-for-like trend, EIA-861 2021-2025 at the benchmark usage (delivery and supply where EIA reports delivery-only customers); bill_2026_tariff: the 2026 starting bill by category, shown separately; bill_levels_by_basis: 2021 (EIA) and 2026 (tariff) levels, different bases, not a change. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal); rows (detailed) and grouped_rows (capital-driven, cost of capital, operating with normalised O&M, pension non-service, rate-case step). riders (Dominion): every Virginia rider, residential $/month at 1,000 kWh and revenue requirement by rate year, with the bill bridge. asked_granted_totals: requested against approved, cumulative and %, temporary rates separate. supply_side: influenced, not controlled, by the distribution utility.',
+                        'transmission_note': 'Transmission (split formulation, METHODOLOGY 3.8a): customer savings, value flows and bills count (b), transmission upgrades deferred. (a), the lower share of zonal transmission costs (PJM: a lower network service peak load shifts part of the fixed zonal transmission cost to other customers in the zone), is reported separately as lower_share_of_zonal_transmission_costs (yearly $M and headline $B, undiscounted nominal) with cost_shifted_to_other_zone_customers alongside; it is not in customer savings, bills, the shared-savings pool or shared savings earnings (transmission.allocation_in_headline off). 0 in New York.',
                         'tornado_note': 'Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.',
                         'scenarios': list(LY.SCENARIOS), 'paces': list(LY.PACES), 'years': YEARS},
            'runs': {}, 'tornado': {}}

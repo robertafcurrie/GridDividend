@@ -721,30 +721,30 @@ The six elements:
 
 | Utility | Scenario | Formulation | Capacity layer $B (NPV 3%) | Customer savings $B (NPV 3%) | Monthly saving 2035 ($) | Monthly saving 2050 ($) |
 |---|---|---|---|---|---|---|
-| Con Edison | Cautious | embedded | 1.38 (0.86) | 11.81 (7.08) | 4.75 | 27.74 |
-| Con Edison | Cautious | avoided obligation (default) | 2.29 (1.40) | 12.45 (7.46) | 5.05 | 29.02 |
-| Con Edison | Central | embedded | 6.82 (4.23) | 37.85 (22.40) | 16.13 | 105.69 |
-| Con Edison | Central | avoided obligation (default) | 10.45 (6.37) | 40.39 (23.90) | 17.28 | 111.10 |
-| Con Edison | Ambitious | embedded | 9.79 (6.16) | 56.78 (33.94) | 24.52 | 139.53 |
-| Con Edison | Ambitious | avoided obligation (default) | 14.61 (9.01) | 60.16 (35.93) | 26.09 | 146.21 |
-| RG&E | Cautious | embedded | 0.04 (0.03) | 1.53 (0.95) | 4.46 | 14.17 |
-| RG&E | Cautious | avoided obligation (default) | 0.13 (0.08) | 1.59 (0.98) | 4.58 | 14.60 |
-| RG&E | Central | embedded | 0.60 (0.37) | 3.80 (2.33) | 10.88 | 37.56 |
-| RG&E | Central | avoided obligation (default) | 1.68 (1.02) | 4.56 (2.78) | 12.17 | 43.88 |
-| RG&E | Ambitious | embedded | 0.73 (0.46) | 6.17 (3.80) | 16.54 | 55.13 |
-| RG&E | Ambitious | avoided obligation (default) | 1.98 (1.20) | 7.04 (4.32) | 18.05 | 62.22 |
-| Dominion | Cautious | embedded | 1.27 (0.79) | 6.04 (3.74) | 2.77 | 5.60 |
-| Dominion | Cautious | avoided obligation (default) | 1.67 (1.00) | 6.32 (3.88) | 2.75 | 5.78 |
-| Dominion | Central | embedded | 6.30 (3.95) | 19.31 (11.76) | 6.64 | 15.79 |
-| Dominion | Central | avoided obligation (default) | 7.25 (4.37) | 19.97 (12.06) | 6.44 | 16.32 |
-| Dominion | Ambitious | embedded | 18.66 (11.74) | 47.07 (28.74) | 15.54 | 36.69 |
-| Dominion | Ambitious | avoided obligation (default) | 20.47 (12.36) | 48.34 (29.18) | 14.82 | 37.94 |
-| Pepco MD | Cautious | embedded | 0.59 (0.37) | 2.29 (1.46) | 6.65 | 11.75 |
-| Pepco MD | Cautious | avoided obligation (default) | 0.85 (0.51) | 2.48 (1.56) | 6.63 | 12.45 |
-| Pepco MD | Central | embedded | 1.09 (0.69) | 4.35 (2.73) | 11.01 | 24.31 |
-| Pepco MD | Central | avoided obligation (default) | 1.29 (0.78) | 4.49 (2.79) | 10.80 | 25.10 |
-| Pepco MD | Ambitious | embedded | 1.86 (1.18) | 6.07 (3.80) | 14.55 | 33.15 |
-| Pepco MD | Ambitious | avoided obligation (default) | 2.10 (1.28) | 6.24 (3.87) | 14.09 | 34.26 |
+| Con Edison | Cautious | embedded | 1.38 (0.86) | 10.34 (6.21) | 4.02 | 23.79 |
+| Con Edison | Cautious | avoided obligation (default) | 2.29 (1.40) | 10.98 (6.59) | 4.33 | 25.07 |
+| Con Edison | Central | embedded | 6.82 (4.23) | 37.18 (21.88) | 13.48 | 106.69 |
+| Con Edison | Central | avoided obligation (default) | 10.45 (6.37) | 39.73 (23.38) | 14.64 | 112.09 |
+| Con Edison | Ambitious | embedded | 9.79 (6.16) | 59.52 (35.30) | 21.06 | 151.98 |
+| Con Edison | Ambitious | avoided obligation (default) | 14.61 (9.01) | 62.89 (37.30) | 22.63 | 158.67 |
+| RG&E | Cautious | embedded | 0.04 (0.03) | 1.53 (0.94) | 4.35 | 15.32 |
+| RG&E | Cautious | avoided obligation (default) | 0.13 (0.08) | 1.59 (0.98) | 4.47 | 15.75 |
+| RG&E | Central | embedded | 0.60 (0.37) | 4.03 (2.45) | 10.37 | 42.65 |
+| RG&E | Central | avoided obligation (default) | 1.68 (1.02) | 4.78 (2.90) | 11.65 | 48.96 |
+| RG&E | Ambitious | embedded | 0.73 (0.46) | 6.51 (3.98) | 16.04 | 62.42 |
+| RG&E | Ambitious | avoided obligation (default) | 1.98 (1.20) | 7.38 (4.51) | 17.55 | 69.51 |
+| Dominion | Cautious | embedded | 1.27 (0.79) | 5.59 (3.46) | 2.61 | 5.28 |
+| Dominion | Cautious | avoided obligation (default) | 1.67 (1.00) | 5.87 (3.60) | 2.60 | 5.46 |
+| Dominion | Central | embedded | 6.30 (3.95) | 18.23 (11.02) | 5.82 | 15.52 |
+| Dominion | Central | avoided obligation (default) | 7.25 (4.37) | 18.90 (11.31) | 5.63 | 16.05 |
+| Dominion | Ambitious | embedded | 18.66 (11.74) | 48.16 (28.96) | 13.34 | 40.08 |
+| Dominion | Ambitious | avoided obligation (default) | 20.47 (12.36) | 49.43 (29.40) | 12.62 | 41.33 |
+| Pepco MD | Cautious | embedded | 0.59 (0.37) | 2.07 (1.32) | 6.20 | 10.42 |
+| Pepco MD | Cautious | avoided obligation (default) | 0.85 (0.51) | 2.31 (1.46) | 6.18 | 11.56 |
+| Pepco MD | Central | embedded | 1.09 (0.69) | 4.05 (2.54) | 10.17 | 22.79 |
+| Pepco MD | Central | avoided obligation (default) | 1.29 (0.78) | 4.19 (2.60) | 9.96 | 23.58 |
+| Pepco MD | Ambitious | embedded | 1.86 (1.18) | 5.55 (3.47) | 13.08 | 30.68 |
+| Pepco MD | Ambitious | avoided obligation (default) | 2.10 (1.28) | 5.72 (3.54) | 12.63 | 31.78 |
 
 - **The earnings opportunity grows with the avoided capacity.** The avoided-obligation formulation raises customer savings in every utility and scenario:
   - Con Edison Central: +$2.5B, from $37.8B to $40.4B.
@@ -847,17 +847,21 @@ transmission_t   = firm MW x cost_kw_yr x 1000 x avoidable_share x (1 + transmis
 
 **Limitations.** PJM avoided transmission is a range, not a point estimate.
 
-This is the `'single'` formulation. It is the default and is unchanged. 3.8a describes the alternative.
+This is the `'single'` formulation. It was the default until 2 November 2026 and remains an option (`transmission.formulation = 'single'`). 3.8a describes the default.
 
-### 3.8a Avoided transmission: split formulation (option, off by default)
+### 3.8a Avoided transmission: split formulation (default)
 
-`transmission.formulation = 'split'` replaces the single value with two components, reported separately. The default stays `'single'`, so v1.0, CORRECTED, the pins, the layer fixtures and the exports are unchanged. `transmission_formulation_table()` compares the two.
+`transmission.formulation = 'split'` (the default since 2 November 2026, with the avoided build on) replaces the single value with two components, reported separately:
+- **(b) transmission upgrades deferred** counts in customer savings, the bills and the shared-savings pool.
+- **(a) the lower share of zonal transmission costs** is a cost shift. It is reported as its own line and kept out of all three.
+
+`'single'` (3.8) remains an option. v1.0, CORRECTED and the three pins are unchanged. `transmission_formulation_table()` compares single with split, (b) off and on.
 
 **Jurisdiction.** Transmission rates and returns are FERC-jurisdictional:
 - **PJM:** network service rates are each zone's annual transmission revenue requirement under FERC formula rates, divided by network service peak load.
 - **New York:** the transmission revenue requirement is set in the state rate case, but its return and planning sit within the FERC-approved NYISO tariff.
 
-The state mechanism can therefore **count avoided transmission charges as customer savings** and include them in the shared-savings pool. It **cannot set the utility's transmission return**, change the zonal revenue requirement or direct the RTO's planning. The ROE lever (3.11) applies to the distribution business only.
+The state mechanism can therefore **count avoided transmission charges as customer savings** and include them in the shared-savings pool (here, (b) only). It **cannot set the utility's transmission return**, change the zonal revenue requirement or direct the RTO's planning. The ROE lever (3.11) applies to the distribution business only.
 
 **(a) Allocation effect (`allocation_effect`).** A lower peak lowers these customers' share of existing transmission costs.
 - **PJM** (`'zonal_share'`): the zone's ATRR (annual transmission revenue requirement) is fixed by formula rate (a FERC rate reset each year from actual costs) and shared by network service peak load. With the utility's share s of the zone peak Pz and a peak reduction d (firm flexible MW + efficiency MW, as in 3.8):
@@ -873,9 +877,16 @@ rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t 
   - PEPCO: zone NSPL 6,016 MW, with Pepco MD's share 0.606 (3,644 MW). The rest is Pepco DC and SMECO.
 
   The share is held constant. Only (1 − s) of the gross reduction is a saving to these customers; the rest is recovered from them through the higher rate.
+
+  **Reported separately, outside the pool and the headline.** Nothing is avoided: the fixed zonal cost moves to other customers in the zone. So (a):
+  - is reported as its own line, **"lower share of zonal transmission costs"** (`transmission_allocation_m`), with the **cost shifted to other zone customers** (`transmission_cost_shifted_m`) alongside;
+  - is **never in the shared-savings pool**, so the utility earns nothing on it;
+  - is **not in headline customer savings or the bills**.
+
+  `allocation_in_headline` (setting, off by default) adds it to the bills and headline customer savings, for comparison only. It never enters the pool.
 - **New York** (`'none'`): the utility's transmission revenue requirement is recovered from its own delivery customers, so a lower peak reallocates it among them. (a) is 0.
 
-**(b) Avoided build.** This is the deferral of load-driven transmission investment.
+**(b) Transmission upgrades deferred (avoided build).** This is the deferral of load-driven transmission investment.
 - **Investment base (`transmission_plan_capex()`):**
   - PJM: from the published transmission rate base path (`bau_plan.transmission_plan_rate_base_m`), with investment = RB_t − RB_{t−1} × (1 − 3.5% decay). That gives Dominion about $2.4–2.9B a year (2026–2030) and Pepco $325–400M a year. Beyond the plan it grows at `transmission_growth`.
   - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1: the annual financial report utilities file with FERC): Con Edison 0.304, RG&E 0.205 (derived).
@@ -897,42 +908,65 @@ avoided RB_t    = avoided RB_{t-1} x (1 - 3.5%) + avoided capex_t
 (b)_t           = avoided RB_t x (WACC + property tax) + 3.5% x avoided RB_{t-1}      (the model's carrying cost; x s for PJM)
 ```
 
-- **`avoided_build_share` by scenario** (`_VERIFY`, documented assumptions):
-  - Cautious 0: planners don't count distribution-level flexibility.
-  - Central 0.5.
-  - Ambitious 1.0.
+- **Realisation by planner (`avoided_build_share`).** How much of the deferral the transmission planner acts on depends on who plans the transmission:
+
+| Planner | Utilities | Cautious / Central / Ambitious | Status | Why |
+|---|---|---|---|---|
+| PJM (regional transmission, RTEP) | Dominion, Pepco | 0 / 0.5 / 1.0 | `_VERIFY` | The utility can only offer PJM a lower peak to count in its load forecast. Cautious: PJM doesn't count distribution-level flexibility. Central: half is credited (for example firm demand response and flexible connections accepted as load modifiers). Ambitious: fully credited. |
+| The utility (local transmission) | Con Edison, RG&E | 0.5 / 0.8 / 1.0 | setting | The utility plans its local transmission itself, in its local transmission plan and rate case, alongside distribution. It gets the same realisation as the distribution growth-capex addressable share (`bau_plan.addressable_growth`) in each scenario. |
+
+- **Planning lag (`planning_lag_years`, setting):** 7 years by default, range 5–10 (in the tornado). This is the time from a lower planning peak (load forecast) to the transmission investment it defers (plan, then in service). It applies to both kinds of planner.
 - **Other zone customers (PJM):** they get (1 − s) of the avoided revenue requirement, reported as `transmission_build_other_zone_m`.
 - **Context, not calibration:** PJM's 2024 RTEP Window 1 (approved February 2025: $4.65B regional + $1.27B local, driven by 10–15 GW of load growth, mainly data centres) and the Duke Nicholas Institute's *Rethinking Load Growth* (February 2025: about 76–126 GW of new load could connect with 0.25–1% curtailment). Neither sets a parameter.
 
 **New York overlap fixed.** New York's published capital plans include transmission, so the deferral layer could defer the same spend as (b). With (b) on, the load-driven transmission spend (b) counts is taken out of the deferral layer's addressable growth capex before its addressable share applies. No plan dollar is deferred by both layers (tested).
 
-**Bill effect and pool.** (a) + (b) to these customers = `transmission_avoided_m`. It lowers the transmission lines (PJM) or the delivery bill (New York) and enters the pool when `in_pool` is on, as in 3.8. The new outputs are:
+**Bill effect and pool.** `transmission_avoided_m` is the transmission value counted in customer savings. By default it is (b) to these customers; it includes (a) only with `allocation_in_headline`.
+- It lowers the transmission lines (PJM) or the delivery bill (New York).
+- (b) enters the pool when `in_pool` is on, as in 3.8. (a) never does.
+- `system_summary()` and the exports report (a) as "lower share of zonal transmission costs", with "cost shifted to other zone customers" alongside, outside customer savings.
+- Export fields: `lower_share_of_zonal_transmission_costs_m` and `cost_shifted_to_other_zone_customers_m` (yearly), and the `_b` versions in each headline.
+
+The outputs are:
 - `transmission_allocation_m`, `transmission_cost_shifted_m`;
 - `transmission_build_avoided_m`, `transmission_build_other_zone_m`;
 - `transmission_avoided_capex_m`, `transmission_deferral_fraction`, `transmission_load_driven_capex_m`.
 
-**Results** (utility-forecast pace; $B undiscounted nominal; 2050 monthly saving, $ nominal, average residential bill). The columns compare the current single formulation with the split one, (b) off and on:
+**Results, Central (default)** (utility-forecast pace; $B undiscounted nominal, NPV 3% in brackets; 2050 monthly saving, $ nominal, average residential bill). (a) is reported separately and is not in customer savings:
 
-| Utility | Scenario | Avoided transmission: single / split (a) / split (a)+(b) | of which (b) | Cost shifted in zone by (a) | Transmission capex avoided | Customer savings: single / split, (b) off / split, (b) on | 2050 monthly saving: single / (b) off / (b) on |
+| Utility | Customer savings $B (NPV 3%) | of which (b) transmission upgrades deferred $B | Transmission capex avoided $B | (a) lower share of zonal transmission costs $B, reported separately | Cost shifted to other zone customers $B | (b) benefit to others in the zone $B | 2050 monthly saving $ |
 |---|---|---|---|---|---|---|---|
-| Con Edison | Cautious | 0.47 / 0.00 / 0.00 | 0.00 | 0.00 | 0.00 | 12.45 / 12.12 / 10.29 | 29.02 / 28.31 / 22.52 |
-| Con Edison | Central | 2.31 / 0.00 / 6.64 | 6.64 | 0.00 | 8.95 | 40.39 / 38.78 / 36.94 | 111.10 / 107.33 / 101.63 |
-| Con Edison | Ambitious | 3.32 / 0.00 / 18.00 | 18.00 | 0.00 | 23.35 | 60.16 / 57.84 / 62.89 | 146.21 / 141.26 / 158.67 |
-| RG&E | Cautious | 0.00 / 0.00 / 0.00 | 0.00 | 0.00 | 0.00 | 1.59 / 1.59 / 1.55 | 14.60 / 14.58 / 14.04 |
-| RG&E | Central | 0.03 / 0.00 / 0.38 | 0.38 | 0.00 | 0.46 | 4.56 / 4.54 / 4.62 | 43.88 / 43.63 / 45.96 |
-| RG&E | Ambitious | 0.03 / 0.00 / 0.80 | 0.80 | 0.00 | 0.94 | 7.04 / 7.02 / 7.38 | 62.22 / 61.92 / 69.51 |
-| Dominion VA | Cautious | 0.65 / 0.25 / 0.25 | 0.00 | 0.25 | 0.00 | 6.32 / 6.04 / 6.04 | 5.78 / 5.58 / 5.58 |
-| Dominion VA | Central | 3.21 / 1.29 / 2.96 | 1.68 | 1.29 | 2.51 | 19.97 / 18.62 / 19.80 | 16.32 / 15.43 / 16.65 |
-| Dominion VA | Ambitious | 9.52 / 4.29 / 15.37 | 11.08 | 4.29 | 16.46 | 48.34 / 44.68 / 52.43 | 37.94 / 35.74 / 43.17 |
-| Pepco MD | Cautious | 0.24 / 0.19 / 0.19 | 0.00 | 0.19 | 0.00 | 2.48 / 2.45 / 2.45 | 12.45 / 12.29 / 12.29 |
-| Pepco MD | Central | 0.44 / 0.36 / 0.36 | 0.00 | 0.36 | 0.00 | 4.49 / 4.44 / 4.44 | 25.10 / 24.85 / 24.85 |
-| Pepco MD | Ambitious | 0.74 / 0.64 / 0.64 | 0.00 | 0.64 | 0.00 | 6.24 / 6.17 / 6.17 | 34.26 / 33.93 / 33.93 |
+| Con Edison | 39.73 (23.38) | 10.62 | 14.32 | 0.00 | 0.00 | 0.00 | 112.09 |
+| RG&E | 4.78 (2.90) | 0.61 | 0.73 | 0.00 | 0.00 | 0.00 | 48.96 |
+| Dominion VA | 18.90 (11.31) | 1.68 | 2.51 | 1.29 | 1.29 | 0.39 | 16.05 |
+| Pepco MD | 4.19 (2.60) | 0.00 | 0.00 | 0.36 | 0.36 | 0.00 | 23.58 |
+
+**All scenarios:** single (the earlier default) against split, (b) off and on (the default):
+
+| Utility | Scenario | Customer savings: single / split, (b) off / split, (b) on (default) | (b) transmission upgrades deferred | Transmission capex avoided | (a) lower share of zonal transmission costs, separate | Cost shifted to other zone customers | 2050 monthly saving: single / (b) off / (b) on |
+|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 12.45 / 12.12 / 10.98 | 0.98 | 1.31 | 0.00 | 0.00 | 29.02 / 28.31 / 25.07 |
+| Con Edison | Central | 40.39 / 38.78 / 39.73 | 10.62 | 14.32 | 0.00 | 0.00 | 111.10 / 107.33 / 112.09 |
+| Con Edison | Ambitious | 60.16 / 57.84 / 62.89 | 18.00 | 23.35 | 0.00 | 0.00 | 146.21 / 141.26 / 158.67 |
+| RG&E | Cautious | 1.59 / 1.59 / 1.59 | 0.05 | 0.14 | 0.00 | 0.00 | 14.60 / 14.58 / 15.75 |
+| RG&E | Central | 4.56 / 4.54 / 4.78 | 0.61 | 0.73 | 0.00 | 0.00 | 43.88 / 43.63 / 48.96 |
+| RG&E | Ambitious | 7.04 / 7.02 / 7.38 | 0.80 | 0.94 | 0.00 | 0.00 | 62.22 / 61.92 / 69.51 |
+| Dominion VA | Cautious | 6.32 / 5.87 / 5.87 | 0.00 | 0.00 | 0.25 | 0.25 | 5.78 / 5.46 / 5.46 |
+| Dominion VA | Central | 19.97 / 17.72 / 18.90 | 1.68 | 2.51 | 1.29 | 1.29 | 16.32 / 14.83 / 16.05 |
+| Dominion VA | Ambitious | 48.34 / 41.67 / 49.43 | 11.08 | 16.46 | 4.29 | 4.29 | 37.94 / 33.90 / 41.33 |
+| Pepco MD | Cautious | 2.48 / 2.31 / 2.31 | 0.00 | 0.00 | 0.19 | 0.19 | 12.45 / 11.56 / 11.56 |
+| Pepco MD | Central | 4.49 / 4.19 / 4.19 | 0.00 | 0.00 | 0.36 | 0.36 | 25.10 / 23.58 / 23.58 |
+| Pepco MD | Ambitious | 6.24 / 5.72 / 5.72 | 0.00 | 0.00 | 0.64 | 0.64 | 34.26 / 31.78 / 31.78 |
 
 Reading the results:
-- **Con Edison:** (b) on adds avoided transmission ($6.6B Central, $18.0B Ambitious). In Cautious and Central the overlap fix removes more growth deferral than (b) adds back, because the deferral layer deferred that spend at up to 80% while (b) realises 0 or 50%. In Ambitious, (b) realises 100%.
-- **Dominion:** (a) is only (1 − 0.81) of the gross charge reduction, and all of it is shifted to other DOM zone customers. (b) dominates in Ambitious.
-- **Pepco:** (b) is 0 at a central load-driven share of 0.
-- **What the comparison shows:** the single formulation's "avoidable share" mixed a cost shift with avoided build. The split shows how much of each there is.
+- **Con Edison:** (b) realises 0.5 / 0.8 / 1.0, like the distribution growth deferral it replaces in the overlap fix. Central customer savings are $39.73B against $40.39B under single: the overlap fix moves load-driven transmission out of the deferral layer, and (b) adds $10.62B. In Cautious, (b) realises less than the deferral layer did ($10.98B against $12.45B). In Ambitious it realises more ($62.89B against $60.16B).
+- **RG&E:** the same mechanism, with a smaller transmission plan. Central $4.78B against $4.56B.
+- **Dominion:**
+  - (a) is $1.29B in Central, all of it a cost shift to other DOM zone customers, reported separately.
+  - (b) adds $1.68B to customer savings, and other zone customers get a further $0.39B.
+  - Customer savings are $18.90B against $19.97B under single, whose avoidable share counted part of the cost shift as a saving.
+- **Pepco:** (b) is 0 at a load-driven share of 0. The $0.36B of (a) is a cost shift to Pepco DC and SMECO customers, now outside customer savings ($4.19B against $4.49B).
+- **Shared savings earnings** fall for Pepco in every scenario, and for Dominion in Cautious and Central, because (a) left the pool. Con Edison's fall in Cautious and Central, where the overlap fix removes more deferral than (b) adds back. They rise where (b) adds more: Con Edison and Dominion Ambitious, and RG&E Central and Ambitious.
 
 ### 3.9 Avoided distribution losses (layer 8)
 
@@ -1125,27 +1159,27 @@ non-residential $/month     = non-residential_t / (non-residential customers x 1
 
 | Utility | Scenario | Option | Residential share of reallocated savings | Residential $B (NPV 3%) | Non-residential $B (NPV 3%) | Residential bill saving 2035 / 2050 ($/month) | Non-residential saving per customer 2035 / 2050 ($/month) |
 |---|---|---|---|---|---|---|---|
-| Con Edison | Central | by sales (default) | 0.260 | 10.51 (6.22) | 29.88 (17.68) | 17.28 / 111.10 | 78.12 / 465.77 |
-| Con Edison | Central | per customer | 0.840 | 26.21 (15.27) | 14.18 (8.63) | 23.97 / 175.00 | 51.63 / 186.94 |
-| Con Edison | Central | custom 0.5 | 0.500 | 17.00 (9.96) | 23.39 (13.94) | 20.05 / 137.51 | 67.17 / 350.52 |
-| RG&E | Central | by sales (default) | 0.414 | 1.88 (1.15) | 2.67 (1.63) | 12.17 / 43.88 | 149.54 / 464.19 |
-| RG&E | Central | per customer | 0.896 | 3.24 (1.97) | 1.32 (0.81) | 20.12 / 75.01 | 78.89 / 216.59 |
-| RG&E | Central | custom 0.5 | 0.500 | 2.13 (1.30) | 2.43 (1.49) | 13.59 / 49.45 | 136.89 / 419.83 |
-| Dominion | Central | by sales (default) | 0.307 | 6.14 (3.70) | 13.83 (8.35) | 6.44 / 16.32 | 91.38 / 378.88 |
-| Dominion | Central | per customer | 0.895 | 10.26 (6.10) | 9.71 (5.96) | 7.94 / 26.56 | 77.24 / 237.55 |
-| Dominion | Central | custom 0.5 | 0.500 | 7.49 (4.49) | 12.48 (7.57) | 6.93 / 19.68 | 86.74 / 332.58 |
-| Pepco MD | Central | by sales (default) | 0.410 | 1.84 (1.14) | 2.65 (1.65) | 10.80 / 25.10 | 136.02 / 346.25 |
-| Pepco MD | Central | per customer | 0.917 | 2.17 (1.34) | 2.32 (1.45) | 11.78 / 30.92 | 125.92 / 282.82 |
-| Pepco MD | Central | custom 0.5 | 0.500 | 1.90 (1.18) | 2.59 (1.61) | 10.97 / 26.13 | 134.23 / 335.02 |
+| Con Edison | Central | by sales (default) | 0.260 | 10.34 (6.09) | 29.39 (17.30) | 14.64 / 112.09 | 68.80 / 469.64 |
+| Con Edison | Central | per customer | 0.840 | 20.84 (12.20) | 18.89 (11.18) | 20.36 / 152.70 | 46.14 / 292.47 |
+| Con Edison | Central | custom 0.5 | 0.500 | 14.68 (8.61) | 25.05 (14.77) | 17.00 / 128.88 | 59.44 / 396.41 |
+| RG&E | Central | by sales (default) | 0.414 | 1.98 (1.20) | 2.80 (1.70) | 11.65 / 48.96 | 144.93 / 504.88 |
+| RG&E | Central | per customer | 0.896 | 3.15 (1.92) | 1.62 (0.98) | 19.15 / 75.13 | 78.34 / 296.77 |
+| RG&E | Central | custom 0.5 | 0.500 | 2.19 (1.33) | 2.59 (1.57) | 13.00 / 53.65 | 133.00 / 467.60 |
+| Dominion | Central | by sales (default) | 0.307 | 5.81 (3.48) | 13.09 (7.84) | 5.63 / 16.05 | 77.11 / 372.46 |
+| Dominion | Central | per customer | 0.895 | 10.20 (6.05) | 8.70 (5.26) | 7.68 / 26.46 | 57.78 / 228.79 |
+| Dominion | Central | custom 0.5 | 0.500 | 7.25 (4.32) | 11.65 (6.99) | 6.30 / 19.46 | 70.78 / 325.39 |
+| Pepco MD | Central | by sales (default) | 0.410 | 1.72 (1.07) | 2.47 (1.53) | 9.96 / 23.58 | 125.07 / 324.51 |
+| Pepco MD | Central | per customer | 0.917 | 2.11 (1.30) | 2.07 (1.30) | 11.34 / 30.13 | 110.93 / 253.08 |
+| Pepco MD | Central | custom 0.5 | 0.500 | 1.79 (1.11) | 2.40 (1.49) | 10.20 / 24.74 | 122.56 / 311.87 |
 
 **Reading the results.**
 - **Per-customer allocation raises residential savings for every utility.** Residential customers' share of customers exceeds their share of sales, and only positive savings move.
-  - Con Edison Central: $10.5B → $26.2B, and the 2050 residential bill saving $111 → $175/month.
-  - Dominion: $6.1B → $10.3B.
-  - RG&E: $1.9B → $3.2B.
-  - Pepco: $1.8B → $2.2B.
+  - Con Edison Central: $10.3B → $20.8B, and the 2050 residential bill saving $112 → $153/month.
+  - Dominion: $5.8B → $10.2B.
+  - RG&E: $2.0B → $3.2B.
+  - Pepco: $1.7B → $2.1B.
 - **Non-residential customers still save in every case.** Their per-customer saving is lower, since they keep their sales share of the load-following savings and pay their sales share of program costs.
-- **What moves is the network saving net of earnings,** Central 2026–2050: Con Edison $27.1B, RG&E $2.8B, Dominion $7.0B, Pepco $0.65B. Program costs ($8.6B, $1.1B, $8.6B and $1.5B) stay by sales.
+- **What moves is the network saving net of earnings,** Central 2026–2050: Con Edison $18.1B, RG&E $2.4B, Dominion $7.5B, Pepco $0.78B. Program costs ($8.6B, $1.1B, $8.6B and $1.5B) stay by sales. Transmission upgrades deferred count as a load-following saving (by sales), so in New York the overlap fix (3.8a) moves load-driven transmission out of the reallocated network saving.
 - **No year has a negative network remainder** at Central.
 
 **Limitations.**

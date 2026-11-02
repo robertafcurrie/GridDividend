@@ -10,10 +10,10 @@ Status-tagged inputs of the layered model (`starting_bill` and `forward_assumpti
 
 | Utility | sourced | derived | _VERIFY | setting | Total | _VERIFY share | _VERIFY share of measured inputs (excl. settings) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ConEd | 37 | 35 | 64 | 60 | 196 | 33% | 47% |
-| RGE | 21 | 24 | 78 | 60 | 183 | 43% | 63% |
-| DomVA | 46 | 30 | 63 | 60 | 199 | 32% | 45% |
-| PepcoMD | 30 | 34 | 66 | 60 | 190 | 35% | 51% |
+| ConEd | 37 | 35 | 63 | 62 | 197 | 32% | 47% |
+| RGE | 21 | 24 | 77 | 62 | 184 | 42% | 63% |
+| DomVA | 46 | 30 | 63 | 61 | 200 | 32% | 45% |
+| PepcoMD | 30 | 34 | 66 | 61 | 191 | 35% | 51% |
 
 ## Status counts by layer
 
@@ -29,7 +29,7 @@ All four utilities together.
 | load_enabled | 0 | 0 | 12 | 12 | 24 |
 | capacity | 23 | 18 | 15 | 32 | 88 |
 | wholesale_energy | 4 | 6 | 18 | 4 | 32 |
-| transmission | 3 | 10 | 9 | 24 | 46 |
+| transmission | 3 | 10 | 7 | 30 | 50 |
 | losses | 2 | 10 | 0 | 4 | 16 |
 | objective | 0 | 0 | 0 | 24 | 24 |
 | mechanism | 4 | 8 | 0 | 68 | 80 |
@@ -53,7 +53,7 @@ _VERIFY / total status-tagged inputs.
 | load_enabled | 3 / 6 | 3 / 6 | 3 / 6 | 3 / 6 |
 | capacity | 3 / 23 | 4 / 21 | 4 / 22 | 4 / 22 |
 | wholesale_energy | 5 / 8 | 5 / 8 | 4 / 8 | 4 / 8 |
-| transmission | 2 / 11 | 3 / 11 | 2 / 12 | 2 / 12 |
+| transmission | 1 / 12 | 2 / 12 | 2 / 13 | 2 / 13 |
 | losses | 0 / 4 | 0 / 4 | 0 / 4 | 0 / 4 |
 | objective | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
 | mechanism | 0 / 20 | 0 / 20 | 0 / 20 | 0 / 20 |
@@ -191,13 +191,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | transmission | avoidable_share |  | 0.5 | 1.0 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-10-31 | Marginal cost of service, so central and high 1.0; low 0.5 because the value is dated. Assumption |
 | transmission | bill_basis | delivery |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-10-31 | Starting bill structure (starting_bill) |
 | transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
-| transmission | formulation | single |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'spli… |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
 | transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
-| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility a… |
+| transmission | avoided_build_share |  | 0.5 | 0.8 | 1.0 | share of the load-driven investment deferral that… | setting | 2026-11-02 | Setting: the same realisation as the distribution growth-capex addressable share (bau_plan.addressable_growth, 0.5 / 0.8 / 1.0 by scenario)… |
 | transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
 | transmission | allocation_effect | none |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'none': the utility's own transmission revenue requirement is recovered in its delivery rates from its ow… |
 | transmission | tx_capex_share_of_plan | 0.3037 |  |  |  | share of the published electric capital plan | derived | 2026-11-02 | Derived: FERC Form 1 (via PUDL; utilities/ConEd_lookback.json rr_bridge.form1), CECONY electric net plant 2021 -> 2025: transmission $3,452… |
 | transmission | load_driven_share |  | 0.25 | 0.5 | 0.75 | share of planned transmission investment that is… | derived | 2026-11-02 | Derived from CECONY's 2025 Local Transmission Plan (NYISO LTPP, Dec 2025) and the Jan 2026 Reliability Needs Report: NYC 345/138 kV needs (… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
 | losses | avg_loss_pct | 0.0424 |  |  |  | average distribution (or T&D) energy losses, shar… | derived | 2026-10-31 | Con Edison BCA Handbook v5.0 (Jun 2025), Table A-2 (Con Edison 2007 Electric System Losses study): distribution losses 1.16% fixed + 3.08%… |
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
@@ -402,13 +403,14 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | transmission | avoidable_share |  | 0.5 | 1.0 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-10-31 | Marginal cost of service, so central and high 1.0; low 0.5 because the value is dated. Assumption |
 | transmission | bill_basis | delivery |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-10-31 | Starting bill structure (starting_bill) |
 | transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
-| transmission | formulation | single |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'spli… |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
 | transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
-| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility a… |
+| transmission | avoided_build_share |  | 0.5 | 0.8 | 1.0 | share of the load-driven investment deferral that… | setting | 2026-11-02 | Setting: the same realisation as the distribution growth-capex addressable share (bau_plan.addressable_growth, 0.5 / 0.8 / 1.0 by scenario)… |
 | transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
 | transmission | allocation_effect | none |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'none': the utility's own transmission revenue requirement is recovered in its delivery rates from its ow… |
 | transmission | tx_capex_share_of_plan | 0.2052 |  |  |  | share of the published electric capital plan | derived | 2026-11-02 | Derived: FERC Form 1 (via PUDL; utilities/RGE_lookback.json rr_bridge.form1), RG&E electric net plant 2021 -> 2025: transmission $1,117M ->… |
 | transmission | load_driven_share |  | 0.0 | 0.25 | 0.5 | share of planned transmission investment that is… | _VERIFY | 2026-11-02 | Avangrid 2025 Local Transmission Plan Update (NYISO LTPP), RG&E Rochester: Rochester Transmission Project Enhancement (Line 949, 2028), Mon… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
 | losses | avg_loss_pct | 0.0693 |  |  |  | average distribution (or T&D) energy losses, shar… | sourced | 2026-10-31 | NYSEG/RG&E Electric BCA Handbook, Table 9-2 (NYSEG and RG&E T&D Losses, 17 Jul 2008, Case 08-E-0751): RG&E secondary distribution loss fact… |
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
@@ -629,14 +631,15 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | transmission | avoidable_share |  | 0.0 | 0.5 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-10-31 | PJM NITS is an average embedded rate: low 0 (cost shift within the zone), central 0.5, high 1.0 (embedded cost fully avoidable in the long… |
 | transmission | bill_basis | transmission_lines |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-10-31 | Starting bill structure (starting_bill) |
 | transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
-| transmission | formulation | single |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'spli… |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
 | transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
-| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility a… |
+| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario: PJM plans regional transmission (RTEP), so the utility can only offer a lower peak for PJM to count. Cau… |
 | transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
 | transmission | allocation_effect | zonal_share |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'zonal_share': PJM recovers each zone's fixed annual transmission revenue requirement (ATRR, FERC formula… |
 | transmission | zone_nspl_mw | 24678.1 |  |  |  | MW (zone network service peak load, 2026) | derived | 2026-11-02 | Derived: PJM, Annual Transmission Revenue Requirements (ATRR) and Network Integration Transmission Service (NITS) Rates, as of 1 Jun 2026:… |
 | transmission | utility_share_of_zone | 0.8104 |  |  |  | share of zone network service peak load | derived | 2026-11-02 | Derived: Dominion_VA.json peak_demand_mw (20,000 MW, the model's peak, as the utility's network service peak load) / zone_nspl_mw (24,678.1… |
 | transmission | load_driven_share |  | 0.3 | 0.667 | 0.746 | share of planned transmission investment that is… | derived | 2026-11-02 | Derived: PJM 2024 Regional Transmission Expansion Plan (2025), Figure 1.9 (2024 RTEP baseline projects $5,920M: baseline deliverability $5,… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
 | losses | avg_loss_pct | 0.039 |  |  |  | average distribution (or T&D) energy losses, shar… | sourced | 2026-10-31 | Dominion Energy Virginia, Grid Utilization Metrics Proposal, SCC Case No. PUR-2026-00164 (filed 15 Oct 2026), Metric (iii): distribution en… |
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
@@ -856,14 +859,15 @@ Value is the single value or setting; ranges are low / central / high. Sources a
 | transmission | avoidable_share |  | 0.0 | 0.5 | 1.0 | share of that cost avoided by each kW of peak red… | _VERIFY | 2026-10-31 | PJM NITS is an average embedded rate: low 0 (cost shift within the zone), central 0.5, high 1.0 (embedded cost fully avoidable in the long… |
 | transmission | bill_basis | transmission_lines |  |  |  | 'transmission_lines' = lowers the transmission li… | setting | 2026-10-31 | Starting bill structure (starting_bill) |
 | transmission | in_pool | true |  |  |  | value counted in the shared-savings pool | setting | 2026-10-31 | Model setting |
-| transmission | formulation | single |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'single' (default, unchanged): firm flexible MW + efficiency MW x cost_kw_yr x avoidable_share (one value for both effects). 'spli… |
+| transmission | formulation | split |  |  |  | single \| split | setting | 2026-11-02 | Setting. 'split' (default since 2 Nov 2026; METHODOLOGY 3.8a): (a) lower share of zonal transmission costs, reported separately and outside… |
 | transmission | avoided_build_enabled | true |  |  |  | bool | setting | 2026-11-02 | Setting (split formulation only): include (b), the avoided build. Off = (a) only. |
-| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario (split formulation only): Cautious 0 (transmission planners do not count distribution-level flexibility a… |
+| transmission | avoided_build_share |  | 0.0 | 0.5 | 1.0 | share of the load-driven investment deferral that… | _VERIFY | 2026-11-02 | Documented assumption by scenario: PJM plans regional transmission (RTEP), so the utility can only offer a lower peak for PJM to count. Cau… |
 | transmission | planning_lag_years |  | 5 | 7 | 10 | years | setting | 2026-11-02 | Setting (split formulation only): years between a planning-peak reduction and the transmission investment it defers (load forecast -> RTEP… |
 | transmission | allocation_effect | zonal_share |  |  |  | none \| zonal_share | setting | 2026-11-02 | Setting (split formulation only). 'zonal_share': PJM recovers each zone's fixed annual transmission revenue requirement (ATRR, FERC formula… |
 | transmission | zone_nspl_mw | 6015.5 |  |  |  | MW (zone network service peak load, 2026) | derived | 2026-11-02 | Derived: PJM, Annual Transmission Revenue Requirements (ATRR) and Network Integration Transmission Service (NITS) Rates, as of 1 Jun 2026:… |
 | transmission | utility_share_of_zone | 0.6058 |  |  |  | share of zone network service peak load | derived | 2026-11-02 | Derived: Pepco_MD.json peak_demand_mw (Maryland) (3,644 MW, the model's peak, as the utility's network service peak load) / zone_nspl_mw (6… |
 | transmission | load_driven_share |  | 0.0 | 0.0 | 0.3 | share of planned transmission investment that is… | derived | 2026-11-02 | Derived: PJM 2024 RTEP Report, Tables 6.26 and 6.28 (Maryland / DC): no 2024 baseline projects in the PEPCO zone; the PEPCO-zone supplement… |
+| transmission | allocation_in_headline | false |  |  |  | bool | setting | 2026-11-02 | Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer sa… |
 | losses | avg_loss_pct | 0.0492 |  |  |  | average distribution (or T&D) energy losses, shar… | derived | 2026-10-31 | EIA-861 2024 Operational Data, Potomac Electric Power Co (DC and MD combined): total energy losses 490,255 / total disposition 9,965,263 MW… |
 | losses | marginal_mult_energy |  | 1.0 | 1.5 | 2.0 | marginal / average losses, energy | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |
 | losses | marginal_mult_peak |  | 2.0 | 3.0 | 4.0 | marginal / average losses at the system peak | derived | 2026-10-31 | Lazar & Baldwin, Valuing the Contribution of Energy Efficiency to Avoided Marginal Line Losses and Reserve Requirements, RAP (Aug 2011), an… |

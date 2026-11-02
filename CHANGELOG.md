@@ -6,6 +6,101 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Split transmission is the default; realisation by planner; allocation effect outside the pool and headline (this commit)
+
+**Changed.**
+- **Default:** `transmission.formulation` is now `'split'` in every utility and scenario, with the avoided build on (METHODOLOGY 3.8a). `'single'`, the earlier default, remains an option.
+- **Realisation by planner** (`avoided_build_share`):
+  - New York local transmission (Con Edison, RG&E), which the utility plans in its own local transmission plan and rate case: the same realisation as the distribution growth-capex addressable share, Cautious 0.5 / Central 0.8 / Ambitious 1.0 (`setting`).
+  - PJM regional transmission (Dominion, Pepco): unchanged at 0 / 0.5 / 1.0 (`_VERIFY`).
+  - The planning lag stays a setting: 7 years, range 5–10.
+- **Allocation effect outside the pool and the headline:**
+  - (a), "lower share of zonal transmission costs", is a cost shift to other customers in the PJM zone. It is never in the shared-savings pool, so the utility earns nothing on it, and it is not in the bills or headline customer savings.
+  - It is reported as its own line, with the cost shifted to other zone customers alongside:
+    - `system_summary()`: "Lower share of zonal transmission costs" and "Cost shifted to other zone customers";
+    - exports: yearly `lower_share_of_zonal_transmission_costs_m` and `cost_shifted_to_other_zone_customers_m`, and the `_b` totals in each headline, plus a metadata `transmission_note`;
+    - `transmission_formulation_table()`.
+  - New setting `transmission.allocation_in_headline` (off by default) adds (a) to the bills and headline customer savings, for comparison only. It never enters the pool.
+- **New York overlap:** still removed. The test that no plan dollar is deferred by both the deferral layer and (b) is kept.
+- **Glossary:** new and updated entries for "transmission upgrades deferred", "lower share of zonal transmission costs" and "cost shifted to others in the zone". The allocation entry notes that (a) is reported separately and is not counted in headline savings or the utility's earnings. The "realisation" entry gives the values by planner. The single / split entries reflect the new default, and the introduction's ordering note is corrected.
+
+**BAU unchanged.** BAU bills, capex and the BAU transmission line are identical in every run; only the shared-savings case changes.
+
+**Fixtures.**
+- `tests/fixtures/layers_fe90816_transmission.json` (new) pins two sets of runs:
+  - the single formulation at fe90816, the last commit with the single default, generated from that commit; `'single'` reproduces them exactly;
+  - the new split default, which the default reproduces exactly.
+- The 1b09e20, 23fec60 and 212efce fixture tests run `'single'` (`SINGLE_TX` in `tests/test_layers.py`), as they already run the earlier capacity formulation. They still reproduce exactly. The ebb0c04 fixture carries its own JSON and is unaffected.
+- v1.0, CORRECTED and the three pinned tests are unchanged.
+
+**Tests** (8 new, 417 in total):
+- The default is split, with realisation by planner.
+- `'single'` reproduces fe90816 exactly, and the default reproduces the new fixture.
+- By default only (b) counts in customer savings.
+- (a) never enters the pool or earnings. The switch adds exactly (a) to headline customer savings and the bills, and nothing else.
+- In PJM, Cautious realisation is 0.
+- The comparison table's identities hold.
+- The value-layer test allows a transmission contribution of 0 where nothing is load-driven and (a) is outside the headline (Pepco).
+
+**Docs.**
+- METHODOLOGY 3.8 and 3.8a cover the default, realisation by planner, the planning lag, (a) outside the pool and headline, the switch, and the revised results.
+- METHODOLOGY 3.6a capacity table and 3.10b customer allocation table regenerated under the new default.
+- README results tables, "in context" multiples and per-customer figures regenerated.
+- CLAUDE.md, the register and the glossary updated.
+- All three state notebooks re-run without errors.
+
+**Revised Central** (utility-forecast pace; $B undiscounted nominal, NPV 3% in brackets; 2050 average residential bill saving, $/month nominal). The allocation effect is reported separately, not in customer savings:
+
+| Utility | Customer savings $B (NPV 3%) | of which (b) transmission upgrades deferred $B | Transmission capex avoided $B | (a) lower share of zonal transmission costs $B, reported separately | Cost shifted to other zone customers $B | (b) benefit to others in the zone $B | 2050 monthly saving $ |
+|---|---|---|---|---|---|---|---|
+| Con Edison | 39.73 (23.38) | 10.62 | 14.32 | 0.00 | 0.00 | 0.00 | 112.09 |
+| RG&E | 4.78 (2.90) | 0.61 | 0.73 | 0.00 | 0.00 | 0.00 | 48.96 |
+| Dominion VA | 18.90 (11.31) | 1.68 | 2.51 | 1.29 | 1.29 | 0.39 | 16.05 |
+| Pepco MD | 4.19 (2.60) | 0.00 | 0.00 | 0.36 | 0.36 | 0.00 | 23.58 |
+
+**Effect on results: every shared-savings headline changed, except RG&E Cautious (utility-forecast pace) customer savings, NPV and earnings, which round to the same two decimals.** Old = single, new = split default. $B are undiscounted nominal unless marked NPV 3% (2026 $); monthly savings are the average residential bill, $/month nominal. The BAU bill in 2050 is unchanged.
+
+*Headlines, utility-forecast pace (central); old → new:*
+
+| Utility | Scenario | Customer savings $B undiscounted | Customer savings $B NPV 3% | Shared savings earnings $B | Monthly saving 2035 $ | Monthly saving 2050 $ | Lower share of zonal transmission costs $B (new, separate) | Cost shifted to other zone customers $B (new) |
+|---|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 12.45 → 10.98 | 7.46 → 6.59 | 3.73 → 3.10 | 5.05 → 4.33 | 29.02 → 25.07 | 0.00 | 0.00 |
+| Con Edison | Central | 40.39 → 39.73 | 23.90 → 23.38 | 14.10 → 13.82 | 17.28 → 14.64 | 111.10 → 112.09 | 0.00 | 0.00 |
+| Con Edison | Ambitious | 60.16 → 62.89 | 35.93 → 37.30 | 19.36 → 20.54 | 26.09 → 22.63 | 146.21 → 158.67 | 0.00 | 0.00 |
+| RG&E | Cautious | 1.59 → 1.59 | 0.98 → 0.98 | 0.48 → 0.48 | 4.58 → 4.47 | 14.60 → 15.75 | 0.00 | 0.00 |
+| RG&E | Central | 4.56 → 4.78 | 2.78 → 2.90 | 1.56 → 1.65 | 12.17 → 11.65 | 43.88 → 48.96 | 0.00 | 0.00 |
+| RG&E | Ambitious | 7.04 → 7.38 | 4.32 → 4.51 | 2.22 → 2.37 | 18.05 → 17.55 | 62.22 → 69.51 | 0.00 | 0.00 |
+| Dominion | Cautious | 6.32 → 5.87 | 3.88 → 3.60 | 0.50 → 0.31 | 2.75 → 2.60 | 5.78 → 5.46 | 0.25 | 0.25 |
+| Dominion | Central | 19.97 → 18.90 | 12.06 → 11.31 | 4.41 → 3.95 | 6.44 → 5.63 | 16.32 → 16.05 | 1.29 | 1.29 |
+| Dominion | Ambitious | 48.34 → 49.43 | 29.18 → 29.40 | 11.89 → 12.36 | 14.82 → 12.62 | 37.94 → 41.33 | 4.29 | 4.29 |
+| Pepco MD | Cautious | 2.48 → 2.31 | 1.56 → 1.46 | 0.09 → 0.02 | 6.63 → 6.18 | 12.45 → 11.56 | 0.19 | 0.19 |
+| Pepco MD | Central | 4.49 → 4.19 | 2.79 → 2.60 | 0.49 → 0.36 | 10.80 → 9.96 | 25.10 → 23.58 | 0.36 | 0.36 |
+| Pepco MD | Ambitious | 6.24 → 5.72 | 3.87 → 3.54 | 0.97 → 0.75 | 14.09 → 12.63 | 34.26 → 31.78 | 0.64 | 0.64 |
+
+*Headlines, state-policy pace; old → new:*
+
+| Utility | Scenario | Customer savings $B undiscounted | Customer savings $B NPV 3% | Shared savings earnings $B | Monthly saving 2035 $ | Monthly saving 2050 $ | Lower share of zonal transmission costs $B (new, separate) | Cost shifted to other zone customers $B (new) |
+|---|---|---|---|---|---|---|---|---|
+| Con Edison | Cautious | 14.95 → 13.23 | 8.90 → 7.89 | 4.70 → 3.97 | 5.47 → 4.68 | 32.81 → 28.33 | 0.00 | 0.00 |
+| Con Edison | Central | 52.04 → 48.88 | 30.62 → 28.67 | 18.89 → 17.54 | 18.86 → 16.00 | 130.00 → 123.77 | 0.00 | 0.00 |
+| Con Edison | Ambitious | 89.58 → 85.84 | 52.77 → 50.42 | 31.57 → 29.97 | 31.39 → 26.69 | 215.22 → 207.28 | 0.00 | 0.00 |
+| RG&E | Cautious | 2.14 → 2.07 | 1.29 → 1.25 | 0.68 → 0.65 | 4.17 → 4.10 | 17.37 → 16.48 | 0.00 | 0.00 |
+| RG&E | Central | 6.89 → 6.74 | 4.09 → 4.00 | 2.48 → 2.42 | 11.27 → 10.86 | 65.67 → 64.11 | 0.00 | 0.00 |
+| RG&E | Ambitious | 10.48 → 10.33 | 6.27 → 6.17 | 3.55 → 3.48 | 18.30 → 17.64 | 92.22 → 90.88 | 0.00 | 0.00 |
+| Dominion | Cautious | 6.62 → 6.16 | 4.06 → 3.77 | 0.53 → 0.33 | 2.70 → 2.55 | 5.63 → 5.34 | 0.25 | 0.25 |
+| Dominion | Central | 20.93 → 19.64 | 12.60 → 11.74 | 4.62 → 4.07 | 6.30 → 5.54 | 16.03 → 15.57 | 1.26 | 1.26 |
+| Dominion | Ambitious | 54.04 → 53.56 | 32.46 → 31.79 | 13.92 → 13.71 | 14.76 → 12.68 | 39.53 → 41.18 | 4.15 | 4.15 |
+| Pepco MD | Cautious | 2.80 → 2.63 | 1.74 → 1.64 | 0.17 → 0.10 | 6.52 → 6.09 | 13.39 → 12.59 | 0.19 | 0.19 |
+| Pepco MD | Central | 5.18 → 4.88 | 3.19 → 3.00 | 0.70 → 0.57 | 10.89 → 10.10 | 27.99 → 26.62 | 0.36 | 0.36 |
+| Pepco MD | Ambitious | 7.33 → 6.81 | 4.49 → 4.16 | 1.33 → 1.11 | 14.27 → 12.90 | 40.81 → 38.61 | 0.63 | 0.63 |
+
+How the changes arise:
+- **Dominion and Pepco:** savings and earnings fall in Cautious and Central because the single formulation's avoidable share counted part of the zonal cost shift as a saving. That shift is now reported separately: Dominion $1.29B Central, Pepco $0.36B, all paid by other customers in the zone.
+- **Dominion Ambitious, utility-forecast pace:** customer savings rise, because (b) defers $16.5B of load-driven transmission capex. At the state-policy pace they fall slightly ($54.04B → $53.56B).
+- **Con Edison and RG&E:** the overlap fix moves load-driven transmission out of the deferral layer, and (b) values it at a realisation of 0.5 / 0.8 / 1.0. Cautious falls, Central is close to before (Con Edison $40.39B → $39.73B; RG&E $4.56B → $4.78B), and Ambitious rises.
+- **2035 savings fall everywhere:** (b) waits for the 7-year planning lag, while the single formulation credited transmission from the first year.
+- **Per-customer residential savings, Central:** Con Edison $26.2B → $20.8B, Dominion $10.3B → $10.2B, RG&E $3.2B → $3.2B, Pepco $2.2B → $2.1B. Transmission upgrades deferred are a load-following saving split by sales, so the New York overlap fix moves value out of the reallocated network saving.
+
 ## 2026-11-02: Plain-language glossary and plain names (this commit)
 
 **Effect on results:** none. No engine, data or test code changed, and the exports are unchanged. The three state notebooks were re-run; only their figure labels differ.
