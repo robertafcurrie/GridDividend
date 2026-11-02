@@ -3,7 +3,7 @@
   "utility": "DomVA",
   "name": "Virginia Electric and Power Company (Dominion Energy Virginia)",
   "short_name": "Dominion VA",
-  "source_commit": "baa2c9333515e0ff8dd03bd7c3feef8829cdd697",
+  "source_commit": "e096c7269290811b3e916483a6998d0f30e9d6ea",
   "source_modified_since_commit": false,
   "generated": "2026-11-02",
   "dollar_basis": "Nominal dollars. Cumulative figures undiscounted unless labelled npv3_2026 (NPV at 3%, 2026 dollars). Bills are the average residential bill, $/month.",
@@ -23,7 +23,7 @@
   "advance_note": "advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.",
   "fast_start_note": "fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.",
   "allocation_sweep_note": "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
-  "lookback_note": "lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_comparison: 2021 (EIA-861 average revenue per kWh at the benchmark usage where line items were not located) against the 2026 starting bill by category. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal). supply_side: influenced, not controlled, by the distribution utility.",
+  "lookback_note": "lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_trend: headline like-for-like trend, EIA-861 2021-2025 at the benchmark usage (delivery and supply where EIA reports delivery-only customers); bill_2026_tariff: the 2026 starting bill by category, shown separately; bill_levels_by_basis: 2021 (EIA) and 2026 (tariff) levels, different bases, not a change. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal); rows (detailed) and grouped_rows (capital-driven, cost of capital, operating with normalised O&M, pension non-service, rate-case step). riders (Dominion): every Virginia rider, residential $/month at 1,000 kWh and revenue requirement by rate year, with the bill bridge. asked_granted_totals: requested against approved, cumulative and %, temporary rates separate. supply_side: influenced, not controlled, by the distribution utility.",
   "tornado_note": "Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.",
   "scenarios": [
    "Cautious",
@@ -49734,13 +49734,328 @@
   }
  },
  "lookback": {
-  "note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted.",
+  "note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted. Revised 2 Nov 2026: grouped bridge inputs (property tax attribution, O&M normalisation), Dominion riders, like-for-like EIA bill trend, asked-against-granted comparisons, class allocation from the joint proposals and MD PSC orders.",
   "period": [
    2021,
    2026
   ],
   "benchmark_kwh_month": 1000,
-  "bill_comparison": {
+  "bill_trend": {
+   "basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; Virginia has no delivery-only customers, so EIA cannot split delivery and supply; the SCC rider bridge (riders) gives the split. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change.",
+   "rows": [
+    {
+     "year": 2021,
+     "total_usd_month": 121.303,
+     "delivery_usd_month": null,
+     "supply_usd_month": null
+    },
+    {
+     "year": 2022,
+     "total_usd_month": 134.097,
+     "delivery_usd_month": null,
+     "supply_usd_month": null
+    },
+    {
+     "year": 2023,
+     "total_usd_month": 139.15900000000002,
+     "delivery_usd_month": null,
+     "supply_usd_month": null
+    },
+    {
+     "year": 2024,
+     "total_usd_month": 140.943,
+     "delivery_usd_month": null,
+     "supply_usd_month": null
+    },
+    {
+     "year": 2025,
+     "total_usd_month": 151.967,
+     "delivery_usd_month": null,
+     "supply_usd_month": null
+    }
+   ],
+   "change_2021_2025_usd_month": {
+    "total": 30.664000000000016,
+    "delivery": null,
+    "supply": null
+   },
+   "eia_series": {
+    "2021": {
+     "bundled_cents_kwh": {
+      "value": 12.1303,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), VA part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 87554185.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), VA part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.3377,
+      "unit": "share",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), VA part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "other_jurisdiction": {
+      "state": "NC",
+      "bundled_cents_kwh": {
+       "value": 11.3639,
+       "unit": "cents/kWh nominal",
+       "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NC part of the utility: residential revenue / sales, Part A (bundled service)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "total_retail_mwh": {
+       "value": 4245702.0,
+       "unit": "MWh",
+       "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NC part of the utility: total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "residential_mwh_share": {
+       "value": 0.3799,
+       "unit": "share",
+       "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NC part of the utility: residential / total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     }
+    },
+    "2022": {
+     "bundled_cents_kwh": {
+      "value": 13.4097,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), VA part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 92877449.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), VA part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.3186,
+      "unit": "share",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), VA part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "other_jurisdiction": {
+      "state": "NC",
+      "bundled_cents_kwh": {
+       "value": 11.6513,
+       "unit": "cents/kWh nominal",
+       "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NC part of the utility: residential revenue / sales, Part A (bundled service)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "total_retail_mwh": {
+       "value": 4078077.0,
+       "unit": "MWh",
+       "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NC part of the utility: total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "residential_mwh_share": {
+       "value": 0.4026,
+       "unit": "share",
+       "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NC part of the utility: residential / total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     }
+    },
+    "2023": {
+     "bundled_cents_kwh": {
+      "value": 13.9159,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), VA part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 92590790.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), VA part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.2937,
+      "unit": "share",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), VA part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "other_jurisdiction": {
+      "state": "NC",
+      "bundled_cents_kwh": {
+       "value": 13.616,
+       "unit": "cents/kWh nominal",
+       "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NC part of the utility: residential revenue / sales, Part A (bundled service)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "total_retail_mwh": {
+       "value": 4075831.0,
+       "unit": "MWh",
+       "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NC part of the utility: total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "residential_mwh_share": {
+       "value": 0.3701,
+       "unit": "share",
+       "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NC part of the utility: residential / total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     }
+    },
+    "2024": {
+     "bundled_cents_kwh": {
+      "value": 14.0943,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), VA part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 94723352.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), VA part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.3034,
+      "unit": "share",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), VA part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "other_jurisdiction": {
+      "state": "NC",
+      "bundled_cents_kwh": {
+       "value": 13.9333,
+       "unit": "cents/kWh nominal",
+       "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NC part of the utility: residential revenue / sales, Part A (bundled service)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "total_retail_mwh": {
+       "value": 3914486.0,
+       "unit": "MWh",
+       "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NC part of the utility: total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "residential_mwh_share": {
+       "value": 0.3999,
+       "unit": "share",
+       "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NC part of the utility: residential / total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     }
+    },
+    "2025": {
+     "bundled_cents_kwh": {
+      "value": 15.1967,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), VA part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 100424247.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), VA part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.2988,
+      "unit": "share",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), VA part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "other_jurisdiction": {
+      "state": "NC",
+      "bundled_cents_kwh": {
+       "value": 12.7407,
+       "unit": "cents/kWh nominal",
+       "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NC part of the utility: residential revenue / sales, Part A (bundled service)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "total_retail_mwh": {
+       "value": 4127745.0,
+       "unit": "MWh",
+       "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NC part of the utility: total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "residential_mwh_share": {
+       "value": 0.4073,
+       "unit": "share",
+       "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NC part of the utility: residential / total retail sales, Parts A + C",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     }
+    }
+   }
+  },
+  "bill_2026_tariff": {
+   "basis": "utilities/Dominion_VA.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments",
+   "rows": [
+    {
+     "item": "distribution_base",
+     "usd_month": 40.8512
+    },
+    {
+     "item": "distribution_rider",
+     "usd_month": 7.685
+    },
+    {
+     "item": "program_surcharge",
+     "usd_month": 24.712
+    },
+    {
+     "item": "supply_energy",
+     "usd_month": 61.41937579458015
+    },
+    {
+     "item": "capacity",
+     "usd_month": 23.21212420541985
+    },
+    {
+     "item": "transmission",
+     "usd_month": 22.43
+    },
+    {
+     "item": "taxes_and_fees",
+     "usd_month": 2.4859999999999998
+    },
+    {
+     "item": "total",
+     "usd_month": 182.7957
+    }
+   ]
+  },
+  "bill_levels_by_basis": {
+   "note": "Bill levels on different bases (2021: EIA-861 averages at the benchmark usage; 2026: tariff bill). Not a change; bill_trend is the like-for-like trend.",
    "basis_2021": "EIA-861 2021 average revenue per kWh at the benchmark usage (no 2021 line-item tariff archive was located; per the fallback rule, marked derived)",
    "basis_2026": "utilities/Dominion_VA.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments",
    "rows": [
@@ -49798,124 +50113,7 @@
      "usd_month_2026": 182.7957,
      "status_2021": "derived"
     }
-   ],
-   "eia_series": {
-    "2021": {
-     "bundled_cents_kwh": {
-      "value": 11.3639,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 4245702.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2021, DomNC: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.3799,
-      "unit": "share",
-      "source": "EIA Form 861, 2021, DomNC: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2022": {
-     "bundled_cents_kwh": {
-      "value": 11.6513,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 4078077.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2022, DomNC: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4026,
-      "unit": "share",
-      "source": "EIA Form 861, 2022, DomNC: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2023": {
-     "bundled_cents_kwh": {
-      "value": 13.616,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 4075831.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2023, DomNC: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.3701,
-      "unit": "share",
-      "source": "EIA Form 861, 2023, DomNC: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2024": {
-     "bundled_cents_kwh": {
-      "value": 13.9333,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 3914486.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2024, DomNC: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.3999,
-      "unit": "share",
-      "source": "EIA Form 861, 2024, DomNC: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2025": {
-     "bundled_cents_kwh": {
-      "value": 12.7407,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), DomNC: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 4127745.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2025, DomNC: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4073,
-      "unit": "share",
-      "source": "EIA Form 861, 2025, DomNC: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    }
-   }
+   ]
   },
   "rr_bridge": {
    "scope": {
@@ -50030,6 +50228,125 @@
      "value_m": 2533.281187729808
     }
    ],
+   "grouped_rows": [
+    {
+     "group": "start",
+     "item": "Revenue requirement 2021 (Form 1 functional basis)",
+     "value_m": 1647.8575159621428
+    },
+    {
+     "group": "capital_driven",
+     "item": "return_on_rate_base_growth",
+     "value_m": 267.6359195738307
+    },
+    {
+     "group": "capital_driven",
+     "item": "depreciation",
+     "value_m": 106.2090229618658
+    },
+    {
+     "group": "capital_driven",
+     "item": "plant_property_tax",
+     "value_m": 9.47474098760275
+    },
+    {
+     "group": "capital_driven",
+     "item": "income_tax_on_return",
+     "value_m": 61.79177534662252
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "roe_change",
+     "value_m": 30.031281584725008
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "equity_ratio_change",
+     "value_m": -4.090055793101489
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "cost_of_debt_change",
+     "value_m": 0.0
+    },
+    {
+     "group": "operating",
+     "item": "om_normalised",
+     "value_m": 60.37366991843851
+    },
+    {
+     "group": "operating",
+     "item": "non_plant_taxes",
+     "value_m": 12.589317187681637
+    },
+    {
+     "group": "pension_non_service",
+     "item": "non_service_pension_and_retiree_benefits",
+     "value_m": 0.0
+    },
+    {
+     "group": "subtotal",
+     "item": "Revenue requirement 2025 (Form 1 functional basis)",
+     "value_m": 2191.8731877298083
+    },
+    {
+     "group": "rate_case",
+     "item": "Approved 2026 rate-case step",
+     "value_m": 341.408
+    },
+    {
+     "group": "end",
+     "item": "Revenue requirement 2026",
+     "value_m": 2533.281187729808
+    }
+   ],
+   "group_totals": {
+    "capital_driven": 445.11145886992176,
+    "cost_of_capital": 25.94122579162352,
+    "operating": 72.96298710612015,
+    "pension_non_service": 0.0,
+    "rate_case": 341.408
+   },
+   "property_tax_attribution": {
+    "method": "Plant-related property tax = the property tax / net plant ratio (Form 1 page 262 property and real estate taxes charged, all departments, / Form 1 page 200 net utility plant, all departments) x the scope's functional rate-base plant (scope net plant + allocated general and intangible plant, after the jurisdictional share). Property tax is assessed on plant value, so a uniform ratio attributes it to plant in proportion to net book value; assessed values, local rates and special-franchise valuation differ by plant type and locality, so this is an attribution, not a measured split. Non-plant taxes = the scope's taxes other than income (as in the detailed bridge) - plant-related property tax (payroll, gross receipts, franchise, sales and use and other taxes).",
+    "ratio": {
+     "2021": {
+      "value": 0.007525,
+      "unit": "share of net plant a year",
+      "source": "Derived: Form 1 2021 property_tax_total_company $253.0M / net_plant_total_company $33,626.4M (both in rr_bridge.form1)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "2025": {
+      "value": 0.005872,
+      "unit": "share of net plant a year",
+      "source": "Derived: Form 1 2025 property_tax_total_company $302.6M / net_plant_total_company $51,532.3M (both in rr_bridge.form1)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
+   },
+   "om_normalisation": {
+    "applied": false,
+    "check": "Not driven by pension or retiree-benefit credits: Form 1 account 926 (employee pensions and benefits) is $84.1M in 2021 and $134.5M in 2025 (positive in both years), against administrative and general costs of $315.5M and $428.9M. Reported and normalised O&M are the same.",
+    "method": "Normalised O&M = reported O&M (Form 1 functional basis) - non-service pension and retiree-benefit costs in administrative and general, allocated to the scope by the same O&M share as the rest of A&G and then by the jurisdictional share. The detailed bridge keeps reported O&M; the grouped view uses normalised O&M and shows the non-service change as its own reconciling line.",
+    "non_service_benefits_electric": {
+     "2021": {
+      "value": 0.0,
+      "unit": "$M nominal",
+      "source": "Check: Form 1 account 926 is 84.1 (2021) and 134.5 (2025) $M; not credit-driven, so no normalisation is applied",
+      "as_of": "2026-11-02",
+      "status": "setting"
+     },
+     "2025": {
+      "value": 0.0,
+      "unit": "$M nominal",
+      "source": "Check: Form 1 account 926 is 84.1 (2021) and 134.5 (2025) $M; not credit-driven, so no normalisation is applied",
+      "as_of": "2026-11-02",
+      "status": "setting"
+     }
+    }
+   },
    "years": {
     "2021": {
      "year": 2021.0,
@@ -50049,6 +50366,10 @@
      "om": 530.3487018335724,
      "taxes_other": 88.65137701294799,
      "income_taxes": 54.7430003924755,
+     "plant_property_tax": 61.43691373936533,
+     "non_plant_taxes": 27.21446327358266,
+     "non_service_benefits": 0.0,
+     "om_normalised": 530.3487018335724,
      "rr": 1647.8575159621428
     },
     "2025": {
@@ -50069,6 +50390,10 @@
      "om": 590.7223717520109,
      "taxes_other": 110.71543518823238,
      "income_taxes": 116.53477573909802,
+     "plant_property_tax": 70.91165472696808,
+     "non_plant_taxes": 39.803780461264296,
+     "non_service_benefits": 0.0,
+     "om_normalised": 590.7223717520109,
      "rr": 2191.8731877298083
     }
    },
@@ -50232,7 +50557,26 @@
       "quote": "the Commission approves customer refunds totaling $330 million and the statutory maximum annual rate reduction of $50 million",
       "source": "SCC Final Order, PUR-2021-00058 (18 Nov 2021)"
      }
-    ]
+    ],
+    "comparison": {
+     "basis": "annual base rate change: no increase requested; statutory maximum $50M reduction ordered (refunds of $330M not counted)",
+     "included_in_totals": true,
+     "temporary": false,
+     "requested_m": {
+      "value": 0.0,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of PUR-2021-00058: SCC Order for Notice and Hearing, PUR-2021-00058 (16 Apr 2021): \"the Company does not propose an increase or decrease to overall revenues\" (revenue-neutral transfer of $330 million between generation and distribution)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": -50.0,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_approved_m of PUR-2021-00058: SCC Final Order, PUR-2021-00058: \"the statutory maximum annual rate reduction of $50 million\", plus customer refunds totaling $330 million",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    },
    {
     "docket": "PUR-2023-00101",
@@ -50245,11 +50589,11 @@
      "status": "sourced"
     },
     "decided": {
-     "value": null,
-     "unit": null,
-     "source": "Not located: final order date, PUR-2023-00101",
+     "value": "2024-02",
+     "unit": "month",
+     "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), 2023 Biennial Review: \"In February 2024, the Virginia Commission approved the comprehensive settlement agreement and issued its order in this matter\"",
      "as_of": "2026-11-02",
-     "status": "_VERIFY"
+     "status": "sourced"
     },
     "status": "decided",
     "revenue_requested_m": {
@@ -50260,11 +50604,11 @@
      "status": "sourced"
     },
     "revenue_approved_m": {
-     "value": null,
-     "unit": null,
-     "source": "Not located: final order outcome; 2023 legislation required a base rate reduction effective July 2023 (amount not confirmed from the order)",
+     "value": 0.0,
+     "unit": "$M a year",
+     "source": "Dominion Energy 2023 and 2024 Form 10-Ks: no base rate increase requested; the comprehensive settlement (approved February 2024) kept base rates, recovered $45 million of previously unrecovered severe weather costs through base rates during 2023-2024 and provided $15 million of one-time customer credits by September 2024. Riders R, W and S (at least $350 million a year) were combined with base rates from July 2023 by legislation, revenue-neutral",
      "as_of": "2026-11-02",
-     "status": "_VERIFY"
+     "status": "sourced"
     },
     "roe_requested": {
      "value": null,
@@ -50281,7 +50625,32 @@
      "status": "sourced"
     },
     "capital_adjustments": [],
-    "commission_reasons": []
+    "commission_reasons": [
+     {
+      "quote": "Virginia Power's earnings for the test period, considered as a whole, were within 70 basis points above or below its authorized ROE of 9.35%",
+      "source": "Dominion Energy 2024 Form 10-K, describing the February 2024 order, PUR-2023-00101"
+     }
+    ],
+    "rate_years": "2023-2024 biennial period",
+    "comparison": {
+     "basis": "annual base rate change: no increase requested; base rates unchanged (one-time credits of $15M not counted)",
+     "included_in_totals": true,
+     "temporary": false,
+     "requested_m": {
+      "value": 0.0,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of PUR-2023-00101: Dominion Energy 2023 Form 10-K: \"Virginia Power did not request an increase in base rates for generation and distribution services\"",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": 0.0,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_approved_m of PUR-2023-00101: Dominion Energy 2023 and 2024 Form 10-Ks: no base rate increase requested; the comprehensive settlement (approved February 2024) kept base rates, recovered $45 million of previously unrecovered severe weather costs through base rates during 2023-2024 and provided $15 million of one-time customer credits by September 2024. Riders R, W and S (at least $350 million a year) were combined with base rates from July 2023 by legislation, revenue-neutral",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    },
    {
     "docket": "PUR-2025-00058",
@@ -50359,7 +50728,26 @@
       "quote": "Dominion has not established that 100% of its forecasted data center expenditures are reasonably predicted to occur during the rate years.",
       "source": "SCC Final Order, PUR-2025-00058"
      }
-    ]
+    ],
+    "comparison": {
+     "basis": "first rate year (2026): requested against approved base rate increase (Final Order)",
+     "included_in_totals": true,
+     "temporary": false,
+     "requested_m": {
+      "value": 822,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of PUR-2025-00058: SCC Final Order, PUR-2025-00058: \"requested a revenue increase of $822 million for 2026, and a further incremental revenue increase of $345 million for 2027\"; distribution portion $400.6M (2026), Attachment",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": 565.7,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_approved_m of PUR-2025-00058: SCC Final Order, PUR-2025-00058: \"an annual base rate revenue increase of $565.7 million for 2026, followed by ... $209.9 million for 2027\"; distribution $341.4M in 2026 (Attachment)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    },
    {
     "docket": "PUR-2021-00142",
@@ -50417,16 +50805,61 @@
       "status": "sourced"
      }
     ],
-    "commission_reasons": []
+    "commission_reasons": [],
+    "comparison": {
+     "basis": "first rate year of Rider OSW (rider, not a base rate case)",
+     "included_in_totals": true,
+     "temporary": false,
+     "requested_m": {
+      "value": 78.702,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of PUR-2021-00142: SCC Order on Reconsideration, PUR-2021-00142 (15 Dec 2022): \"the Commission has approved the costs requested at this time for Rider OSW ... a first-year revenue requirement of $78,702 million\" (sic: $78.702 million)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": 78.702,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_approved_m of PUR-2021-00142: SCC Order on Reconsideration, PUR-2021-00142 (15 Dec 2022)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    }
   ],
+  "asked_granted_totals": {
+   "decided": {
+    "proceedings": [
+     "PUR-2021-00058",
+     "PUR-2023-00101",
+     "PUR-2025-00058",
+     "PUR-2021-00142"
+    ],
+    "requested_m": 900.702,
+    "approved_m": 594.402,
+    "approved_pct_of_requested": 65.99319197692466,
+    "include_temporary": false
+   },
+   "including_temporary": {
+    "proceedings": [
+     "PUR-2021-00058",
+     "PUR-2023-00101",
+     "PUR-2025-00058",
+     "PUR-2021-00142"
+    ],
+    "requested_m": 900.702,
+    "approved_m": 594.402,
+    "approved_pct_of_requested": 65.99319197692466,
+    "include_temporary": true
+   }
+  },
   "class_allocation": [
    {
     "docket": "PUR-2025-00058",
     "residential_share_of_increase": {
      "value": null,
      "unit": null,
-     "source": "Not located: residential share of the 2026 increase (Staff revenue apportionment, Ex. 98)",
+     "source": "Not located: the Final Order approves the Company's revenue apportionment as modified by Staff (Ex. 98, Blevins Direct, Tables 30 and 31), which is not in the order text",
      "as_of": "2026-11-02",
      "status": "_VERIFY"
     },
@@ -50447,12 +50880,2871 @@
     "customer_charge_after": {
      "value": 7.58,
      "unit": "$/month",
-     "source": "SCC Final Order, PUR-2025-00058: approves \"the existing Basic Customer Charges for the Residential and GS-1 customer classes\"",
+     "source": "SCC Final Order, PUR-2025-00058: the Commission approves \"the existing Basic Customer Charges for the Residential and GS-1 customer classes\" ($7.58, Dominion_VA.json starting_bill)",
      "as_of": "2026-11-02",
      "status": "sourced"
     }
    }
-  ]
+  ],
+  "riders": {
+   "note": "Every Virginia rider in effect 2021-2026: residential $/month at 1,000 kWh (SCC status reports, as of 1 July 2021-2025; the 2026 tariff from the starting bill) and the annual revenue requirement by rate year (Dominion Energy 10-K riders tables, which report each application and approval). Riders marked distribution_related recover distribution plant; the rest are generation, clean energy (VCEA), environmental, transmission, energy efficiency, fuel or other. The 10-K tables list only riders with activity that year; earlier rate years carry forward.",
+   "definitions": {
+    "base_rates": {
+     "name": "Base rates",
+     "group": "base_rates",
+     "distribution_related": false,
+     "description": "Generation, distribution and transmission base rates (SCC tables include $9.70 a month of transmission in base rates)"
+    },
+    "fuel_factor": {
+     "name": "Fuel factor (Rider A)",
+     "group": "fuel",
+     "distribution_related": false,
+     "description": "Fuel and purchased energy; from 2026 also purchased capacity"
+    },
+    "deferred_fuel": {
+     "name": "Deferred Fuel Cost Charge",
+     "group": "fuel",
+     "distribution_related": false,
+     "description": "Fuel securitization (2023 under-recovered balance)"
+    },
+    "T1": {
+     "name": "Rider T1",
+     "group": "transmission",
+     "distribution_related": false,
+     "description": "Transmission (PJM NITS and other transmission charges above the base-rate transmission component)"
+    },
+    "R": {
+     "name": "Rider R",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Bear Garden combined cycle (rolled into base rates July 2023)"
+    },
+    "W": {
+     "name": "Rider W",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Warren County combined cycle (rolled into base rates July 2023)"
+    },
+    "S": {
+     "name": "Rider S",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Virginia City Hybrid Energy Center (rolled into base rates July 2023)"
+    },
+    "BW": {
+     "name": "Rider BW",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Brunswick County combined cycle (consolidated into Rider GEN April 2025)"
+    },
+    "GV": {
+     "name": "Rider GV",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Greensville County combined cycle (consolidated into Rider GEN April 2025)"
+    },
+    "B": {
+     "name": "Rider B",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Biomass conversions (consolidated into Rider GEN April 2025)"
+    },
+    "US-2": {
+     "name": "Rider US-2",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Utility-scale solar (consolidated into Rider GEN April 2025)"
+    },
+    "US-3": {
+     "name": "Rider US-3",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Utility-scale solar (consolidated into Rider GEN April 2025)"
+    },
+    "US-4": {
+     "name": "Rider US-4",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Utility-scale solar (consolidated into Rider GEN April 2025)"
+    },
+    "GEN": {
+     "name": "Rider GEN",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Consolidated generation facilities (Riders B, BW, GV, US-2, US-3, US-4) from April 2025"
+    },
+    "SNA": {
+     "name": "Rider SNA",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Surry and North Anna nuclear life extension"
+    },
+    "CERC": {
+     "name": "Rider CERC",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Chesterfield Energy Reliability Center (gas combustion turbines)"
+    },
+    "SMR": {
+     "name": "Rider SMR",
+     "group": "generation",
+     "distribution_related": false,
+     "description": "Small modular reactor development"
+    },
+    "CE": {
+     "name": "Rider CE",
+     "group": "clean_energy",
+     "distribution_related": false,
+     "description": "Clean energy projects and PPAs (VCEA solar and storage)"
+    },
+    "RPS": {
+     "name": "Rider RPS",
+     "group": "clean_energy",
+     "distribution_related": false,
+     "description": "Renewable energy portfolio standard (RECs, VCEA)"
+    },
+    "OSW": {
+     "name": "Rider OSW",
+     "group": "clean_energy",
+     "distribution_related": false,
+     "description": "Coastal Virginia Offshore Wind"
+    },
+    "PPA": {
+     "name": "Rider PPA",
+     "group": "clean_energy",
+     "distribution_related": false,
+     "description": "Renewable power purchase agreements"
+    },
+    "RGGI": {
+     "name": "Rider RGGI",
+     "group": "clean_energy",
+     "distribution_related": false,
+     "description": "Regional Greenhouse Gas Initiative allowance costs (reset to zero 2022; 2023-2024; ended July 2024)"
+    },
+    "E": {
+     "name": "Rider E",
+     "group": "environmental",
+     "distribution_related": false,
+     "description": "Environmental projects (coal ash and other)"
+    },
+    "CCR": {
+     "name": "Rider CCR",
+     "group": "environmental",
+     "distribution_related": false,
+     "description": "Closure of coal combustion residuals impoundments"
+    },
+    "U": {
+     "name": "Rider U",
+     "group": "distribution",
+     "distribution_related": true,
+     "description": "Strategic undergrounding of distribution lines (replaced by Rider DIST June 2025)"
+    },
+    "GT": {
+     "name": "Rider GT",
+     "group": "distribution",
+     "distribution_related": true,
+     "description": "Distribution grid transformation (AMI, grid devices; replaced by Rider DIST June 2025)"
+    },
+    "DIST": {
+     "name": "Rider DIST",
+     "group": "distribution",
+     "distribution_related": true,
+     "description": "Distribution facilities: grid transformation and undergrounding (Riders GT and U) from June 2025; rural broadband capacity proposed from June 2026"
+    },
+    "RBB": {
+     "name": "Rider RBB",
+     "group": "distribution",
+     "distribution_related": true,
+     "description": "Rural broadband capacity on distribution infrastructure (proposed for consolidation into Rider DIST June 2026)"
+    },
+    "DSM": {
+     "name": "Riders C1A / C2A / C4A etc. (DSM)",
+     "group": "energy_efficiency",
+     "distribution_related": false,
+     "description": "Demand-side management and energy efficiency programs (core business under shared savings)"
+    },
+    "PIPP": {
+     "name": "PIPP universal service fee",
+     "group": "other",
+     "distribution_related": false,
+     "description": "Percentage of income payment program"
+    },
+    "VCR": {
+     "name": "Rider VCR",
+     "group": "other",
+     "distribution_related": false,
+     "description": "Voluntary credit rider (credit)"
+    }
+   },
+   "residential_bill": {
+    "2021": {
+     "as_of": "2021-07-01",
+     "basis": "SCC typical residential bill, 1,000 kWh, as of 1 July, excluding taxes",
+     "components": {
+      "base_rates": {
+       "value": 71.52,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "fuel_factor": {
+       "value": 20.45,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "T1": {
+       "value": 10.59,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "B": {
+       "value": 0.45,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "BW": {
+       "value": 1.95,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DSM": {
+       "value": 1.47,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CCR": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CE": {
+       "value": 0.19,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "E": {
+       "value": 1.67,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GV": {
+       "value": 2.85,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "R": {
+       "value": 1.07,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RBB": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RGGI": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RPS": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "S": {
+       "value": 3.61,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "U": {
+       "value": 2.14,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-2": {
+       "value": 0.19,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-3": {
+       "value": 0.71,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-4": {
+       "value": 0.19,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "W": {
+       "value": 2.23,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     "total": {
+      "value": 121.28,
+      "unit": "$/month nominal",
+      "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD390 (1 Sep 2021), DEV Electric Utility Residential Bills as of July 1, 2021, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes), Total",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     }
+    },
+    "2022": {
+     "as_of": "2022-07-01",
+     "basis": "SCC typical residential bill, 1,000 kWh, as of 1 July, excluding taxes",
+     "components": {
+      "base_rates": {
+       "value": 70.63,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "fuel_factor": {
+       "value": 35.38,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "T1": {
+       "value": 6.9,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "R": {
+       "value": 1.14,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "W": {
+       "value": 2.34,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "BW": {
+       "value": 2.1,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GV": {
+       "value": 2.75,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "S": {
+       "value": 3.7,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "B": {
+       "value": 0.3,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-2": {
+       "value": 0.17,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-3": {
+       "value": 0.96,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-4": {
+       "value": 0.3,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CE": {
+       "value": 1.32,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "SNA": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RPS": {
+       "value": 0.18,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RGGI": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "OSW": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PPA": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DSM": {
+       "value": 1.31,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "U": {
+       "value": 2.5,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GT": {
+       "value": 1.16,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "E": {
+       "value": 1.25,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CCR": {
+       "value": 2.95,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RBB": {
+       "value": 0.03,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PIPP": {
+       "value": 0.03,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "VCR": {
+       "value": -0.47,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     "total": {
+      "value": 136.93,
+      "unit": "$/month nominal",
+      "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD418 (1 Sep 2022), DEV Electric Utility Bills as of July 1, 2022, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes), Total",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     }
+    },
+    "2023": {
+     "as_of": "2023-07-01",
+     "basis": "SCC typical residential bill, 1,000 kWh, as of 1 July, excluding taxes",
+     "components": {
+      "base_rates": {
+       "value": 70.63,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "fuel_factor": {
+       "value": 28.59,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "T1": {
+       "value": 3.21,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "R": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "W": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "BW": {
+       "value": 2.8,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GV": {
+       "value": 2.47,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "S": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "B": {
+       "value": 0.63,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-2": {
+       "value": 0.22,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-3": {
+       "value": 0.75,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-4": {
+       "value": 0.31,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CE": {
+       "value": 1.7,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "SNA": {
+       "value": 2.07,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RPS": {
+       "value": 1.81,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RGGI": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "OSW": {
+       "value": 1.45,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PPA": {
+       "value": -0.07,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DSM": {
+       "value": 1.6,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "U": {
+       "value": 1.99,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GT": {
+       "value": 0.28,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "E": {
+       "value": 1.95,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CCR": {
+       "value": 2.96,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RBB": {
+       "value": 0.17,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PIPP": {
+       "value": 0.03,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "VCR": {
+       "value": -0.43,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     "total": {
+      "value": 125.12,
+      "unit": "$/month nominal",
+      "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD572 (2023), DEV Electric Utility Bills as of July 1, 2023, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes), Total",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     }
+    },
+    "2024": {
+     "as_of": "2024-07-01",
+     "basis": "SCC typical residential bill, 1,000 kWh, as of 1 July, excluding taxes",
+     "components": {
+      "base_rates": {
+       "value": 70.41,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "fuel_factor": {
+       "value": 20.74,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "deferred_fuel": {
+       "value": 3.22,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "T1": {
+       "value": 5.88,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GEN": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "BW": {
+       "value": 2.35,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GV": {
+       "value": 2.47,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "B": {
+       "value": 0.63,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-2": {
+       "value": 0.17,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-3": {
+       "value": 0.69,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "US-4": {
+       "value": 0.27,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CE": {
+       "value": 2.88,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "SNA": {
+       "value": 0.93,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RPS": {
+       "value": 1.32,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RGGI": {
+       "value": 4.43,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "OSW": {
+       "value": 4.74,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DSM": {
+       "value": 1.84,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "U": {
+       "value": 1.99,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GT": {
+       "value": 3.22,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "E": {
+       "value": 2.03,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CCR": {
+       "value": 2.38,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RBB": {
+       "value": 0.42,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PIPP": {
+       "value": 0.73,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     "total": {
+      "value": 133.74,
+      "unit": "$/month nominal",
+      "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD717 (1 Nov 2024), DEV Electric Utility Bills as of July 1, 2024, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes), Total",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     }
+    },
+    "2025": {
+     "as_of": "2025-07-01",
+     "basis": "SCC typical residential bill, 1,000 kWh, as of 1 July, excluding taxes",
+     "components": {
+      "base_rates": {
+       "value": 70.41,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "fuel_factor": {
+       "value": 29.68,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "deferred_fuel": {
+       "value": 3.45,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "T1": {
+       "value": 9.69,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "GEN": {
+       "value": 7.56,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CERC": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "SMR": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CE": {
+       "value": 3.67,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "SNA": {
+       "value": 1.29,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RPS": {
+       "value": 4.69,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "OSW": {
+       "value": 8.63,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DSM": {
+       "value": 1.55,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "DIST": {
+       "value": 6.24,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "E": {
+       "value": 1.35,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "CCR": {
+       "value": 1.18,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "RBB": {
+       "value": 0.53,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "PIPP": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     "total": {
+      "value": 149.92,
+      "unit": "$/month nominal",
+      "source": "SCC, Status Report: Implementation of the Virginia Electric Utility Regulation Act, RD716 (31 Oct 2025), DEV Electric Utility Bills as of July 1, 2025, \"Current Residential Bill\" column (typical residential customer, 1,000 kWh a month, excluding taxes), Total",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     }
+    },
+    "2026": {
+     "as_of": "2026-10-31",
+     "basis": "Tariff rates in effect (Dominion_VA.json starting_bill) at 1,000 kWh, before the capacity carve-out, excluding taxes; base rates = basic customer charge + distribution, generation and transmission kWh charges",
+     "components": {
+      "base_rates": {
+       "value": 81.5867,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines basic_customer_charge, distribution_kwh, generation_kwh, transmission_kwh x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Schedule 1 II.A.1 | Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Schedule 1 II.A.2 | Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Schedule 1 II.B.1 | Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Schedule 1 II.B.2)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "DSM": {
+       "value": 1.776,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_c1a, rider_c4a x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider C1A | Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider C4A)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "DIST": {
+       "value": 7.685,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_dist x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider DIST)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "CCR": {
+       "value": 1.765,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_ccr x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider CCR)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "CE": {
+       "value": 6.054,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_ce x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider CE)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "OSW": {
+       "value": 11.362,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_osw x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider OSW)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "RPS": {
+       "value": 5.52,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_rps x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider RPS)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "deferred_fuel": {
+       "value": 2.901,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines deferred_fuel x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Deferred Fuel Cost Charge)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "PIPP": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_pipp x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider PIPP)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "fuel_factor": {
+       "value": 37.648,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines fuel x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider A)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "GEN": {
+       "value": 5.729,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_gen x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider GEN)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "SNA": {
+       "value": 4.027,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_sna x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider SNA)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "CERC": {
+       "value": 0.754,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_cerc x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider CERC)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "E": {
+       "value": 0.625,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_e x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider E)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "SMR": {
+       "value": 0.147,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_smr x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider SMR)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "RGGI": {
+       "value": 0.0,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_rggi x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider RGGI)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      },
+      "T1": {
+       "value": 12.73,
+       "unit": "$/month nominal",
+       "source": "Derived: Dominion_VA.json starting_bill lines rider_t1 x 1,000 kWh (line sources: Dominion Energy Virginia filed tariff (dominionenergy.com/virginia/rates-and-tariffs/residential-rates), Rider T1)",
+       "as_of": "2026-11-02",
+       "status": "derived"
+      }
+     },
+     "taxes": {
+      "value": 2.486,
+      "unit": "$/month nominal",
+      "source": "Derived: Dominion_VA.json starting_bill consumption tax and sales and use tax surcharge x 1,000 kWh (not in the SCC tables)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total": {
+      "value": 180.3097,
+      "unit": "$/month nominal",
+      "source": "Derived: sum of the 2026 components (excluding taxes)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
+   },
+   "revenue_requirements": {
+    "B": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 24,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider B, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $24 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "February 2022",
+      "total_revenue_requirement_m": {
+       "value": 16,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider B, application June 2021, approval February 2022, rate year beginning 2022-04, total revenue requirement $16 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2022",
+      "approval": "January 2023",
+      "total_revenue_requirement_m": {
+       "value": 34,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider B, application June 2022, approval January 2023, rate year beginning 2023-04, total revenue requirement $34 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-04",
+      "application": "June 2022",
+      "approval": "January 2023",
+      "total_revenue_requirement_m": {
+       "value": 34,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider B, application June 2022, approval January 2023, rate year beginning 2024-04, total revenue requirement $34 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "BW": [
+     {
+      "rate_year_beginning": "2021-09",
+      "application": "October 2020",
+      "approval": "July 2021",
+      "total_revenue_requirement_m": {
+       "value": 113,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider BW, application October 2020, approval July 2021, rate year beginning 2021-09, total revenue requirement $113 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "October 2021",
+      "approval": "May 2022",
+      "total_revenue_requirement_m": {
+       "value": 145,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider BW, application October 2021, approval May 2022, rate year beginning 2022-09, total revenue requirement $145 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "October 2021",
+      "approval": "May 2022",
+      "total_revenue_requirement_m": {
+       "value": 120,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider BW, application October 2021, approval May 2022, rate year beginning 2023-09, total revenue requirement $120 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "CCR": [
+     {
+      "rate_year_beginning": "2021-12",
+      "application": "February 2021",
+      "approval": "October 2021",
+      "total_revenue_requirement_m": {
+       "value": 216,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider CCR, application February 2021, approval October 2021, rate year beginning 2021-12, total revenue requirement $216 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-12",
+      "application": "February 2022",
+      "approval": "October 2022",
+      "total_revenue_requirement_m": {
+       "value": 231,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider CCR, application February 2022, approval October 2022, rate year beginning 2022-12, total revenue requirement $231 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-12",
+      "application": "February 2023",
+      "approval": "October 2023",
+      "total_revenue_requirement_m": {
+       "value": 194,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider CCR, application February 2023, approval October 2023, rate year beginning 2023-12, total revenue requirement $194 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-12",
+      "application": "March 2024",
+      "approval": "November 2024",
+      "total_revenue_requirement_m": {
+       "value": 103,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider CCR, application March 2024, approval November 2024, rate year beginning 2024-12, total revenue requirement $103 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-01",
+      "application": "April 2025",
+      "approval": "December 2025",
+      "total_revenue_requirement_m": {
+       "value": 166,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider CCR, application April 2025, approval December 2025, rate year beginning 2026-01, total revenue requirement $166 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "CE": [
+     {
+      "rate_year_beginning": "2021-06",
+      "application": "October 2020",
+      "approval": "April 2021",
+      "total_revenue_requirement_m": {
+       "value": 10,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider CE, application October 2020, approval April 2021, rate year beginning 2021-06, total revenue requirement $10 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-05",
+      "application": "September 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 71,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider CE, application September 2021, approval March 2022, rate year beginning 2022-05, total revenue requirement $71 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-05",
+      "application": "October 2022",
+      "approval": "April 2023",
+      "total_revenue_requirement_m": {
+       "value": 89,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider CE, application October 2022, approval April 2023, rate year beginning 2023-05, total revenue requirement $89 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-05",
+      "application": "October 2023",
+      "approval": "March 2024",
+      "total_revenue_requirement_m": {
+       "value": 133,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider CE, application October 2023, approval March 2024, rate year beginning 2024-05, total revenue requirement $133 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-05",
+      "application": "October 2024",
+      "approval": "April 2025",
+      "total_revenue_requirement_m": {
+       "value": 182,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider CE, application October 2024, approval April 2025, rate year beginning 2025-05, total revenue requirement $182 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-05",
+      "application": "October 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 325,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider CE, application October 2025, approval Pending, rate year beginning 2026-05, total revenue requirement $325 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "DIST": [
+     {
+      "rate_year_beginning": "2025-06",
+      "application": "August 2024",
+      "approval": "May 2025",
+      "total_revenue_requirement_m": {
+       "value": 267,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider DIST, application August 2024, approval May 2025, rate year beginning 2025-06, total revenue requirement $267 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-06",
+      "application": "August 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 333,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider DIST, application August 2025, approval Pending, rate year beginning 2026-06, total revenue requirement $333 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "E": [
+     {
+      "rate_year_beginning": "2021-11",
+      "application": "January 2021",
+      "approval": "September 2021",
+      "total_revenue_requirement_m": {
+       "value": 67,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider E, application January 2021, approval September 2021, rate year beginning 2021-11, total revenue requirement $67 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-11",
+      "application": "January 2022",
+      "approval": "September 2022",
+      "total_revenue_requirement_m": {
+       "value": 101,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider E, application January 2022, approval September 2022, rate year beginning 2022-11, total revenue requirement $101 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-11",
+      "application": "January 2023",
+      "approval": "September 2023",
+      "total_revenue_requirement_m": {
+       "value": 109,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider E, application January 2023, approval September 2023, rate year beginning 2023-11, total revenue requirement $109 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-11",
+      "application": "January 2024",
+      "approval": "September 2024",
+      "total_revenue_requirement_m": {
+       "value": 72,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider E, application January 2024, approval September 2024, rate year beginning 2024-11, total revenue requirement $72 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-11",
+      "application": "January 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 37,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider E, application January 2025, approval Pending, rate year beginning 2025-11, total revenue requirement $37 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "GEN": [
+     {
+      "rate_year_beginning": "2025-04",
+      "application": "June 2024",
+      "approval": "February 2025",
+      "total_revenue_requirement_m": {
+       "value": 438,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider GEN, application June 2024, approval February 2025, rate year beginning 2025-04, total revenue requirement $438 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-04",
+      "application": "June 2024",
+      "approval": "February 2025",
+      "total_revenue_requirement_m": {
+       "value": 311,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider GEN, application June 2024, approval February 2025, rate year beginning 2026-04, total revenue requirement $311 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "GT": [
+     {
+      "rate_year_beginning": "2022-06",
+      "application": "August 2021",
+      "approval": "May 2022",
+      "total_revenue_requirement_m": {
+       "value": 56,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider GT, application August 2021, approval May 2022, rate year beginning 2022-06, total revenue requirement $56 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-06",
+      "application": "August 2022",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 16,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider GT, application August 2022, approval Pending, rate year beginning 2023-06, total revenue requirement $16 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-06",
+      "application": "August 2023",
+      "approval": "May 2024",
+      "total_revenue_requirement_m": {
+       "value": 145,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider GT, application August 2023, approval May 2024, rate year beginning 2024-06, total revenue requirement $145 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "GV": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 153,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider GV, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $153 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "December 2021",
+      "total_revenue_requirement_m": {
+       "value": 142,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider GV, application June 2021, approval December 2021, rate year beginning 2022-04, total revenue requirement $142 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2021",
+      "approval": "December 2021",
+      "total_revenue_requirement_m": {
+       "value": 127,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider GV, application June 2021, approval December 2021, rate year beginning 2023-04, total revenue requirement $127 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-04",
+      "application": "June 2023",
+      "approval": "February 2024",
+      "total_revenue_requirement_m": {
+       "value": 132,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider GV, application June 2023, approval February 2024, rate year beginning 2024-04, total revenue requirement $132 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-04",
+      "application": "June 2023",
+      "approval": "February 2024",
+      "total_revenue_requirement_m": {
+       "value": 135,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider GV, application June 2023, approval February 2024, rate year beginning 2025-04, total revenue requirement $135 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "OSW": [
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "November 2021",
+      "approval": "August 2022",
+      "total_revenue_requirement_m": {
+       "value": 79,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider OSW, application November 2021, approval August 2022, rate year beginning 2022-09, total revenue requirement $79 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "November 2022",
+      "approval": "July 2023",
+      "total_revenue_requirement_m": {
+       "value": 271,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider OSW, application November 2022, approval July 2023, rate year beginning 2023-09, total revenue requirement $271 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-09",
+      "application": "November 2023",
+      "approval": "July 2024",
+      "total_revenue_requirement_m": {
+       "value": 486,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider OSW, application November 2023, approval July 2024, rate year beginning 2024-09, total revenue requirement $486 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-09",
+      "application": "November 2024",
+      "approval": "August 2025",
+      "total_revenue_requirement_m": {
+       "value": 639,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider OSW, application November 2024, approval August 2025, rate year beginning 2025-09, total revenue requirement $639 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-09",
+      "application": "October 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 665,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider OSW, application October 2025, approval Pending, rate year beginning 2026-09, total revenue requirement $665 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "PPA": [
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "December 2022",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": -22,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider PPA, application December 2022, approval Pending, rate year beginning 2023-09, total revenue requirement $-22 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "R": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 58,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider R, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $58 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 59,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider R, application June 2021, approval March 2022, rate year beginning 2022-04, total revenue requirement $59 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 55,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider R, application June 2021, approval March 2022, rate year beginning 2023-04, total revenue requirement $55 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "RGGI": [
+     {
+      "rate_year_beginning": "2021-09",
+      "application": "December 2020",
+      "approval": "August 2021",
+      "total_revenue_requirement_m": {
+       "value": 168,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider RGGI, application December 2020, approval August 2021, rate year beginning 2021-09, total revenue requirement $168 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "December 2022",
+      "approval": "July 2023",
+      "total_revenue_requirement_m": {
+       "value": 356,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider RGGI, application December 2022, approval July 2023, rate year beginning 2023-09, total revenue requirement $356 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "RPS": [
+     {
+      "rate_year_beginning": "2021-08",
+      "application": "December 2020",
+      "approval": "July 2021",
+      "total_revenue_requirement_m": {
+       "value": 13,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2020, approval July 2021, rate year beginning 2021-08, total revenue requirement $13 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "December 2021",
+      "approval": "June 2022",
+      "total_revenue_requirement_m": {
+       "value": 140,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2021, approval June 2022, rate year beginning 2022-09, total revenue requirement $140 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "December 2022",
+      "approval": "July 2023",
+      "total_revenue_requirement_m": {
+       "value": 96,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2022, approval July 2023, rate year beginning 2023-09, total revenue requirement $96 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-09",
+      "application": "December 2023",
+      "approval": "August 2024",
+      "total_revenue_requirement_m": {
+       "value": 358,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2023, approval August 2024, rate year beginning 2024-09, total revenue requirement $358 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-09",
+      "application": "December 2024",
+      "approval": "August 2025",
+      "total_revenue_requirement_m": {
+       "value": 609,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2024, approval August 2025, rate year beginning 2025-09, total revenue requirement $609 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-09",
+      "application": "December 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 442,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider RPS, application December 2025, approval Pending, rate year beginning 2026-09, total revenue requirement $442 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "S": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 194,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider S, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $194 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "February 2022",
+      "total_revenue_requirement_m": {
+       "value": 192,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider S, application June 2021, approval February 2022, rate year beginning 2022-04, total revenue requirement $192 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2021",
+      "approval": "February 2022",
+      "total_revenue_requirement_m": {
+       "value": 191,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider S, application June 2021, approval February 2022, rate year beginning 2023-04, total revenue requirement $191 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "SNA": [
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "October 2021",
+      "approval": "July 2022",
+      "total_revenue_requirement_m": {
+       "value": 107,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider SNA, application October 2021, approval July 2022, rate year beginning 2022-09, total revenue requirement $107 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "October 2022",
+      "approval": "June 2023",
+      "total_revenue_requirement_m": {
+       "value": 50,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider SNA, application October 2022, approval June 2023, rate year beginning 2023-09, total revenue requirement $50 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-09",
+      "application": "October 2023",
+      "approval": "June 2024",
+      "total_revenue_requirement_m": {
+       "value": 69,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider SNA, application October 2023, approval June 2024, rate year beginning 2024-09, total revenue requirement $69 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-09",
+      "application": "October 2024",
+      "approval": "July 2025",
+      "total_revenue_requirement_m": {
+       "value": 207,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider SNA, application October 2024, approval July 2025, rate year beginning 2025-09, total revenue requirement $207 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-09",
+      "application": "October 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 233,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider SNA, application October 2025, approval Pending, rate year beginning 2026-09, total revenue requirement $233 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "T1": [
+     {
+      "rate_year_beginning": "2021-09",
+      "application": "May 2021",
+      "approval": "August 2021",
+      "total_revenue_requirement_m": {
+       "value": 874,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider T1, application May 2021, approval August 2021, rate year beginning 2021-09, total revenue requirement $874 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "base_rate_transmission_m": {
+       "value": 493,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table, footnote: \"Consists of $493 million for the transmission component of Virginia Power's base rates and $381 million for Rider T1\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "rider_t1_m": {
+       "value": 381,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table, same footnote",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "May 2022",
+      "approval": "July 2022",
+      "total_revenue_requirement_m": {
+       "value": 706,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider T1, application May 2022, approval July 2022, rate year beginning 2022-09, total revenue requirement $706 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "base_rate_transmission_m": {
+       "value": 482,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table, footnote: \"Consists of $482 million for the transmission component of Virginia Power's base rates and $224 million for Rider T1\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "rider_t1_m": {
+       "value": 224,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table, same footnote",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "May 2023",
+      "approval": "July 2023",
+      "total_revenue_requirement_m": {
+       "value": 879,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider T1, application May 2023, approval July 2023, rate year beginning 2023-09, total revenue requirement $879 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "base_rate_transmission_m": {
+       "value": 510,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table, footnote: \"Consists of $510 million for the transmission component of Virginia Power's base rates and $369 million for Rider T1\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "rider_t1_m": {
+       "value": 369,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table, same footnote",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-09",
+      "application": "May 2024",
+      "approval": "July 2024",
+      "total_revenue_requirement_m": {
+       "value": 1170,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider T1, application May 2024, approval July 2024, rate year beginning 2024-09, total revenue requirement $1170 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "base_rate_transmission_m": {
+       "value": 532,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table, footnote: \"Consists of $532 million for the transmission component of Virginia Power's base rates and $638 million for Rider T1\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "rider_t1_m": {
+       "value": 638,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table, same footnote",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-09",
+      "application": "May 2025",
+      "approval": "August 2025",
+      "total_revenue_requirement_m": {
+       "value": 1343,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider T1, application May 2025, approval August 2025, rate year beginning 2025-09, total revenue requirement $1343 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "base_rate_transmission_m": {
+       "value": 561,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table, footnote: \"Consists of $561 million for the transmission component of Virginia Power's base rates and $782 million for Rider T1\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "rider_t1_m": {
+       "value": 782,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table, same footnote",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "U": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 80,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider U, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $80 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 95,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider U, application June 2021, approval March 2022, rate year beginning 2022-04, total revenue requirement $95 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2022",
+      "approval": "February 2023",
+      "total_revenue_requirement_m": {
+       "value": 74,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider U, application June 2022, approval February 2023, rate year beginning 2023-04, total revenue requirement $74 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-08",
+      "application": "October 2023",
+      "approval": "July 2024",
+      "total_revenue_requirement_m": {
+       "value": 150,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider U, application October 2023, approval July 2024, rate year beginning 2024-08, total revenue requirement $150 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "US-2": [
+     {
+      "rate_year_beginning": "2021-09",
+      "application": "October 2020",
+      "approval": "July 2021",
+      "total_revenue_requirement_m": {
+       "value": 9,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider US-2, application October 2020, approval July 2021, rate year beginning 2021-09, total revenue requirement $9 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "October 2021",
+      "approval": "June 2022",
+      "total_revenue_requirement_m": {
+       "value": 11,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider US-2, application October 2021, approval June 2022, rate year beginning 2022-09, total revenue requirement $11 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "US-3": [
+     {
+      "rate_year_beginning": "2021-06",
+      "application": "July 2020",
+      "approval": "March 2021",
+      "total_revenue_requirement_m": {
+       "value": 38,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider US-3, application July 2020, approval March 2021, rate year beginning 2021-06, total revenue requirement $38 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-06",
+      "application": "August 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 50,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider US-3, application August 2021, approval March 2022, rate year beginning 2022-06, total revenue requirement $50 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-06",
+      "application": "August 2022",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 40,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider US-3, application August 2022, approval Pending, rate year beginning 2023-06, total revenue requirement $40 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "US-4": [
+     {
+      "rate_year_beginning": "2021-06",
+      "application": "July 2020",
+      "approval": "March 2021",
+      "total_revenue_requirement_m": {
+       "value": 10,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider US-4, application July 2020, approval March 2021, rate year beginning 2021-06, total revenue requirement $10 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-06",
+      "application": "August 2021",
+      "approval": "March 2022",
+      "total_revenue_requirement_m": {
+       "value": 15,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider US-4, application August 2021, approval March 2022, rate year beginning 2022-06, total revenue requirement $15 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-06",
+      "application": "August 2022",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 17,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider US-4, application August 2022, approval Pending, rate year beginning 2023-06, total revenue requirement $17 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "W": [
+     {
+      "rate_year_beginning": "2021-04",
+      "application": "June 2020",
+      "approval": "February 2021",
+      "total_revenue_requirement_m": {
+       "value": 120,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider W, application June 2020, approval February 2021, rate year beginning 2021-04, total revenue requirement $120 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-04",
+      "application": "June 2021",
+      "approval": "February 2022",
+      "total_revenue_requirement_m": {
+       "value": 121,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider W, application June 2021, approval February 2022, rate year beginning 2022-04, total revenue requirement $121 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-04",
+      "application": "June 2022",
+      "approval": "February 2023",
+      "total_revenue_requirement_m": {
+       "value": 105,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider W, application June 2022, approval February 2023, rate year beginning 2023-04, total revenue requirement $105 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "DSM": [
+     {
+      "rate_year_beginning": "2021-10",
+      "application": "December 2020",
+      "approval": "September 2021",
+      "total_revenue_requirement_m": {
+       "value": 74,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2020, approval September 2021, rate year beginning 2021-10, total revenue requirement $74 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-09",
+      "application": "December 2021",
+      "approval": "August 2022",
+      "total_revenue_requirement_m": {
+       "value": 91,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2021, approval August 2022, rate year beginning 2022-09, total revenue requirement $91 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-09",
+      "application": "December 2022",
+      "approval": "August 2023",
+      "total_revenue_requirement_m": {
+       "value": 107,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2022, approval August 2023, rate year beginning 2023-09, total revenue requirement $107 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-09",
+      "application": "December 2023",
+      "approval": "July 2024",
+      "total_revenue_requirement_m": {
+       "value": 86,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2023, approval July 2024, rate year beginning 2024-09, total revenue requirement $86 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-09",
+      "application": "December 2024",
+      "approval": "August 2025",
+      "total_revenue_requirement_m": {
+       "value": 96,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2024, approval August 2025, rate year beginning 2025-09, total revenue requirement $96 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2026-09",
+      "application": "December 2025",
+      "approval": "Pending",
+      "total_revenue_requirement_m": {
+       "value": 114,
+       "unit": "$M a year nominal (Virginia jurisdiction)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table: Rider DSM Riders, application December 2025, approval Pending, rate year beginning 2026-09, total revenue requirement $114 million",
+       "as_of": "2026-11-02",
+       "status": "sourced",
+       "notes": "Requested; pending at the 10-K date"
+      }
+     }
+    ],
+    "RBB": [
+     {
+      "rate_year_beginning": "2025",
+      "application": null,
+      "approval": null,
+      "total_revenue_requirement_m": {
+       "value": 25,
+       "unit": "$M a year nominal",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Regulation - Riders table, footnote 5: \"$25 million being collected under a rider associated with rural broadband capacity\"",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ],
+    "CERC": [
+     {
+      "rate_year_beginning": null,
+      "application": null,
+      "approval": null,
+      "total_revenue_requirement_m": {
+       "value": null,
+       "unit": "$M a year nominal",
+       "source": "Not located: Rider CERC revenue requirement (not in the 10-K riders tables; included in the aggregate $54 million of other riders, 2025 10-K footnote 1)",
+       "as_of": "2026-11-02",
+       "status": "_VERIFY"
+      }
+     }
+    ],
+    "SMR": [
+     {
+      "rate_year_beginning": null,
+      "application": null,
+      "approval": null,
+      "total_revenue_requirement_m": {
+       "value": null,
+       "unit": "$M a year nominal",
+       "source": "Not located: Rider SMR revenue requirement (not in the 10-K riders tables; included in the aggregate $54 million of other riders, 2025 10-K footnote 1)",
+       "as_of": "2026-11-02",
+       "status": "_VERIFY"
+      }
+     }
+    ],
+    "PIPP": [
+     {
+      "rate_year_beginning": null,
+      "application": null,
+      "approval": null,
+      "total_revenue_requirement_m": {
+       "value": null,
+       "unit": "$M a year nominal",
+       "source": "Not located: Rider PIPP revenue requirement (not in the 10-K riders tables; SCC order not retrieved)",
+       "as_of": "2026-11-02",
+       "status": "_VERIFY"
+      }
+     }
+    ],
+    "VCR": [
+     {
+      "rate_year_beginning": null,
+      "application": null,
+      "approval": null,
+      "total_revenue_requirement_m": {
+       "value": null,
+       "unit": "$M a year nominal",
+       "source": "Not located: Rider VCR revenue requirement (not in the 10-K riders tables; SCC order not retrieved)",
+       "as_of": "2026-11-02",
+       "status": "_VERIFY"
+      }
+     }
+    ],
+    "fuel_factor": [
+     {
+      "rate_year_beginning": "2021-07",
+      "application": null,
+      "approval": null,
+      "projected_fuel_expense_m": {
+       "value": 1400,
+       "unit": "$M (Virginia jurisdiction, projected)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Fuel Expenses: In May 2021, Virginia Power filed its annual fuel factor ... to recover an estimated $1.4 billion in Virginia jurisdictional projected fuel expenses for the rate year beginning July 1, 2021 and $72 million of estimated net under-recovered balances through June 30, 2021. In June 2021, the Virginia Commission approved the annual fuel factor.",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "prior_balance_m": {
+       "value": 72,
+       "unit": "$M (under-recovered positive)",
+       "source": "Dominion Energy 2021 Form 10-K (filed 24 Feb 2022), Note 13, Virginia Fuel Expenses",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2022-07",
+      "application": null,
+      "approval": null,
+      "projected_fuel_expense_m": {
+       "value": 2300,
+       "unit": "$M (Virginia jurisdiction, projected)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Fuel Expenses: projected $2.3 billion fuel expense for the rate year beginning July 1, 2022 and a projected $1.0 billion under-recovered balance as of June 30, 2022 (the Commission approved collection of the balance over three years)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "prior_balance_m": {
+       "value": 1000,
+       "unit": "$M (under-recovered positive)",
+       "source": "Dominion Energy 2022 Form 10-K (filed 21 Feb 2023), Note 13, Virginia Fuel Expenses",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2023-07",
+      "application": null,
+      "approval": null,
+      "projected_fuel_expense_m": {
+       "value": 2300,
+       "unit": "$M (Virginia jurisdiction, projected)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Fuel Expenses: projected $2.3 billion fuel expense for the rate year beginning July 1, 2023 and a projected $1.3 billion under-recovered balance as of June 30, 2023 (securitized through the Deferred Fuel Cost Charge)",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "prior_balance_m": {
+       "value": 1300,
+       "unit": "$M (under-recovered positive)",
+       "source": "Dominion Energy 2023 Form 10-K (filed 23 Feb 2024), Note 13, Virginia Fuel Expenses",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2024-07",
+      "application": null,
+      "approval": null,
+      "projected_fuel_expense_m": {
+       "value": 2200,
+       "unit": "$M (Virginia jurisdiction, projected)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Fuel Expenses: projected $2.2 billion fuel expense for the rate year beginning July 1, 2024 and an estimated $266 million net over-recovered balance returned; a fuel revenue decrease of $636 million",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "prior_balance_m": {
+       "value": -266,
+       "unit": "$M (under-recovered positive)",
+       "source": "Dominion Energy 2024 Form 10-K (filed 27 Feb 2025), Note 13, Virginia Fuel Expenses",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     },
+     {
+      "rate_year_beginning": "2025-07",
+      "application": null,
+      "approval": null,
+      "projected_fuel_expense_m": {
+       "value": 2600,
+       "unit": "$M (Virginia jurisdiction, projected)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Fuel Expenses: projected $2.6 billion fuel expense for the rate year beginning July 1, 2025, a projected $205 million under-recovered balance and $120 million of purchased capacity proposed for inclusion",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      },
+      "prior_balance_m": {
+       "value": 205,
+       "unit": "$M (under-recovered positive)",
+       "source": "Dominion Energy 2025 Form 10-K (filed 23 Feb 2026), Note 13, Virginia Fuel Expenses",
+       "as_of": "2026-11-02",
+       "status": "sourced"
+      }
+     }
+    ]
+   },
+   "revenue_requirement_in_effect_1_july": {
+    "B": {
+     "2021": 24.0,
+     "2022": 16.0,
+     "2023": 34.0,
+     "2024": 34.0,
+     "2025": 34.0,
+     "2026": 34.0
+    },
+    "BW": {
+     "2021": null,
+     "2022": 113.0,
+     "2023": 145.0,
+     "2024": 120.0,
+     "2025": 120.0,
+     "2026": 120.0
+    },
+    "CCR": {
+     "2021": null,
+     "2022": 216.0,
+     "2023": 231.0,
+     "2024": 194.0,
+     "2025": 103.0,
+     "2026": 166.0
+    },
+    "CE": {
+     "2021": 10.0,
+     "2022": 71.0,
+     "2023": 89.0,
+     "2024": 133.0,
+     "2025": 182.0,
+     "2026": 182.0
+    },
+    "DIST": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": 267.0,
+     "2026": 267.0
+    },
+    "E": {
+     "2021": null,
+     "2022": 67.0,
+     "2023": 101.0,
+     "2024": 109.0,
+     "2025": 72.0,
+     "2026": 72.0
+    },
+    "GEN": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": 438.0,
+     "2026": 311.0
+    },
+    "GT": {
+     "2021": null,
+     "2022": 56.0,
+     "2023": 56.0,
+     "2024": 145.0,
+     "2025": 145.0,
+     "2026": 145.0
+    },
+    "GV": {
+     "2021": 153.0,
+     "2022": 142.0,
+     "2023": 127.0,
+     "2024": 132.0,
+     "2025": 135.0,
+     "2026": 135.0
+    },
+    "OSW": {
+     "2021": null,
+     "2022": null,
+     "2023": 79.0,
+     "2024": 271.0,
+     "2025": 486.0,
+     "2026": 639.0
+    },
+    "PPA": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    },
+    "R": {
+     "2021": 58.0,
+     "2022": 59.0,
+     "2023": 55.0,
+     "2024": 55.0,
+     "2025": 55.0,
+     "2026": 55.0
+    },
+    "RGGI": {
+     "2021": null,
+     "2022": 168.0,
+     "2023": 168.0,
+     "2024": 356.0,
+     "2025": 356.0,
+     "2026": 356.0
+    },
+    "RPS": {
+     "2021": null,
+     "2022": 13.0,
+     "2023": 140.0,
+     "2024": 96.0,
+     "2025": 358.0,
+     "2026": 609.0
+    },
+    "S": {
+     "2021": 194.0,
+     "2022": 192.0,
+     "2023": 191.0,
+     "2024": 191.0,
+     "2025": 191.0,
+     "2026": 191.0
+    },
+    "SNA": {
+     "2021": null,
+     "2022": null,
+     "2023": 107.0,
+     "2024": 50.0,
+     "2025": 69.0,
+     "2026": 207.0
+    },
+    "T1": {
+     "2021": null,
+     "2022": 874.0,
+     "2023": 706.0,
+     "2024": 879.0,
+     "2025": 1170.0,
+     "2026": 1343.0
+    },
+    "U": {
+     "2021": 80.0,
+     "2022": 95.0,
+     "2023": 74.0,
+     "2024": 74.0,
+     "2025": 150.0,
+     "2026": 150.0
+    },
+    "US-2": {
+     "2021": null,
+     "2022": 9.0,
+     "2023": 11.0,
+     "2024": 11.0,
+     "2025": 11.0,
+     "2026": 11.0
+    },
+    "US-3": {
+     "2021": 38.0,
+     "2022": 50.0,
+     "2023": 50.0,
+     "2024": 50.0,
+     "2025": 50.0,
+     "2026": 50.0
+    },
+    "US-4": {
+     "2021": 10.0,
+     "2022": 15.0,
+     "2023": 15.0,
+     "2024": 15.0,
+     "2025": 15.0,
+     "2026": 15.0
+    },
+    "W": {
+     "2021": 120.0,
+     "2022": 121.0,
+     "2023": 105.0,
+     "2024": 105.0,
+     "2025": 105.0,
+     "2026": 105.0
+    },
+    "DSM": {
+     "2021": null,
+     "2022": 74.0,
+     "2023": 91.0,
+     "2024": 107.0,
+     "2025": 86.0,
+     "2026": 96.0
+    },
+    "RBB": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": 25.0,
+     "2026": 25.0
+    },
+    "CERC": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    },
+    "SMR": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    },
+    "PIPP": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    },
+    "VCR": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    },
+    "fuel_factor": {
+     "2021": null,
+     "2022": null,
+     "2023": null,
+     "2024": null,
+     "2025": null,
+     "2026": null
+    }
+   },
+   "bill_bridge": {
+    "basis": "2021-2025: SCC typical residential bill at 1,000 kWh as of 1 July, excluding taxes (like for like); 2026: tariff in effect, excluding taxes (shown separately)",
+    "rows": [
+     {
+      "group": "base_rates",
+      "2021": 71.52,
+      "2022": 70.63,
+      "2023": 70.63,
+      "2024": 70.41,
+      "2025": 70.41,
+      "2026": 81.5867,
+      "change_2021_2025": -1.1099999999999994
+     },
+     {
+      "group": "fuel",
+      "2021": 20.45,
+      "2022": 35.38,
+      "2023": 28.59,
+      "2024": 23.959999999999997,
+      "2025": 33.13,
+      "2026": 40.54900000000001,
+      "change_2021_2025": 12.680000000000003
+     },
+     {
+      "group": "transmission",
+      "2021": 10.59,
+      "2022": 6.9,
+      "2023": 3.21,
+      "2024": 5.88,
+      "2025": 9.69,
+      "2026": 12.73,
+      "change_2021_2025": -0.9000000000000004
+     },
+     {
+      "group": "generation",
+      "2021": 13.25,
+      "2022": 13.76,
+      "2023": 9.25,
+      "2024": 7.510000000000001,
+      "2025": 8.85,
+      "2026": 10.657,
+      "change_2021_2025": -4.4
+     },
+     {
+      "group": "clean_energy",
+      "2021": 0.19,
+      "2022": 1.5,
+      "2023": 4.89,
+      "2024": 13.370000000000001,
+      "2025": 16.990000000000002,
+      "2026": 22.936,
+      "change_2021_2025": 16.8
+     },
+     {
+      "group": "environmental",
+      "2021": 1.67,
+      "2022": 4.2,
+      "2023": 4.91,
+      "2024": 4.41,
+      "2025": 2.5300000000000002,
+      "2026": 2.3899999999999997,
+      "change_2021_2025": 0.8600000000000003
+     },
+     {
+      "group": "distribution",
+      "2021": 2.14,
+      "2022": 3.69,
+      "2023": 2.44,
+      "2024": 5.630000000000001,
+      "2025": 6.7700000000000005,
+      "2026": 7.685,
+      "change_2021_2025": 4.630000000000001
+     },
+     {
+      "group": "energy_efficiency",
+      "2021": 1.47,
+      "2022": 1.31,
+      "2023": 1.6,
+      "2024": 1.84,
+      "2025": 1.55,
+      "2026": 1.776,
+      "change_2021_2025": 0.08000000000000007
+     },
+     {
+      "group": "other",
+      "2021": 0.0,
+      "2022": -0.43999999999999995,
+      "2023": -0.4,
+      "2024": 0.73,
+      "2025": 0.0,
+      "2026": 0.0,
+      "change_2021_2025": 0.0
+     },
+     {
+      "group": "total",
+      "2021": 121.28,
+      "2022": 136.93,
+      "2023": 125.11999999999998,
+      "2024": 133.73999999999998,
+      "2025": 149.92000000000002,
+      "2026": 180.30970000000002,
+      "change_2021_2025": 28.640000000000015
+     },
+     {
+      "group": "distribution_related_riders",
+      "2021": 2.14,
+      "2022": 3.69,
+      "2023": 2.44,
+      "2024": 5.63,
+      "2025": 6.7700000000000005,
+      "2026": 7.685,
+      "change_2021_2025": 4.630000000000001
+     }
+    ],
+    "taxes_2026_usd_month": 2.486
+   }
+  }
  },
  "advance_stress": {
   "utility_forecast": {

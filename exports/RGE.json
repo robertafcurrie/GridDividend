@@ -3,7 +3,7 @@
   "utility": "RGE",
   "name": "Rochester Gas and Electric Corporation",
   "short_name": "RG&E",
-  "source_commit": "baa2c9333515e0ff8dd03bd7c3feef8829cdd697",
+  "source_commit": "e096c7269290811b3e916483a6998d0f30e9d6ea",
   "source_modified_since_commit": false,
   "generated": "2026-11-02",
   "dollar_basis": "Nominal dollars. Cumulative figures undiscounted unless labelled npv3_2026 (NPV at 3%, 2026 dollars). Bills are the average residential bill, $/month.",
@@ -23,7 +23,7 @@
   "advance_note": "advance: each scenario with the customer dividend advance on (default off in the model), at its enabled defaults: level bill credit for advance_credit_years from 2027 sized at 0.5 x the PV (at the financing rate) of the Cautious scenario recoverable savings, securitized at 4%, recovered through a rider withholding a share of each year total customer saving vs BAU (bill_savings), on a schedule that tracks credits actually paid; true-up pauses credits when behind schedule; recoveries capped so customers net saving is never negative. advance_stress: sized on Central, realized Cautious. worst_year_vs_bau = the largest shared-savings minus BAU average residential bill.",
   "fast_start_note": "fast_start: each scenario and pace with mechanism.fast_start on (first savings year 2027; near-term ramps at their defaults, i.e. none): yearly, waterfall_usd_month, value_flows_m and headline. advance_fast_start: the advance at its enabled defaults with fast start on; advance_fast_start_stress: the same, sized on Central and realized Cautious.",
   "allocation_sweep_note": "allocation_sweep: each scenario and pace with the pool's customer share (the wires and program revenue-requirement reduction net of shared savings earnings, recovered through delivery rates) split between residential and non-residential customers by_sales (default: residential share of sales, EIA-861), per_customer (equal per customer: residential share of EIA-861 2024 customer counts) or custom (residential share 0.5). Capacity, transmission, losses, wholesale and efficiency energy savings follow load through existing rates and stay split by sales. Totals are the same under every option; by_sales equals the run block. Residential bills move by the reallocated amount per residential customer; non-residential savings per customer use EIA-861 2024 counts, held constant.",
-  "lookback_note": "lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_comparison: 2021 (EIA-861 average revenue per kWh at the benchmark usage where line items were not located) against the 2026 starting bill by category. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal). supply_side: influenced, not controlled, by the distribution utility.",
+  "lookback_note": "lookback: the starting point 2021-2026 from utilities/<utility>_lookback.json (engine/lookback.py; every figure with source, as_of and status). bill_trend: headline like-for-like trend, EIA-861 2021-2025 at the benchmark usage (delivery and supply where EIA reports delivery-only customers); bill_2026_tariff: the 2026 starting bill by category, shown separately; bill_levels_by_basis: 2021 (EIA) and 2026 (tariff) levels, different bases, not a change. rr_bridge: distribution revenue requirement on a FERC Form 1 functional basis 2021 -> 2025, then the approved 2026 rate-case step ($M nominal); rows (detailed) and grouped_rows (capital-driven, cost of capital, operating with normalised O&M, pension non-service, rate-case step). riders (Dominion): every Virginia rider, residential $/month at 1,000 kWh and revenue requirement by rate year, with the bill bridge. asked_granted_totals: requested against approved, cumulative and %, temporary rates separate. supply_side: influenced, not controlled, by the distribution utility.",
   "tornado_note": "Tornado at Central (every input at central; low and high one at a time), per pace; change in the average residential monthly saving vs Central.",
   "scenarios": [
    "Cautious",
@@ -49756,13 +49756,243 @@
   }
  },
  "lookback": {
-  "note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted.",
+  "note": "Look-back module (engine/lookback.py): the starting point 2021-2026. Every figure carries a source, an as_of date and a status (sourced / derived / _VERIFY / setting). The forward model does not read this file. Dollar figures are nominal and undiscounted. Revised 2 Nov 2026: grouped bridge inputs (property tax attribution, O&M normalisation), Dominion riders, like-for-like EIA bill trend, asked-against-granted comparisons, class allocation from the joint proposals and MD PSC orders.",
   "period": [
    2021,
    2026
   ],
   "benchmark_kwh_month": 600,
-  "bill_comparison": {
+  "bill_trend": {
+   "basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change.",
+   "rows": [
+    {
+     "year": 2021,
+     "total_usd_month": 81.2238,
+     "delivery_usd_month": 51.243599999999994,
+     "supply_usd_month": 29.980200000000004
+    },
+    {
+     "year": 2022,
+     "total_usd_month": 94.734,
+     "delivery_usd_month": 54.0444,
+     "supply_usd_month": 40.68959999999999
+    },
+    {
+     "year": 2023,
+     "total_usd_month": 96.7986,
+     "delivery_usd_month": 60.618,
+     "supply_usd_month": 36.18059999999999
+    },
+    {
+     "year": 2024,
+     "total_usd_month": 112.56779999999999,
+     "delivery_usd_month": 74.3484,
+     "supply_usd_month": 38.21939999999999
+    },
+    {
+     "year": 2025,
+     "total_usd_month": 132.0408,
+     "delivery_usd_month": 80.4684,
+     "supply_usd_month": 51.57239999999999
+    }
+   ],
+   "change_2021_2025_usd_month": {
+    "total": 50.81699999999999,
+    "delivery": 29.22480000000001,
+    "supply": 21.592199999999984
+   },
+   "eia_series": {
+    "2021": {
+     "bundled_cents_kwh": {
+      "value": 13.5373,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NY part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "delivery_only_cents_kwh": {
+      "value": 8.5406,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NY part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 6983330.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NY part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.4118,
+      "unit": "share",
+      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), NY part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    },
+    "2022": {
+     "bundled_cents_kwh": {
+      "value": 15.789,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NY part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "delivery_only_cents_kwh": {
+      "value": 9.0074,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NY part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 7024435.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NY part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.4069,
+      "unit": "share",
+      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), NY part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    },
+    "2023": {
+     "bundled_cents_kwh": {
+      "value": 16.1331,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NY part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "delivery_only_cents_kwh": {
+      "value": 10.103,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NY part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 6925386.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NY part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.4042,
+      "unit": "share",
+      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), NY part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    },
+    "2024": {
+     "bundled_cents_kwh": {
+      "value": 18.7613,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NY part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "delivery_only_cents_kwh": {
+      "value": 12.3914,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NY part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 6871716.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NY part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.4136,
+      "unit": "share",
+      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), NY part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    },
+    "2025": {
+     "bundled_cents_kwh": {
+      "value": 22.0068,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NY part of the utility: residential revenue / sales, Part A (bundled service)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "delivery_only_cents_kwh": {
+      "value": 13.4114,
+      "unit": "cents/kWh nominal",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NY part of the utility: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "total_retail_mwh": {
+      "value": 7116845.0,
+      "unit": "MWh",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NY part of the utility: total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "sourced"
+     },
+     "residential_mwh_share": {
+      "value": 0.4192,
+      "unit": "share",
+      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), NY part of the utility: residential / total retail sales, Parts A + C",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
+   }
+  },
+  "bill_2026_tariff": {
+   "basis": "utilities/RGE.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments",
+   "rows": [
+    {
+     "item": "distribution_base",
+     "usd_month": 74.22200000000001
+    },
+    {
+     "item": "distribution_rider",
+     "usd_month": 10.526448
+    },
+    {
+     "item": "program_surcharge",
+     "usd_month": 3.5633999999999997
+    },
+    {
+     "item": "supply_energy",
+     "usd_month": 60.26732950925939
+    },
+    {
+     "item": "capacity",
+     "usd_month": 7.458894490740608
+    },
+    {
+     "item": "transmission",
+     "usd_month": 0.0
+    },
+    {
+     "item": "taxes_and_fees",
+     "usd_month": 3.4154114235680004
+    },
+    {
+     "item": "total",
+     "usd_month": 159.45348342356803
+    }
+   ]
+  },
+  "bill_levels_by_basis": {
+   "note": "Bill levels on different bases (2021: EIA-861 averages at the benchmark usage; 2026: tariff bill). Not a change; bill_trend is the like-for-like trend.",
    "basis_2021": "EIA-861 2021 average revenue per kWh at the benchmark usage (no 2021 line-item tariff archive was located; per the fallback rule, marked derived)",
    "basis_2026": "utilities/RGE.json starting_bill (line by line, statuses there), by category via engine.layers.starting_lines() with the capacity carve-out and starting adjustments",
    "rows": [
@@ -49826,159 +50056,7 @@
      "usd_month_2026": 159.45348342356803,
      "status_2021": "derived"
     }
-   ],
-   "eia_series": {
-    "2021": {
-     "bundled_cents_kwh": {
-      "value": 13.5373,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), RGE: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "delivery_only_cents_kwh": {
-      "value": 8.5406,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2021 (Sales_Ult_Cust_2021.xlsx), RGE: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 6983330.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2021, RGE: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4118,
-      "unit": "share",
-      "source": "EIA Form 861, 2021, RGE: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2022": {
-     "bundled_cents_kwh": {
-      "value": 15.789,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), RGE: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "delivery_only_cents_kwh": {
-      "value": 9.0074,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2022 (Sales_Ult_Cust_2022.xlsx), RGE: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 7024435.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2022, RGE: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4069,
-      "unit": "share",
-      "source": "EIA Form 861, 2022, RGE: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2023": {
-     "bundled_cents_kwh": {
-      "value": 16.1331,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), RGE: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "delivery_only_cents_kwh": {
-      "value": 10.103,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2023 (Sales_Ult_Cust_2023.xlsx), RGE: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 6925386.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2023, RGE: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4042,
-      "unit": "share",
-      "source": "EIA Form 861, 2023, RGE: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2024": {
-     "bundled_cents_kwh": {
-      "value": 18.7613,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), RGE: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "delivery_only_cents_kwh": {
-      "value": 12.3914,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2024 (Sales_Ult_Cust_2024.xlsx), RGE: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 6871716.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2024, RGE: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4136,
-      "unit": "share",
-      "source": "EIA Form 861, 2024, RGE: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    },
-    "2025": {
-     "bundled_cents_kwh": {
-      "value": 22.0068,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), RGE: residential revenue / sales, Part A (bundled service)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "delivery_only_cents_kwh": {
-      "value": 13.4114,
-      "unit": "cents/kWh nominal",
-      "source": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), RGE: residential revenue / sales, Part C (delivery-only service: customers of retail suppliers)",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     },
-     "total_retail_mwh": {
-      "value": 7116845.0,
-      "unit": "MWh",
-      "source": "EIA Form 861, 2025, RGE: total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "sourced"
-     },
-     "residential_mwh_share": {
-      "value": 0.4192,
-      "unit": "share",
-      "source": "EIA Form 861, 2025, RGE: residential / total retail sales, Parts A + C",
-      "as_of": "2026-11-02",
-      "status": "derived"
-     }
-    }
-   }
+   ]
   },
   "rr_bridge": {
    "scope": {
@@ -50092,6 +50170,125 @@
      "value_m": 781.0713021931965
     }
    ],
+   "grouped_rows": [
+    {
+     "group": "start",
+     "item": "Revenue requirement 2021 (Form 1 functional basis)",
+     "value_m": 545.3970697761307
+    },
+    {
+     "group": "capital_driven",
+     "item": "return_on_rate_base_growth",
+     "value_m": 43.281788291397554
+    },
+    {
+     "group": "capital_driven",
+     "item": "depreciation",
+     "value_m": 28.3625136329443
+    },
+    {
+     "group": "capital_driven",
+     "item": "plant_property_tax",
+     "value_m": 16.012979901460312
+    },
+    {
+     "group": "capital_driven",
+     "item": "income_tax_on_return",
+     "value_m": 14.735926869389846
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "roe_change",
+     "value_m": 5.171826623992322
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "equity_ratio_change",
+     "value_m": 0.0
+    },
+    {
+     "group": "cost_of_capital",
+     "item": "cost_of_debt_change",
+     "value_m": 0.0
+    },
+    {
+     "group": "operating",
+     "item": "om_normalised",
+     "value_m": 96.05480863604072
+    },
+    {
+     "group": "operating",
+     "item": "non_plant_taxes",
+     "value_m": 6.14838846184081
+    },
+    {
+     "group": "pension_non_service",
+     "item": "non_service_pension_and_retiree_benefits",
+     "value_m": 0.0
+    },
+    {
+     "group": "subtotal",
+     "item": "Revenue requirement 2025 (Form 1 functional basis)",
+     "value_m": 755.1653021931966
+    },
+    {
+     "group": "rate_case",
+     "item": "Approved 2026 rate-case step",
+     "value_m": 25.906
+    },
+    {
+     "group": "end",
+     "item": "Revenue requirement 2026",
+     "value_m": 781.0713021931965
+    }
+   ],
+   "group_totals": {
+    "capital_driven": 102.39320869519202,
+    "cost_of_capital": 5.171826623992322,
+    "operating": 102.20319709788153,
+    "pension_non_service": 0.0,
+    "rate_case": 25.906
+   },
+   "property_tax_attribution": {
+    "method": "Plant-related property tax = the property tax / net plant ratio (Form 1 page 262 property and real estate taxes charged, all departments, / Form 1 page 200 net utility plant, all departments) x the scope's functional rate-base plant (scope net plant + allocated general and intangible plant, after the jurisdictional share). Property tax is assessed on plant value, so a uniform ratio attributes it to plant in proportion to net book value; assessed values, local rates and special-franchise valuation differ by plant type and locality, so this is an attribution, not a measured split. Non-plant taxes = the scope's taxes other than income (as in the detailed bridge) - plant-related property tax (payroll, gross receipts, franchise, sales and use and other taxes).",
+    "ratio": {
+     "2021": {
+      "value": 0.032221,
+      "unit": "share of net plant a year",
+      "source": "Derived: Form 1 2021 property_tax_total_company $120.8M / net_plant_total_company $3,747.9M (both in rr_bridge.form1)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "2025": {
+      "value": 0.029524,
+      "unit": "share of net plant a year",
+      "source": "Derived: Form 1 2025 property_tax_total_company $142.6M / net_plant_total_company $4,830.2M (both in rr_bridge.form1)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
+   },
+   "om_normalisation": {
+    "applied": false,
+    "check": "Not driven by pension or retiree-benefit credits: Form 1 account 926 (employee pensions and benefits) is $7.5M in 2021 and $0.1M in 2025 (positive in both years), against administrative and general costs of $29.4M and $39.3M. Reported and normalised O&M are the same.",
+    "method": "Normalised O&M = reported O&M (Form 1 functional basis) - non-service pension and retiree-benefit costs in administrative and general, allocated to the scope by the same O&M share as the rest of A&G and then by the jurisdictional share. The detailed bridge keeps reported O&M; the grouped view uses normalised O&M and shows the non-service change as its own reconciling line.",
+    "non_service_benefits_electric": {
+     "2021": {
+      "value": 0.0,
+      "unit": "$M nominal",
+      "source": "Check: Form 1 account 926 is 7.5 (2021) and 0.1 (2025) $M; not credit-driven, so no normalisation is applied",
+      "as_of": "2026-11-02",
+      "status": "setting"
+     },
+     "2025": {
+      "value": 0.0,
+      "unit": "$M nominal",
+      "source": "Check: Form 1 account 926 is 7.5 (2021) and 0.1 (2025) $M; not credit-driven, so no normalisation is applied",
+      "as_of": "2026-11-02",
+      "status": "setting"
+     }
+    }
+   },
    "years": {
     "2021": {
      "year": 2021.0,
@@ -50111,6 +50308,10 @@
      "om": 218.802435864912,
      "taxes_other": 100.861425425946,
      "income_taxes": 14.189089458233454,
+     "plant_property_tax": 73.12313442049793,
+     "non_plant_taxes": 27.738291005448062,
+     "non_service_benefits": 0.0,
+     "om_normalised": 218.802435864912,
      "rr": 545.3970697761307
     },
     "2025": {
@@ -50131,6 +50332,10 @@
      "om": 314.85724450095273,
      "taxes_other": 123.02279378924712,
      "income_taxes": 28.9250163276233,
+     "plant_property_tax": 89.13611432195825,
+     "non_plant_taxes": 33.88667946728887,
+     "non_service_benefits": 0.0,
+     "om_normalised": 314.85724450095273,
      "rr": 755.1653021931966
     }
    },
@@ -50321,7 +50526,26 @@
       "quote": "increases in the property tax burden, and to support spending for capital improvements and employee additions",
       "source": "NY DPS press release 23106 (12 Oct 2023)"
      }
-    ]
+    ],
+    "comparison": {
+     "basis": "first rate year (May 2023 - Apr 2024): requested against the approved levelized increase (NY DPS press release 23106)",
+     "included_in_totals": true,
+     "temporary": false,
+     "requested_m": {
+      "value": 93.8,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of Case 22-E-0319: NY DPS press release 23106: \"RG&E sought a first-year electric revenue increase of $93.8 million, or 11.3 percent increase in total revenues\"",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": 50.9,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_approved_m of Case 22-E-0319: NY DPS press release 23106: \"levelized electric rate increase for RG&E of $50.9 million in the first year, $56.6 million in the second year, and $65.3 million in the third year\"",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    },
    {
     "docket": "Case 25-E-0379",
@@ -50351,10 +50575,11 @@
     },
     "revenue_approved_m": {
      "value": 25.906,
-     "unit": "$M (temporary, pending)",
+     "unit": "$M a year (temporary rates, pending final order)",
      "source": "NY DPS RG&E Electric Rate Case Summary (temporary rates, 14 May 2026)",
      "as_of": "2026-11-02",
-     "status": "sourced"
+     "status": "sourced",
+     "label": "temporary rates"
     },
     "roe_requested": {
      "value": 0.1,
@@ -50376,16 +50601,56 @@
       "quote": "The rates are instituted on a temporary basis pending a final determination which will require full reconciliation.",
       "source": "NY DPS RG&E temporary rate case summary (May 2026)"
      }
-    ]
+    ],
+    "comparison": {
+     "basis": "temporary rates (14 May 2026) against the requested annual increase; pending final order, subject to full reconciliation",
+     "included_in_totals": false,
+     "temporary": true,
+     "requested_m": {
+      "value": 220.2,
+      "unit": "$M a year (nominal)",
+      "source": "Derived from revenue_requested_m of Case 25-E-0379: NY DPS notice, Case 25-E-0379 (Jul 2025): \"requesting an increase in annual electric revenues of approximately $220.2 million, including Gross Receipts Tax\"",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     },
+     "approved_m": {
+      "value": 25.906,
+      "unit": "$M a year (nominal) - temporary rates, pending final order",
+      "source": "Derived from revenue_approved_m of Case 25-E-0379: NY DPS RG&E Electric Rate Case Summary (temporary rates, 14 May 2026)",
+      "as_of": "2026-11-02",
+      "status": "derived"
+     }
+    }
    }
   ],
+  "asked_granted_totals": {
+   "decided": {
+    "proceedings": [
+     "Case 22-E-0319"
+    ],
+    "requested_m": 93.8,
+    "approved_m": 50.9,
+    "approved_pct_of_requested": 54.26439232409382,
+    "include_temporary": false
+   },
+   "including_temporary": {
+    "proceedings": [
+     "Case 22-E-0319",
+     "Case 25-E-0379"
+    ],
+    "requested_m": 314.0,
+    "approved_m": 76.806,
+    "approved_pct_of_requested": 24.460509554140124,
+    "include_temporary": true
+   }
+  },
   "class_allocation": [
    {
     "docket": "Case 25-E-0379 (temporary)",
     "residential_share_of_increase": {
      "value": null,
      "unit": null,
-     "source": "Not located: residential share of the temporary increase",
+     "source": "Not located: residential share of the temporary increase (Case 25-E-0379)",
      "as_of": "2026-11-02",
      "status": "_VERIFY"
     },
@@ -50416,16 +50681,16 @@
     "residential_share_of_increase": {
      "value": null,
      "unit": null,
-     "source": "Not located: residential share of the 2023 increase",
+     "source": "Not located: the revenue allocation appendix of the 2023 joint proposal (Case 22-E-0319) and the temporary-rate allocation (Case 25-E-0379) are on the DPS document system and were not retrieved",
      "as_of": "2026-11-02",
      "status": "_VERIFY"
     },
     "residential_share_of_sales": {
-     "value": null,
+     "value": 0.4042,
      "unit": "share",
-     "source": "See eia_series residential_mwh_share",
+     "source": "EIA Form 861, 2023: residential / total retail sales, Parts A + C (eia_series)",
      "as_of": "2026-11-02",
-     "status": "_VERIFY"
+     "status": "derived"
     },
     "customer_charge_before": {
      "value": null,
