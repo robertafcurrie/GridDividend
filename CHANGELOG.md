@@ -6,7 +6,11 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
-## 2026-11-02: Connecticut review fixes (this commit)
+## 2026-11-02: Regenerate exports: Connecticut review fixes (this commit)
+
+**Effect on results:** as in the review-fixes entry. The Connecticut exports carry the new results and the `bill_bridge_line_items` look-back block. Con Edison, RG&E, Dominion and Pepco change only in `source_commit` (now f152f20), and are identical to 582d744 apart from the stamps. 603 tests pass.
+
+## 2026-11-02: Connecticut review fixes
 
 **Effect on results:** Connecticut only. The Con Edison, RG&E, Dominion and Pepco exports are identical to 582d744 apart from the metadata stamps (checked line by line). Every new engine input is off by default or absent for those utilities.
 
