@@ -102,15 +102,23 @@ def functional_year(lb, year):
     ptax = _v(br['property_tax_attribution']['ratio'][year]) * (np_scope + gen_int) * j
     # non-service pension and retiree-benefit costs in A&G (account 926), allocated like the rest of A&G
     ns = _v(br['om_normalisation']['non_service_benefits_electric'][year]) * share_om * j
+    # programme O&M recovered outside base rates (Connecticut: C&LM through the CAM and hardship through the
+    # SBC, booked in customer assistance, account 908), in the scope like the rest of customer service
+    pn = br.get('programme_normalisation')
+    pg = _v(pn['programme_om_electric'][year]) * j if pn and pn.get('applied') else None
     a = br['allowed_return'][year]
     roe, eq, cod = _v(a['roe']), _v(a['equity_ratio']), _v(a['cost_of_debt'])
     w = wacc(roe, eq, cod)
-    return dict(year=int(year), jurisdiction_share=j, plant_share=share_p, om_share=share_om,
-                functional_plant=np_scope * j, general_intangible=gen_int * j, other_rate_base=other_rb * j,
-                rate_base=rb, roe=roe, equity_ratio=eq, cost_of_debt=cod, wacc=w, return_m=rb * w,
-                depreciation=dep, om=om, taxes_other=taxes, income_taxes=inc,
-                plant_property_tax=ptax, non_plant_taxes=taxes - ptax, non_service_benefits=ns, om_normalised=om - ns,
-                rr=revenue_requirement(rb, w, dep, om, taxes, inc))
+    out = dict(year=int(year), jurisdiction_share=j, plant_share=share_p, om_share=share_om,
+               functional_plant=np_scope * j, general_intangible=gen_int * j, other_rate_base=other_rb * j,
+               rate_base=rb, roe=roe, equity_ratio=eq, cost_of_debt=cod, wacc=w, return_m=rb * w,
+               depreciation=dep, om=om, taxes_other=taxes, income_taxes=inc,
+               plant_property_tax=ptax, non_plant_taxes=taxes - ptax, non_service_benefits=ns, om_normalised=om - ns,
+               rr=revenue_requirement(rb, w, dep, om, taxes, inc))
+    if pg is not None:                       # only where the look-back carries programme_normalisation
+        out['programme_om'] = pg
+        out['om_normalised'] = om - ns - pg
+    return out
 
 
 def capital_shares(utility_json):
@@ -169,7 +177,8 @@ def bridge_check(bridge):
     return end - start - change
 
 
-GROUPS = ('capital_driven', 'cost_of_capital', 'operating', 'pension_non_service', 'rate_case')
+GROUPS = ('capital_driven', 'cost_of_capital', 'operating', 'pension_non_service', 'programme_outside_base_rates',
+          'rate_case')
 
 
 def rr_bridge_grouped(lb, utility_json):
@@ -182,6 +191,9 @@ def rr_bridge_grouped(lb, utility_json):
                  and non-plant taxes
       pension_non_service: the change in non-service pension and retiree-benefit costs,
                  outside the groups (zero where no normalisation applies)
+      programme_outside_base_rates: where the look-back carries programme_normalisation
+                 (Connecticut), the change in programme O&M recovered through public-benefits
+                 charges rather than base rates; absent otherwise
       rate_case: the approved 2026 step.
     Start, 2025 subtotal and end equal the detailed bridge (rr_bridge()).
     """
@@ -200,6 +212,8 @@ def rr_bridge_grouped(lb, utility_json):
             ('operating', 'om_normalised', b['om_normalised'] - a['om_normalised']),
             ('operating', 'non_plant_taxes', b['non_plant_taxes'] - a['non_plant_taxes']),
             ('pension_non_service', 'non_service_pension_and_retiree_benefits', b['non_service_benefits'] - a['non_service_benefits']),
+            *([('programme_outside_base_rates', 'public_benefits_programme_om', b['programme_om'] - a['programme_om'])]
+              if 'programme_om' in a else []),
             ('subtotal', det.loc[det['group'] == 'subtotal', 'item'].iloc[0], b['rr']),
             ('rate_case', f'Approved {BRIDGE_END} rate-case step', _v(lb['rr_bridge']['step_2026'])),
             ('end', det['item'].iloc[-1], det['value_m'].iloc[-1])]
@@ -207,8 +221,33 @@ def rr_bridge_grouped(lb, utility_json):
 
 
 def group_totals(grouped):
-    """Total change by group, $M (the groups sum to end - start)."""
+    """Total change by group, $M (the groups present; they sum to end - start)."""
     return grouped[grouped['group'].isin(GROUPS)].groupby('group', sort=False)['value_m'].sum()
+
+
+def line_item_bridge(lb, utility_json):
+    """
+    Bill bridge by category from the earliest line-item bill (lb['bill']['line_items_start'],
+    e.g. Connecticut's OCC bill components of 1 January 2022) to the 2026 tariff bill, $/month
+    nominal at the benchmark usage. 2026 capacity is carved out of supply in the forward model,
+    so supply and capacity are combined here (the earlier bill embeds capacity in supply).
+    Output: DataFrame indexed by category: start, 2026, change. None where the block is absent.
+    """
+    li = lb['bill'].get('line_items_start')
+    if not li:
+        return None
+    kwh = lb['benchmark_kwh_month']
+    start = {c: 0.0 for c in LY.CATEGORIES}
+    for ln in li['lines']:
+        r = _v(ln)
+        start[ln['category']] += r if ln['unit'] == '$/month' else r * kwh
+    c26 = LY.by_category(LY.starting_lines(utility_json))
+    for d in (start, c26):
+        d['supply_energy'] += d.pop('capacity')
+    rows = [{'item': c, 'start': start[c], '2026': c26[c], 'change': c26[c] - start[c]} for c in start]
+    rows.append({'item': 'total', 'start': sum(start.values()), '2026': sum(c26.values()),
+                 'change': sum(c26.values()) - sum(start.values())})
+    return pd.DataFrame(rows).set_index('item')
 
 
 def bill_trend(lb):
@@ -406,6 +445,15 @@ def lookback_export(key, utility_json, root=ROOT):
         'proceedings': lb['proceedings'],
         'asked_granted_totals': {'decided': asked_granted_totals(lb), 'including_temporary': asked_granted_totals(lb, True)},
         'class_allocation': lb['class_allocation']}
+    lib = line_item_bridge(lb, utility_json)
+    if lib is not None:
+        li = lb['bill']['line_items_start']
+        out['bill_bridge_line_items'] = {
+            'basis': li['basis'], 'start_label': li['label'],
+            'note': 'Line-item tariff bills at the benchmark usage, $/month nominal: the earliest line-item bill against the 2026 tariff bill (supply includes capacity in both). Like for like by category.',
+            'lines_start': li['lines'],
+            'rows': [{'item': i, 'usd_month_start': float(r['start']), 'usd_month_2026': float(r['2026']),
+                      'change_usd_month': float(r['change'])} for i, r in lib.iterrows()]}
     if 'riders' in lb:
         bb = dominion_bill_bridge(lb)
         rr = rider_rr_by_year(lb)

@@ -17,7 +17,7 @@
   "annual_capex_m": 549.1,
   "_revenue_note": "Eversource 2025 Annual Report (CL&P): retail revenue $4,155.4M = supply $1,050.0M + local delivery $1,425.1M + public benefits $959.3M + transmission $721.0M. EIA-861 2025 reports the same total ($4,155.4M, Parts A + C).",
   "total_revenue_m": 4155.4,
-  "_roe_note": "Eversource 2018 10-K: the Docket 17-10-46 settlement (approved 18 Apr 2018) set an authorised regulatory ROE of 9.25% and 53% common equity. The 2021 settlement (Oct 2021) left them unchanged (the 90 bp storm-decision and 45 bp draft reductions were not implemented). Requested in Docket 26-05-10: 10.25% ROE, ~54% equity (brief of 2 Nov 2026; _VERIFY against the filing).",
+  "_roe_note": "Eversource 2018 10-K: the Docket 17-10-46 settlement (approved 18 Apr 2018) set an authorised regulatory ROE of 9.25% and 53% common equity. The 2021 settlement (Oct 2021) left them unchanged (the 90 bp storm-decision and 45 bp draft reductions were not implemented). Requested in Docket 26-05-10: 10.25% ROE, ~54% equity (Eversource Q2 2026 earnings report, 31 Jul 2026).",
   "roe": 0.0925,
   "equity_ratio": 0.53,
   "_customers_note": "EIA Form 861, 2025 (Sales_Ult_Cust_2025.xlsx), Connecticut Light & Power Co (EIA utility 4176), CT: bundled (Part A) + delivery-only (Part C) rows: 1,309,946 customers in 2025 (1,193,581 residential). Eversource reports ~1.32M retail customers in 157 towns (2025 Annual Report).",
@@ -55,7 +55,7 @@
   "nws_eligible_capex_share_max": 0.3,
   "_dist_upgrade_VERIFY": "Placeholder $2.0M/MW: suburban and rural, mostly overhead; between RG&E (1.5) and Pepco MD (2.2). No CL&P cost per MW of capacity added was located.",
   "dist_upgrade_cost_per_mw": 2.0,
-  "_notes": "Pending: Docket 26-05-10 (filed 14 Jul 2026), the first general rate case since 2017: revenue deficiency $451M base / $727M with storm costs (the May 2026 notice of intent said ~$503M); requested ROE 10.25%, equity ~54%; a four-year Performance-Based Multi-Year Rate Plan (PBMRP) with annual formula adjustments, the natural vehicle for a shared-savings mechanism; AMI of ~$1B capital + $300M O&M (PURA rescinded its earlier AMI cost-recovery decision, Docket 17-10-46RE04, on 1 Jul 2026); a ~$4/month 20-year securitisation charge; typical residential impact ~13% at 700 kWh (base) or ~18% / +$32.91 a month with storms; decision expected mid-2027 (all _VERIFY against the filing). Storm costs (Docket 25-12-13, 29 Jul 2026): $974.2M requested, $869.4M found prudent ($63.3M deferred, $41.5M excluded), $667.9M to be securitised (Docket 26-04-04), retrospective carrying charges ($396.7M) denied; kept outside the distribution rate base. ESI (Electric System Improvements) tracker recovers core capital up to $300M a year, resiliency and approved grid modernisation, with earnings; by statute it ends after the next rate case, which matters for the BAU path. The 2026/27 CTA includes a one-time $100M storm-fund contribution (~$3.50/month), not a recurring cost. Investment context: >$3.3B invested in CT electric distribution since 2018; Eversource says annual CT electric investment will exceed $800M by 2029; a $500M five-year spending cut was announced in 2024 and the CEO's \"shut the faucet off\" remark (call of late Sep 2026; WFSB, 5 Oct 2026) means recent capex may understate the forward run-rate (not built into BAU beyond the plan). PBR at PURA: framework decision Apr 2023 (Docket 21-05-15); Phase 2 reopeners RE01 (revenue adjustment), RE02 (performance mechanisms), RE03 (integrated distribution system planning); draft decisions summer 2025, finals paused by the commissioner changes; no 2026 final decision was located (_VERIFY).",
+  "_notes": "Pending: Docket 26-05-10 (filed 14 Jul 2026), the first general rate case since 2017: application filed 14 Jul 2026: $451M base deficiency (excluding storms), requested ROE 10.25%, equity ratio ~54%, a four-year rate plan with PBR (Performance-Based Multi-Year Rate Plan, PBMRP, with annual formula adjustments), decision expected mid-2027 (Eversource Q2 2026 earnings report, 31 Jul 2026: sourced); $727M including storm costs (FactSet, 11 Aug 2026); the May 2026 notice of intent's ~$503M was the pre-filing estimate; the natural vehicle for a shared-savings mechanism; AMI of ~$1B capital + $300M O&M (PURA rescinded its earlier AMI cost-recovery decision, Docket 17-10-46RE04, on 1 Jul 2026); a ~$4/month 20-year securitisation charge; typical residential impact ~13% at 700 kWh (base) or ~18% / +$32.91 a month with storms (_VERIFY against the filing). Storm costs (Docket 25-12-13, 29 Jul 2026): $974.2M requested, $869.4M found prudent ($63.3M deferred, $41.5M excluded), $667.9M to be securitised (Docket 26-04-04), retrospective carrying charges ($396.7M) denied; kept outside the distribution rate base. ESI (Electric System Improvements) tracker recovers core capital up to $300M a year, resiliency and approved grid modernisation, with earnings; by statute it ends after the next rate case, which matters for the BAU path. The 2026/27 CTA includes a one-time $100M storm-fund contribution (~$3.50/month), not a recurring cost. Investment context: >$3.3B invested in CT electric distribution since 2018; Eversource says annual CT electric investment will exceed $800M by 2029; a $500M five-year spending cut was announced in 2024 and the CEO's \"shut the faucet off\" remark (call of late Sep 2026; WFSB, 5 Oct 2026) means recent capex may understate the forward run-rate (not built into BAU beyond the plan). PBR at PURA: framework decision Apr 2023 (Docket 21-05-15); Phase 2 reopeners RE01 (revenue adjustment), RE02 (performance mechanisms), RE03 (integrated distribution system planning); draft decisions summer 2025, finals paused by the commissioner changes; no 2026 final decision was located (_VERIFY).",
   "report_context": {
     "regulator": "Connecticut Public Utilities Regulatory Authority (PURA); five commissioners since 6 May 2026 (Chairman Thomas Wiehl, Vice Chairman David Arconti, Janice Beecher, Holly Cheeseman, Everett Smith)",
     "case": "Docket 17-10-46 (2018 settlement, rates in force); Docket 26-05-10 pending",
@@ -437,6 +437,15 @@
         "source": "Assumption: BAU surcharge rates grow with inflation (policy-driven)",
         "as_of": "2026-11-02",
         "status": "_VERIFY"
+      },
+      "public_benefits_revert_share": {
+        "low": 0.0,
+        "central": 0.2615,
+        "high": 1.0,
+        "unit": "share of the move from today's public-benefits credit to the pre-credit level (starting_bill revert), from May 2027",
+        "source": "Derived. The May 2026 credit rests on items that need not all end together: PA 25-173 bonding ($145M for 2026-27; Governor's office, 8 Sep 2026: the reduction continues \"through at least next spring\"; no authorisation beyond 30 Apr 2027 located), the Millstone / Seabrook net benefit at current wholesale prices, and returned over-collections. Low 0 = the credit persists. Central = only the bonded amount returns: OCC RAM FAQ (1 May 2026), about $10/month at 700 kWh = 1.43 c/kWh, against a full move of 5.464 c/kWh (from NBFMCC + SBC today to 3.3 c) = 0.2615. High 1 = full revert to ~3.3 c/kWh (pre-credit public benefits ~4 c less C&LM and RE investment).",
+        "as_of": "2026-11-02",
+        "status": "derived"
       }
     },
     "layers": {
@@ -590,13 +599,13 @@
             "status": "_VERIFY"
           },
           "cost_kw_yr_storage": {
-            "low": 250,
-            "central": 150,
-            "high": 100,
-            "unit": "$ per kW-yr (2026 $)",
-            "source": "Assumption for distributed battery capacity payments",
+            "low": 360.3,
+            "central": 307.6,
+            "high": 233.4,
+            "unit": "$ per kW-yr (levelised over 10 years at 7%)",
+            "source": "Derived from the ESS incentives (Connecticut Green Bank, \"Connecticut's Energy Storage Solutions Program Updates 2026\" (PURA Year Five Decision, Docket 25-08-05, 17 Dec 2025; effective 1 Apr 2026)): 10-year performance incentives residential $300-550/kW-yr; small/medium C&I $325 (years 1-5), $175 (6-10); large C&I $275 / $175; enrolment incentives residential grid-edge $130/kWh, non-grid-edge $30/kWh, priority C&I $10/kWh (x 4-hour duration, annualised at a 7% capital recovery factor over 10 years, 0.1424). Levelised: residential $471 (midpoint $425 + enrolment average $80/kWh), C&I $251 (average of small/medium $263 and large $233, plus half the priority enrolment). Central = weighted by the ESS target mix (150 MW residential, 430 MW C&I) = $308; low (Cautious) = residential at $550 with grid-edge enrolment and small/medium C&I = $360; high (Ambitious) = large C&I = $233. About double the Pepco proxy ($150) used before.",
             "as_of": "2026-11-02",
-            "status": "_VERIFY"
+            "status": "derived"
           },
           "cost_kw_yr_der": {
             "low": 100,
@@ -689,9 +698,9 @@
             "central": 0.056,
             "high": 0.028,
             "unit": "$ per kWh saved (lifetime, undiscounted)",
-            "source": "Derived. Low (Cautious) = this utility's reported cost, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): incentives + other costs $135.4M / incremental life-cycle savings 1,240,891 MWh = $0.109/kWh. That is an upper bound for the cost of additional electric savings: the Connecticut C&LM portfolio also funds heat-pump conversions and weatherization whose benefits are partly in other fuels (the 2025-2027 C&LM Plan reports a benefit-cost ratio of ~3.3 counting them), while EIA counts electric savings only. Central $0.056 = twice the LBNL national program administrator cost of saved energy (Hoffman, Leventis, Goldman, 2017: $0.028/kWh), the Pepco MD low value; high = the LBNL $0.028.",
+            "source": "Derived. Low (Cautious) = this utility's reported cost, EIA-861 2025 Energy_Efficiency (Connecticut Light & Power Co): incentives + other costs $135.4M / incremental life-cycle savings 1,240,891 MWh = $0.109/kWh. That is an upper bound for the cost of additional electric savings: the Connecticut C&LM portfolio also funds heat-pump conversions and weatherization whose benefits are partly in other fuels (the 2025-2027 C&LM Plan reports a benefit-cost ratio of ~3.3 counting them), while EIA counts electric savings only. Central $0.056 = twice the LBNL national program administrator cost of saved energy (Hoffman, Leventis, Goldman, 2017: $0.028/kWh): _VERIFY, because an electric-only Connecticut cost (C&LM Plan electric budget / electric lifetime MWh by utility, or the EEB Programs & Operations reports) was not derivable in this build. For comparison, Con Edison, RG&E, Dominion and Pepco use $0.028 at Central and $0.056 at their low level, so Connecticut's Central is the others' Cautious value. High = the LBNL $0.028. Context: 2026 forecast benefit-cost ratios (EEB cost-effectiveness deck, 13 May 2026): Eversource electric CTET 2.42 / TRC 2.05; UI 2.95 / 2.53.",
             "as_of": "2026-11-02",
-            "status": "derived"
+            "status": "_VERIFY"
           },
           "ee_measure_life": {
             "value": 10,
@@ -767,20 +776,20 @@
             "status": "derived"
           },
           "mw_2035_storage": {
-            "low": 22.5,
-            "central": 458.2,
-            "high": 458.2,
+            "low": 458.2,
+            "central": 555.6,
+            "high": 653.0,
             "unit": "MW nameplate",
-            "source": "Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached by 2035; 2050 scaled with BAU peak. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "source": "Incremental to Energy Storage Solutions, which is BAU policy (bau_path_storage: 580 MW by 2030 x customer share 0.79 = 458.2 MW). Cautious: ESS only (no storage above it). Central: ESS + DOE low end (10% of BAU peak) x storage split 0.2. Ambitious: ESS + 20% of BAU peak x 0.2. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
             "as_of": "2026-11-02",
             "status": "derived"
           },
           "mw_2050_storage": {
-            "low": 30.0,
-            "central": 503.9,
-            "high": 503.9,
+            "low": 458.2,
+            "central": 565.3,
+            "high": 672.4,
             "unit": "MW nameplate",
-            "source": "Central: Energy Storage Solutions 580 MW target (150 MW residential, 430 MW commercial; Eversource and UI) x customer share 0.79, reached by 2035; 2050 scaled with BAU peak. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). Ambitious: DOE, Pathways to Commercial Liftoff: Virtual Power Plants, 2025 Update: 80-160 GW by 2030 = 10-20% of US peak. Ambitious = 20% of BAU peak, split by type (or Central if higher). Cautious: today x1.5 (2035) / x2 (2050), judgement, capped at Central. BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
+            "source": "Incremental to Energy Storage Solutions, which is BAU policy (bau_path_storage: 580 MW by 2030 x customer share 0.79 = 458.2 MW). Cautious: ESS only (no storage above it). Central: ESS + DOE low end (10% of BAU peak) x storage split 0.2. Ambitious: ESS + 20% of BAU peak x 0.2. State goal 1,000 MW by 2030 (PA 21-53, _VERIFY). BAU peak (utility_forecast pace, central) 4,870 MW (2035), 5,355 MW (2050).",
             "as_of": "2026-11-02",
             "status": "derived"
           },
@@ -885,6 +894,16 @@
             "source": "Kept at the EmPOWER Maryland value (no Connecticut evaluation located). Check: EIA-861 2025 reports 40.1 MW / 125.2 GWh = 0.32 kW per MWh first-year savings, a reported (not evaluated) ratio. EmPOWER Maryland 2024 program year, independent evaluation (Guidehouse; 2026 EmPOWER Standard Report, p.21): verified gross first-year savings 861,804 MWh and 94.183 MW summer = 0.1093 kW per MWh (central); net 706,841 MWh and 68.514 MW = 0.0969 (low); reported (verified / realisation rates 0.89 energy, 0.83 demand) = 0.1172 (high). Replaces ee_peak_coincidence (central 1.0 = savings shaped like system load, ~2x higher)",
             "as_of": "2026-11-02",
             "status": "sourced"
+          },
+          "bau_path_storage": {
+            "value": {
+              "2026": 15.0,
+              "2030": 458.2
+            },
+            "unit": "MW nameplate by year (BAU; linear between years, flat after 2030)",
+            "source": "Derived: Energy Storage Solutions (ESS), run by Eversource and UI under PURA and recovered through the NBFMCC, is BAU policy: 580 MW statewide by 2030 (Connecticut Green Bank, \"Connecticut's Energy Storage Solutions Program Updates 2026\" (PURA Year Five Decision, Docket 25-08-05, 17 Dec 2025; effective 1 Apr 2026); approved so far nearly 15 MW residential and more than 140 MW C&I) x customer share 0.79 (enrolment by utility not published). Start = today's installed storage (mw_start_storage). ESS spend stays in the NBFMCC line on the BAU bill in both cases; shared savings pays only for storage above this path (cost_kw_yr_storage).",
+            "as_of": "2026-11-02",
+            "status": "derived"
           }
         }
       },
@@ -1308,6 +1327,15 @@
             "source": "Setting (off by default, for comparison): include (a), the lower share of zonal transmission costs, on the bill and in headline customer savings. It is a cost shift to other customers in the zone, not a saving, so by default it is reported separately and never enters the shared-savings pool (the utility earns nothing on it), whatever this setting.",
             "as_of": "2026-11-02",
             "status": "setting"
+          },
+          "allocation_peak_factor": {
+            "low": 0.25,
+            "central": 0.5,
+            "high": 1.0,
+            "unit": "share of the annual-peak reduction that lowers the 12CP allocation basis",
+            "source": "Assumption (_VERIFY). ISO-NE allocates RNS on monthly network load at the 12 coincident peaks; the engine measures (a) on the annual peak. Most demand response dispatches in summer only: low 0.25 = summer-only dispatch (3 of 12 monthly peaks); central 0.5; high 1.0 = storage and managed load lowering every monthly peak. Applies to the cost-shift line (a) only; default 1.0 elsewhere (PJM unchanged).",
+            "as_of": "2026-11-02",
+            "status": "_VERIFY"
           }
         }
       },
@@ -1887,14 +1915,14 @@
         "transmission_plan_rate_base_m": {
           "value": [
             4600.0,
-            4837.6,
-            5066.9,
-            5288.2,
-            5501.7,
-            5707.7
+            4592.5,
+            4681.8,
+            4992.9,
+            5359.1,
+            5653.1
           ],
           "unit": "$M (end of year)",
-          "source": "Derived (_VERIFY): CL&P transmission rate base ~$4.6B at YE 2025 (Eversource 2025 Annual Report), rolled forward with CL&P's 2025 transmission capex $398.6M a year (Eversource 2025 financial review) at the model's 3.5%/yr rate-base decay. CL&P's share of Eversource's $7.2B 2026-30 transmission plan and the PTO forecast (NEPOOL RC/TC, 15 Jul 2026) were not located. Cross-check: the path gives the TAC line ~4.6%/yr nominal growth per MW of peak 2026-2030, against the 2026 RNS forecast $184 / $186 / $197 / $210 / $220 per kW-year (2026-30, ~4.6%/yr).",
+          "source": "Derived (_VERIFY): same basis as UI. Customers pay the pooled ISO-NE RNS rate, so the path is scaled to make the transmission line follow the 2026 RNS Rate Overview and Forecast ($185.28 2025, $183.71 2026, then ~$186 / $197 / $210 / $220 per kW-year 2027-2030): CL&P transmission rate base ~$4.6B at YE 2025 (Eversource 2025 Annual Report) x RNS_t / RNS_2025 x CL&P peak growth (0.69%/yr, 2025 FLR). The implied investment (change + 3.5% decay) stands for CL&P's share of regional PTF additions. Local network service (part of the TAC, CL&P-specific) is not quantified separately and moves with the RNS rate. After 2030 the line tapers to projection.transmission_growth by taper_year.",
           "as_of": "2026-11-02",
           "status": "_VERIFY"
         },

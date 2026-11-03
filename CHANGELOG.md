@@ -6,6 +6,60 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-02: Connecticut review fixes (this commit)
+
+**Effect on results:** Connecticut only. The Con Edison, RG&E, Dominion and Pepco exports are identical to 582d744 apart from the metadata stamps (checked line by line). Every new engine input is off by default or absent for those utilities.
+
+**Engine** (`engine/layers.py`, additive):
+- **`bau_path_<type>`** (programs, optional): a BAU flexible-MW path `{year: MW}` for a programme already in BAU policy. Shared-savings MW never fall below it; only MW above it are costed; the ramp limit applies to growth above it.
+- **`projection.public_benefits_revert_share`**: how far a `revert` line moves toward its reverted rate (default 1.0). It is a range, so it is in the tornado.
+- **`transmission.allocation_peak_factor`**: scales the cost-shift line (a) only (default 1.0, so PJM is unchanged).
+
+**Look-back** (`engine/lookback.py`, only where the data block exists):
+- `programme_normalisation`: account 908 programme O&M (C&LM through the CAM, hardship through the SBC) is normalised out of operating. It gets its own grouped line, `programme_outside_base_rates`.
+- `line_item_bridge()` and the export block `bill_bridge_line_items`: the January 2022 OCC line-item bill against 2026, by category.
+
+**Data and results.** Central customer savings, undiscounted nominal $B (NPV 3% in brackets), measured step by step from aceb582:
+
+| Step | CL&P | UI |
+|---|---|---|
+| Before (aceb582) | 4.65 (2.84) | 0.60 (0.37) |
+| CL&P rate case figures `sourced` (Eversource Q2 2026 earnings report); the notice of intent's ~$503M kept as a separate, labelled pre-filing entry | no change | – |
+| UI rate base $1,321.2M from the Docket 24-10-04 proposed final decision (was the Form 1 $1,430M); 50/50 capital structure from that decision | – | 0.60 (0.37), no change |
+| Energy Storage Solutions moved into BAU (580 MW × customer share by 2030); shared-savings storage incremental to it, costed at $360 / $308 / $233 per kW-year from the ESS incentives (was $150) | 4.77 (2.94) | 0.67 (0.42); UI Central pool −$117.6M → −$42.4M cumulative |
+| Public-benefits revert as a range: low 0 / central = bonded amount only (1.43¢/kWh: CL&P 0.262, UI 0.192 of the full move) / high 1 | no change in customer savings; bills lower (CL&P 2035 BAU $286.76 → $255.16) and the monthly saving smaller (less usage saving on the surcharges) | same |
+| 12CP factor 0.25 / 0.5 / 1.0 on the RNS cost shift | reported line only: $2.42B → $0.75B | $0.91B → $0.29B |
+| CL&P transmission path on the RNS forecast, as for UI | no change in customer savings; TAC line 2030 $40.58 → $42.33, 2050 $67.48 → $72.80/month | – |
+| Efficiency cost Central $0.056 made `_VERIFY`, with the comparison and the EEB benefit-cost ratios | no change | no change |
+| **After** | **4.77 (2.94)** | **0.67 (0.42)** |
+
+Monthly saving, Central, 2035 / 2050: CL&P $7.96 / $22.92 → $6.90 / $19.66; UI $5.65 / $10.46 → $4.10 / $7.80. The fall comes mostly from the smaller public-benefits revert, which leaves less surcharge for efficiency to save on.
+
+Shared savings earnings, Central: CL&P $0.63B → $0.68B; UI 0 → 0 (Ambitious $0.19B → $0.15B).
+
+**Look-back:**
+- January 2022 line items for both utilities (OCC). Bill bridge by category to 2026, at 700 kWh:
+  - CL&P: transmission +$12.49, ESI +$10.14, CTA +$4.28, supply +$0.65, base distribution unchanged.
+  - UI: distribution +$18.32, transmission +$11.18, supply +$8.94.
+- C&LM / SBC programme O&M normalised out of operating:
+  - CL&P: base-rate operating +$82M, programme +$91M (was operating +$173M);
+  - UI: operating +$122M, programme +$3M.
+- Docket 26-05-10 figures `sourced`; the notice of intent kept as a labelled pre-filing entry.
+
+**MW connected sooner.** CL&P now orders Cautious 0.1, Central 1.6, Ambitious 2.1 MW. The earlier 4.1 > 2.1 was not a bug: the peak-year measure excludes load cleared by efficiency, and Ambitious clears more of it that way. Upgrade Delay MW-years avoided (7 / 46 / 61) is the ordered measure (data notes).
+
+**Tests:** 603 (new: BAU storage path, 12CP factor; revert test extended to the share).
+- The ramp check applies to growth above a BAU path.
+- The transmission identity includes the 12CP factor.
+- The grouped-bridge check accepts the programme group where present.
+
+**Docs:**
+- METHODOLOGY 3.1 (revert share), 3.4 (BAU path, ESS cost), 3.8a (12CP factor, RNS paths, Connecticut rows), 12.4–12.7 (line items, normalisation, rate case rows);
+- data notes (the before/after pool table for UI);
+- README Connecticut table;
+- CLAUDE.md;
+- explorer prompt (`bill_bridge_line_items`, `programme_outside_base_rates`).
+
 ## 2026-11-02: Regenerate exports: Connecticut added (this commit)
 
 **Effect on results:** none for the existing exports. Con Edison, RG&E, Dominion and Pepco differ from the previous files only in `source_commit` (now aceb582). `exports/EversourceCT.json` and `exports/UI_CT.json` are new. 599 tests pass.

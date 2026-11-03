@@ -12,13 +12,15 @@ Every input with its value, source and status is in [../ASSUMPTIONS.md](../ASSUM
 - ROE 9.25% and 53% equity (Eversource 2018 10-K);
 - the 2021 settlement froze base rates to at least 1 January 2024 and left the ROE unchanged.
 
-**Pending rate case: Docket 26-05-10** (filed 14 July 2026), the first general rate case since 2017. Figures from the brief, `_VERIFY` against the filing:
-- deficiency $451M base, $727M with storm costs (the May 2026 notice of intent said about $503M);
-- ROE 10.25%, equity about 54%;
-- a four-year **Performance-Based Multi-Year Rate Plan (PBMRP)** with annual formula adjustments;
-- AMI (about $1B capital and $300M O&M);
-- a ~$4/month, 20-year securitisation charge;
-- decision expected mid-2027.
+**Pending rate case: Docket 26-05-10**, the first general rate case since 2017.
+- **Filed figures** (Eversource Q2 2026 earnings report, 31 July 2026; `sourced`):
+  - application filed 14 July 2026;
+  - $451M base deficiency, excluding storms ($727M including storm costs, FactSet, 11 August 2026);
+  - requested ROE 10.25%, equity ratio about 54%;
+  - a four-year rate plan with PBR (the **Performance-Based Multi-Year Rate Plan, PBMRP**, with annual formula adjustments);
+  - decision expected mid-2027.
+- **Pre-filing estimate:** the May 2026 notice of intent put the deficiency at about $503M. It is kept as a separate look-back entry with that label.
+- **Also proposed** (`_VERIFY` against the filing): AMI (about $1B capital and $300M O&M) and a ~$4/month, 20-year securitisation charge.
 
 It is not added to the starting bill.
 
@@ -52,7 +54,17 @@ The 2026 reconciliation (`delivery_rr_reconciliation`) gives recalibrated other 
 
 **Published check.** No published total typical bill was located. OCC (1 May 2026) puts the May 2026 RAM at about −$31/month at 700 kWh (about −15%), and May plus July together at about −$38 (−18%).
 
-**Public benefits are a temporary credit.** The credit comes from PA 25-173 bonding ($145M for 2026-27) and the Millstone / Seabrook contracts turning into a net benefit. Before May 2026, public benefits were about 4¢/kWh combined. The projection returns NBFMCC + SBC to 3.3¢/kWh (4¢ less C&LM and RE investment) from May 2027 (`revert`, METHODOLOGY 3.1). Effect: the 2035 BAU average bill is $286.76 with the revert and $238.99 without, and the 2035 Central saving is $7.96 and $6.08 respectively. The split between NBFMCC and SBC before May 2026 was not located; the whole 3.3¢ sits on the NBFMCC line.
+**Public benefits are a temporary credit.** The credit rests on three things:
+- PA 25-173 bonding ($145M for 2026-27, confirmed "through at least next spring");
+- the Millstone / Seabrook contracts turning into a net benefit at current wholesale prices;
+- returned over-collections.
+
+Before May 2026, public benefits were about 4¢/kWh combined. From May 2027 the projection moves NBFMCC + SBC toward 3.3¢/kWh by `public_benefits_revert_share` (METHODOLOGY 3.1):
+- low 0: the credit persists;
+- central 0.262: only the bonded amount (about $10/month = 1.43¢/kWh) returns;
+- high 1: full revert.
+
+2035 BAU average bill: $255.16 at central, against $286.76 with the full revert and $238.99 with none. The split between NBFMCC and SBC before May 2026 was not located; the reverted amount sits on the NBFMCC line.
 
 ## Key sources
 
@@ -64,10 +76,16 @@ The 2026 reconciliation (`delivery_rr_reconciliation`) gives recalibrated other 
   - large customer additions 58 MW rising to 103 MW from 2027 (`dc_growth`; not data centres).
 
   The 2026 FLR was not located.
-- **Efficiency:** EIA-861 2025, 125,243 MWh first-year savings (0.62% of sales), at $0.109 per lifetime kWh (the Cautious cost level).
+- **Efficiency:**
+  - EIA-861 2025: 125,243 MWh first-year savings (0.62% of sales), at $0.109 per lifetime kWh. That is the Cautious cost level, because the portfolio includes heat-pump and weatherisation measures with benefits in other fuels.
+  - Central $0.056 is `_VERIFY`. An electric-only cost from the C&LM Plan or the EEB Programs & Operations reports was not derivable here. The other four utilities use $0.028 at Central and $0.056 at their Cautious level, so Connecticut's Central is their Cautious value.
+  - Context: 2026 forecast benefit-cost ratios (EEB cost-effectiveness deck, 13 May 2026): Eversource electric CTET 2.42 / TRC 2.05.
 - **Demand response today:** 118.3 MW (EIA-861 2025, potential peak savings; ConnectedSolutions).
 - **Demand response path:** 2025-2027 C&LM Plan statewide active DR target, 235.4 MW, × the 0.79 customer share = 186.0 MW (Central 2035). The FLR plans 192 MW in Eversource's territory 2025-27, which is a consistent check.
-- **Storage:** Energy Storage Solutions target of 580 MW × 0.79 = 458 MW (Central 2035). Today 15 MW (statewide installed ESS + ConnectedSolutions batteries × 0.79).
+- **Storage:**
+  - **Energy Storage Solutions is BAU** (`bau_path_storage`): today 15 MW (statewide installed ESS + ConnectedSolutions batteries × 0.79), rising to 580 MW × 0.79 = 458 MW by 2030, flat after. The ESS cost stays in the NBFMCC on the BAU bill.
+  - **Shared-savings storage is incremental to ESS:** Cautious none; Central 10% of BAU peak × 0.2 (97 MW by 2035); Ambitious 20% × 0.2.
+  - **Cost:** $360 / $308 / $233 per kW-year (Cautious / Central / Ambitious), levelised from the ESS incentives (Connecticut Green Bank 2026 update; METHODOLOGY 3.4).
 - **Capacity** (`shared/capacity_markets/ISONE.json`, zone CT):
   - prices: FCA 17 $2.59/kW-month (2026/27); FCA 18 $3.58 (2027/28);
   - long-run price: FCA 18 Net CONE, $9.078/kW-month;
@@ -81,8 +99,9 @@ The 2026 reconciliation (`delivery_rr_reconciliation`) gives recalibrated other 
   - (a) lower share of regional transmission costs:
     - New England is the zone (RNS 12CP pooling);
     - CL&P's share is 0.183, its peak / ISO-NE peak, a proxy for its 12CP share;
-    - reported separately (Central $2.42B undiscounted). It is overstated, because it is measured on the annual peak against the 12CP average.
-  - Cross-check: the derived path grows the TAC line about 4.6% a year to 2030, in line with the 2026 RNS forecast ($184 / $186 / $197 / $210 / $220 per kW-year).
+    - scaled by `allocation_peak_factor` 0.25 / 0.5 / 1.0 (summer-only dispatch lowers only some of the 12 monthly peaks; `_VERIFY`);
+    - reported separately: Central $0.75B undiscounted ($2.42B on the annual peak).
+  - **Transmission path:** the same basis as UI, scaled to the 2026 RNS forecast ($184 / $186 / $197 / $210 / $220 per kW-year, 2026–30) from the ~$4.6B YE 2025 rate base. Local network service is not quantified separately. BAU TAC line: $35.35 (2026), $42.33 (2030), $72.80 (2050) a month; the earlier own-investment path gave $40.58 and $67.48.
 - **Losses:** 2.86%, UI's figure as a proxy (`_VERIFY`). EIA-861's CL&P losses exclude wheeled load.
 
 ## Published-plan BAU
@@ -124,13 +143,34 @@ The 2026 reconciliation (`delivery_rr_reconciliation`) gives recalibrated other 
 - upgrade cost: placeholder $2.0M/MW;
 - `ee_kw_per_mwh`: EmPOWER.
 
+## MW connected sooner
+
+The first build showed Central at 4.1 MW, above Ambitious at 2.1 MW. Now the order is Cautious 0.1, Central 1.6, Ambitious 2.1 MW. The inversion was not a bug.
+- The measure is a peak-year count of load served above BAU, and it excludes efficiency.
+- Ambitious clears as much waiting load as Central (the reduction in BAU waiting MW peaks at 6.2 MW in both), but more of it through efficiency lowering demand, which the measure does not count.
+
+The measure that orders properly is **Upgrade Delay MW-years avoided**: 7 / 46 / 61 (Cautious / Central / Ambitious) of 26 MW affected in BAU. Use it for comparisons.
+
+## Look-back
+
+- **Bill by category, January 2022 (OCC bill components) → 2026, at 700 kWh, $/month:**
+  - distribution base unchanged ($50.53);
+  - riders +$13.37 (ESI +$10.14, CTA +$4.28, decoupling −$1.06);
+  - transmission +$12.49;
+  - supply including capacity +$0.65;
+  - public benefits $21.85 → −$10.25, or +$18.24 → −$14.45 excluding C&LM;
+  - total $180.02 → $174.43.
+- **Revenue-requirement bridge, 2021 → 2025 ($M):** capital-driven +187; base-rate operating +82; programme O&M recovered through the CAM and SBC +91 (account 908, normalised out of operating); no 2026 step.
+
 ## Main `_VERIFY` gaps to close
 
 The tornado ranks these by how much they move the 2050 saving:
-1. **Efficiency savings above BAU** (`ee_incremental_savings_pct`, swing $15.77/month). Connecticut has no statutory percentage-of-sales target.
-2. **Supply, program-surcharge and transmission growth** (projection; $4.41, $2.57, $2.34).
-3. **Storage cost per kW-year** ($3.18; Pepco proxy).
-4. **Locational match** ($2.01) and **reinforcement lead time** ($1.96). Hosting-capacity data and the IDSP filings (Docket 21-05-15RE03) would inform both.
+1. **Efficiency savings above BAU** (`ee_incremental_savings_pct`). Connecticut has no statutory percentage-of-sales target.
+2. **Efficiency cost** (Central $0.056, `_VERIFY`; an electric-only figure would settle it).
+3. **Supply, program-surcharge and transmission growth** (projection).
+4. **Locational match and reinforcement lead time.** Hosting-capacity data and the IDSP filings (Docket 21-05-15RE03) would inform both.
+
+The current tornado ranking is in the exports (`tornado`).
 5. **The Docket 26-05-10 schedules:** rate base, capital budget by driver, class allocation.
 
 ## Notes

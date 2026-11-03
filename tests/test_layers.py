@@ -83,15 +83,17 @@ def test_starting_total_equals_starting_bill(key, nb):
 
 @pytest.mark.parametrize('key,nb', [u for u in UTILS if u[0] in ('EversourceCT', 'UI_CT')])
 def test_temporary_rate_revert(key, nb):
-    """Connecticut's public-benefits credit returns to its pre-credit level from May 2027 (8/12 of 2027), then grows
-    like any program surcharge; without the revert the credit would be projected forward. Lines without 'revert'
-    are untouched."""
+    """Connecticut's public-benefits credit moves toward its pre-credit level from May 2027 (8/12 of 2027) by
+    projection.public_benefits_revert_share (low 0 = the credit persists, central = the bonded amount, high 1 = full
+    revert), then grows like any program surcharge. Lines without 'revert' are untouched."""
     uj, p = _utility(key, nb)
     kwh = uj['starting_bill']['benchmark_kwh_month']
     lines = {d['id']: d for d in LY.starting_lines(uj)}
     assert lines['nbfmcc']['month'] < 0 and lines['sbc']['month'] < 0
     assert [d['id'] for d in LY.starting_lines(uj) if d.get('revert')] == ['nbfmcc', 'sbc']
-    g = LY.resolve(uj['forward_assumptions'])['projection']['program_surcharge_growth']
+    pj = LY.resolve(uj['forward_assumptions'])['projection']
+    g, sh = pj['program_surcharge_growth'], pj['public_benefits_revert_share']
+    assert 0 < sh < 1
     b = LY.project_layers(uj, p)['bau'].set_index('year')
     non_core = sum(d['month'] for d in lines.values() if d['category'] == 'program_surcharge' and not d['core'])
     rev = sum((d['revert']['month'] if d.get('revert') else d['month'])
@@ -99,14 +101,49 @@ def test_temporary_rate_revert(key, nb):
     core = sum(d['month'] for d in lines.values() if d['category'] == 'program_surcharge' and d['core'])
     assert b.loc[2026, 'bill_program_surcharge'] == pytest.approx(non_core + core, abs=1e-9)
     w = lines['nbfmcc']['revert']['first_year_share']
-    assert b.loc[2027, 'bill_program_surcharge'] == pytest.approx((non_core + (rev - non_core) * w + core) * (1 + g), rel=1e-9)
-    assert b.loc[2030, 'bill_program_surcharge'] == pytest.approx((rev + core) * (1 + g) ** 4, rel=1e-9)
+    assert b.loc[2027, 'bill_program_surcharge'] == pytest.approx((non_core + (rev - non_core) * w * sh + core) * (1 + g), rel=1e-9)
+    assert b.loc[2030, 'bill_program_surcharge'] == pytest.approx((non_core + (rev - non_core) * sh + core) * (1 + g) ** 4, rel=1e-9)
+    for lev, f in (('low', 0.0), ('high', 1.0)):
+        bl = LY.project_layers(uj, p, overrides={('projection', 'public_benefits_revert_share'): lev})['bau'].set_index('year')
+        assert bl.loc[2030, 'bill_program_surcharge'] == pytest.approx((non_core + (rev - non_core) * f + core) * (1 + g) ** 4, rel=1e-9)
     assert rev == pytest.approx((0.033 + 0.001) * kwh, abs=1e-9)    # NBFMCC + SBC at 3.3 c, plus RE investment
     plain = copy.deepcopy(uj)
     for ln in plain['starting_bill']['lines']:
         ln.pop('revert', None)
     b0 = LY.project_layers(plain, p)['bau'].set_index('year')
     assert b0.loc[2030, 'bill_program_surcharge'] == pytest.approx((non_core + core) * (1 + g) ** 4, rel=1e-9)
+
+
+@pytest.mark.parametrize('key,nb', [u for u in UTILS if u[0] in ('EversourceCT', 'UI_CT')])
+def test_bau_storage_path_and_incremental_cost(key, nb):
+    """Energy Storage Solutions is BAU: BAU storage follows bau_path_storage (flat after 2030), shared-savings storage
+    never falls below it, and only the MW above it are costed (the ESS cost stays in the NBFMCC line in both cases)."""
+    uj, p = _utility(key, nb)
+    pr = LY.resolve(uj['forward_assumptions'])['programs']
+    path = {int(y): v for y, v in pr['bau_path_storage'].items()}
+    r = LY.project_layers(uj, p)
+    mw = r['mw'].set_index('year')
+    assert mw.loc[2026, 'storage_bau_mw'] == pytest.approx(path[2026])
+    assert mw.loc[2030, 'storage_bau_mw'] == pytest.approx(path[2030]) and mw.loc[2050, 'storage_bau_mw'] == pytest.approx(path[2030])
+    assert (mw['storage_ss_mw'] >= mw['storage_bau_mw'] - 1e-9).all()
+    assert (mw['storage_incremental_mw'] - (mw['storage_ss_mw'] - mw['storage_bau_mw'])).abs().max() < 1e-9
+    cau = LY.project_layers(uj, p, scenario='Cautious')['mw']
+    assert (cau['storage_incremental_mw'].abs() < 1e-9).all()       # Cautious: ESS only
+    # without the BAU path the same targets would all count as shared-savings storage
+    plain = copy.deepcopy(uj)
+    del plain['forward_assumptions']['layers']['programs']['params']['bau_path_storage']
+    m0 = LY.project_layers(plain, p)['mw'].set_index('year')
+    assert (m0['storage_bau_mw'] == path[2026]).all() and m0.loc[2050, 'storage_incremental_mw'] > mw.loc[2050, 'storage_incremental_mw']
+
+
+@pytest.mark.parametrize('key,nb', [u for u in UTILS if u[0] in ('EversourceCT', 'UI_CT')])
+def test_allocation_peak_factor_scales_cost_shift_only(key, nb):
+    """ISO-NE allocates RNS on 12 monthly peaks: allocation_peak_factor scales the cost-shift line (a) only."""
+    uj, p = _utility(key, nb)
+    runs = {f: LY.project_layers(uj, p, overrides={('transmission', 'allocation_peak_factor'): f})['ss'] for f in (0.5, 1.0)}
+    assert runs[0.5]['transmission_allocation_m'].sum() == pytest.approx(0.5 * runs[1.0]['transmission_allocation_m'].sum(), rel=1e-9)
+    assert runs[0.5]['transmission_allocation_m'].sum() > 0
+    np.testing.assert_allclose(runs[0.5]['avg_bill_total'].values, runs[1.0]['avg_bill_total'].values, rtol=0, atol=1e-12)
 
 
 def test_pepco_order_adjustment():
@@ -273,7 +310,9 @@ def test_ramp_limit_respected(key, nb):
     m = r['mw']
     for k in LY.FLEX_TYPES:
         cap = pr[f'ramp_pct_peak_{k}'] * r['system']['peak_mw'].iloc[0]
-        assert (np.diff(m[f'{k}_ss_mw'].values) <= cap + 1e-9).all()
+        # the limit applies to growth above the BAU path (a BAU programme such as Connecticut's ESS grows on its own)
+        ss, bau = m[f'{k}_ss_mw'].values, m[f'{k}_bau_mw'].values
+        assert (ss[1:] <= np.maximum(ss[:-1], bau[1:]) + cap + 1e-9).all()
     free = LY.project_layers(uj, p, overrides=LY.no_ramp_overrides())['mw']
     for k in LY.FLEX_TYPES:
         assert (m[f'{k}_ss_mw'] <= free[f'{k}_ss_mw'] + 1e-9).all()
@@ -1250,7 +1289,8 @@ def test_transmission_split_identities(key, nb):
         # the customers' saving is the drop in their share of the fixed ATRR: gross x (1 - s) Pz / (Pz - d)
         gross = LY.project_layers(uj, p, overrides={**SINGLE_TX, ('transmission', 'avoidable_share'): 1.0})['ss']['transmission_avoided_m']
         pz, d = s['peak_mw'] / sh, s['firm_mw'].clip(upper=s['peak_mw'])
-        expect = np.where(d > 0, gross * (1 - sh) * pz / (pz - d), 0.0)
+        # x allocation_peak_factor (ISO-NE: share of the annual-peak reduction that lowers the 12CP basis; 1 in PJM)
+        expect = np.where(d > 0, gross * (1 - sh) * pz / (pz - d), 0.0) * tp.get('allocation_peak_factor', 1.0)
         assert np.allclose(s['transmission_allocation_m'], expect, rtol=1e-9, atol=1e-12)
         assert (s['transmission_allocation_m'] < gross + 1e-12).all()
         assert np.allclose(s['transmission_build_other_zone_m'] * sh, s['transmission_build_avoided_m'] * (1 - sh))

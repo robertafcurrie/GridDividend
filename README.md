@@ -81,14 +81,23 @@ Figures are Central, with the Cautious–Ambitious range in brackets, on **publi
 
 | | Eversource CT (CL&P) | United Illuminating |
 |---|---|---|
-| **Customer savings 2026–2050, $B undiscounted** | **4.7** (1.9–10.4) | **0.6** (0.1–1.9) |
-| Customer savings, $B NPV 3% (2026 $) | 2.8 (1.2–6.4) | 0.4 (0.1–1.2) |
-| Average residential bill, $/month lower in 2035 | 7.96 (3.80–16.43) | 5.65 (2.64–13.64) |
-| Average residential bill, $/month lower in 2050 | 22.92 (8.80–44.35) | 10.46 (3.33–26.14) |
-| Upgrade Delay avoided, MW-years (MW waiting in BAU) | 59 (8–61) of 26 MW | 18 (1–22) of 12 MW |
-| Shared savings earnings, $B undiscounted | 0.63 (0.11–1.71) | 0.00 (0.00–0.19) |
+| **Customer savings 2026–2050, $B undiscounted** | **4.8** (1.9–10.1) | **0.7** (0.2–1.8) |
+| Customer savings, $B NPV 3% (2026 $) | 2.9 (1.2–6.2) | 0.4 (0.1–1.1) |
+| Average residential bill, $/month lower in 2035 | 6.90 (3.19–13.54) | 4.10 (1.65–9.12) |
+| Average residential bill, $/month lower in 2050 | 19.66 (7.76–38.81) | 7.80 (2.00–19.05) |
+| Upgrade Delay avoided, MW-years (MW waiting in BAU) | 46 (7–61) of 26 MW | 14 (1–22) of 12 MW |
+| Shared savings earnings, $B undiscounted | 0.68 (0.12–1.58) | 0.00 (0.00–0.15) |
 
-United Illuminating's pool is negative in every year at Central. Its capex plan is small (about $70–80M a year after its 2025 capital cut), ISO-NE capacity is cheap (about a quarter of PJM's 2026 price), and the storage path is costed at the Pepco proxy. So there is no earnings opportunity until those conditions change (lower storage cost, a larger growth-driven plan, efficiency at the national cost). Customers still save, mostly through efficiency and capacity. Today's Connecticut bills carry a temporary public-benefits credit; the model returns it to its pre-credit level from May 2027.
+**Energy Storage Solutions is BAU.** Connecticut's ESS programme (580 MW by 2030, recovered through the NBFMCC) is in BAU in both cases. Only storage above it counts as shared savings, costed from the ESS incentives at $308/kW-yr (Central).
+
+**United Illuminating's pool** is negative in almost every year at Central: −$42M cumulative, positive only by 2050. So there are no shared savings earnings at Cautious or Central. Its capex plan is small (about $70–80M a year after its 2025 capital cut), and ISO-NE capacity is cheap (about a quarter of PJM's 2026 price). The opportunity opens with:
+- a larger growth-driven plan;
+- cheaper flexibility;
+- efficiency at the national cost.
+
+Customers still save, mostly through efficiency and capacity.
+
+**Public benefits.** Today's Connecticut bills carry a temporary public-benefits credit. From May 2027 the model returns the bonded part of it (central; the full pre-credit level is the high case).
 
 **Published-plan vs model-derived BAU (Central).** The published plans call for more distribution spending than the network model generated, so there is more to defer and right-size. The model-derived BAU remains selectable (`bau_plan.basis: 'model'`).
 

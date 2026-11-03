@@ -58,7 +58,12 @@ The data, per utility file:
   isone, whichever is not null; ISO-NE prices are $/kW-month by capability period),
   Connecticut's Standard Service and public-benefits series
   (supply_side.standard_service_cents_kwh, supply_side.public_benefits_cents_kwh), class
-  allocation (class_allocation), and Dominion's riders (riders, Dominion file only).
+  allocation (class_allocation), Dominion's riders (riders, Dominion file only), and
+  Connecticut's line-item bill bridge from January 2022 to 2026 by category
+  (bill_bridge_line_items: rows with usd_month_start, usd_month_2026,
+  change_usd_month; Connecticut files only). In Connecticut's grouped bridge,
+  programme_outside_base_rates is programme O&M recovered through public-benefits
+  charges, not base rates; show it apart from operating costs.
 - Ignore the advance blocks (runs[...].advance and advance_fast_start, the top-level
   advance_stress and advance_fast_start_stress, and metadata.advance_note): the
   dividend advance is a parked option.

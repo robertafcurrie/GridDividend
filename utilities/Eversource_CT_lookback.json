@@ -241,7 +241,123 @@
         }
       }
     },
-    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change."
+    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change.",
+    "line_items_start": {
+      "label": "Jan 2022",
+      "basis": "OCC bill components effective 1 January 2022 (Rate 1 / Rate R, Standard Service), at the benchmark usage; the earliest line-item bill located. The EIA-861 2021 total stays the trend anchor.",
+      "lines": [
+        {
+          "id": "customer_charge",
+          "name": "Customer Service Charge",
+          "category": "distribution_base",
+          "value": 9.62,
+          "unit": "$/month",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "distribution_kwh",
+          "name": "Distribution Charge",
+          "category": "distribution_base",
+          "value": 0.05844,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "rider_esi",
+          "name": "Electric System Improvements",
+          "category": "distribution_rider",
+          "value": 0.00582,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "rider_ram",
+          "name": "Revenue Adjustment Mechanism (decoupling)",
+          "category": "distribution_rider",
+          "value": 0.00162,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "rider_cta",
+          "name": "Competitive Transition Assessment",
+          "category": "distribution_rider",
+          "value": -0.00116,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "tac",
+          "name": "Transmission",
+          "category": "transmission",
+          "value": 0.03266,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "sbc",
+          "name": "Systems Benefits Charge",
+          "category": "program_surcharge",
+          "value": 0.00921,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "reif",
+          "name": "Renewable Energy Investment Charge",
+          "category": "program_surcharge",
+          "value": 0.001,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "clm",
+          "name": "Conservation Adjustment Mechanism (C&LM)",
+          "category": "program_surcharge",
+          "value": 0.00515,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "nbfmcc",
+          "name": "Non-Bypassable FMCC",
+          "category": "program_surcharge",
+          "value": 0.01585,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "gsc",
+          "name": "Generation Service Charge incl. bypassable FMCC (11.574 - 0.09 c)",
+          "category": "supply_energy",
+          "value": 0.11484,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      ]
+    }
   },
   "rr_bridge": {
     "scope": {
@@ -728,6 +844,27 @@
           "status": "setting"
         }
       }
+    },
+    "programme_normalisation": {
+      "applied": true,
+      "method": "Normalised O&M also excludes programme costs recovered through public-benefits charges rather than base rates: Form 1 account 908 (customer assistance expenses), where Connecticut utilities book C&LM programmes (recovered through the Conservation Adjustment Mechanism) and hardship and arrearage programmes (recovered through the Systems Benefits Charge). The amount is in the scope like the rest of customer service (jurisdictional share 1.0). The detailed bridge keeps reported O&M; the grouped view shows the change as its own line (programme_outside_base_rates), so \"operating\" means base-rate O&M.",
+      "check": "Account 908 rises $164.5M (2021) to $255.2M (2025); EIA-861 2025 reports $135.4M of CL&P efficiency and $10.0M of demand-response costs, the rest being SBC-funded hardship and arrearage programmes.",
+      "programme_om_electric": {
+        "2021": {
+          "value": 164.512,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The Connecticut Light and Power Company, electric O&M account 908 (customer assistance expenses), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "2025": {
+          "value": 255.211,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The Connecticut Light and Power Company, electric O&M account 908 (customer assistance expenses), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        }
+      }
     }
   },
   "supply_side": {
@@ -1184,10 +1321,10 @@
       "rate_years": "proposed from 1 Jul 2027",
       "revenue_requested_m": {
         "value": 451.0,
-        "unit": "$M a year (base; $727M including storm costs)",
-        "source": "Brief of 2 Nov 2026 (AARP CT on Docket 26-05-10, Oct 2026); the May 2026 notice of intent gave ~$503M",
+        "unit": "$M a year (base deficiency, excluding storms; $727M including storm costs, FactSet 11 Aug 2026)",
+        "source": "Eversource Q2 2026 earnings report (31 Jul 2026; investors.eversource.com): CL&P application filed 14 Jul 2026, \"$451 million base deficiency (excluding storms)\"",
         "as_of": "2026-11-02",
-        "status": "_VERIFY"
+        "status": "sourced"
       },
       "revenue_approved_m": {
         "value": null,
@@ -1199,9 +1336,9 @@
       "roe_requested": {
         "value": 0.1025,
         "unit": "share",
-        "source": "Brief of 2 Nov 2026 (requested ROE 10.25%, equity ~54%)",
+        "source": "Eversource Q2 2026 earnings report (31 Jul 2026): requested ROE 10.25%, equity ratio ~54%, four-year rate plan with PBR",
         "as_of": "2026-11-02",
-        "status": "_VERIFY"
+        "status": "sourced"
       },
       "roe_granted": {
         "value": null,
@@ -1228,6 +1365,76 @@
           "value": null,
           "unit": "$M a year (nominal)",
           "source": "Pending",
+          "as_of": "2026-11-02",
+          "status": "_VERIFY"
+        }
+      }
+    },
+    {
+      "docket": "Docket 26-05-10 (notice of intent, May 2026)",
+      "type": "pre-filing estimate (notice of intent to file)",
+      "filed": {
+        "value": "2026-05-20",
+        "unit": "date",
+        "source": "CL&P notice of intent, 20 May 2026 (\"Docket No. 26-05-XX\")",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "decided": {
+        "value": null,
+        "unit": null,
+        "source": "Not a decision",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "status": "pending",
+      "rate_years": "pre-filing",
+      "revenue_requested_m": {
+        "value": 503.0,
+        "unit": "$M a year (operating revenue deficiency, pre-filing estimate)",
+        "source": "CL&P notice of intent to file (20 May 2026): operating revenue deficiency of about $503 million; superseded by the 14 Jul 2026 application ($451M base)",
+        "as_of": "2026-11-02",
+        "status": "sourced"
+      },
+      "revenue_approved_m": {
+        "value": null,
+        "unit": null,
+        "source": "Not a decision",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_requested": {
+        "value": null,
+        "unit": null,
+        "source": "Not stated",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "roe_granted": {
+        "value": null,
+        "unit": null,
+        "source": "Not a decision",
+        "as_of": "2026-11-02",
+        "status": "setting"
+      },
+      "capital_adjustments": [],
+      "commission_reasons": [],
+      "notes": "Kept as a separate entry, labelled as the pre-filing estimate; excluded from totals.",
+      "comparison": {
+        "basis": "pre-filing estimate: not compared",
+        "included_in_totals": false,
+        "temporary": false,
+        "requested_m": {
+          "value": 503.0,
+          "unit": "$M a year (nominal)",
+          "source": "Derived from revenue_requested_m of the notice of intent",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "approved_m": {
+          "value": null,
+          "unit": "$M a year (nominal)",
+          "source": "Not applicable",
           "as_of": "2026-11-02",
           "status": "_VERIFY"
         }

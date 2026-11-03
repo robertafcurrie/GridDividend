@@ -81,7 +81,7 @@ exports/                   generated JSON for the web explorer (do not edit by h
 ## Running and testing
 
 ```bash
-python -m pytest tests/                       # full suite (599 tests)
+python -m pytest tests/                       # full suite (603 tests)
 python scripts/build_assumptions_register.py  # after any JSON change (the test fails otherwise)
 python scripts/export_results.py              # after any model or JSON change (test_export checks the totals)
 cd notebooks && jupyter nbconvert --to notebook --execute --inplace \
@@ -333,7 +333,7 @@ The self-contained v1.0 notebook (36 cells). Cell indices are 0-based (matching 
 - **Spatially aggregate.** Loading bands approximate the network; real outcomes depend on feeder-level constraints and where flexibility is sited. Prefer published grid-utilization data wherever it exists (`_grid_utilization_VERIFY`).
 - **Avoided transmission is a range** (PJM NITS is an average embedded cost), and **ROE is a separate lever** outside the pool.
 - **RG&E data is provisional** until the final order in Case 25-E-0379. **Property tax rates are estimates.**
-- **Connecticut** (`docs/utilities/Eversource_CT.md`, `UI_CT.md`): rate bases are derived from FERC Form 1 (no rate-order figure in this build), capex plans are derived paths, bills are read from the OCC bill page. The public-benefits credit (May 2026) returns to its pre-credit level from May 2027 (`revert` on the NBFMCC and SBC lines). UI's pool is negative in Cautious and Central (no shared savings earnings); tests that need a positive pool accept that case. The model is summer-peak based; Connecticut moves toward winter peaks in the 2030s.
+- **Connecticut** (`docs/utilities/Eversource_CT.md`, `UI_CT.md`): rate bases are derived from FERC Form 1 (no rate-order figure in this build), capex plans are derived paths, bills are read from the OCC bill page. From May 2027 the public-benefits credit (May 2026) moves toward its pre-credit level by `projection.public_benefits_revert_share` (`revert` on the NBFMCC and SBC lines; low 0 persists, central = the bonded amount, high 1 = full). Energy Storage Solutions is BAU (`programs.bau_path_storage`, 580 MW by 2030 × customer share); shared-savings storage is incremental to it, costed from the ESS incentives ($308/kW-yr central). `transmission.allocation_peak_factor` (ISO-NE 0.25 / 0.5 / 1.0; default 1.0 elsewhere) scales the RNS cost shift to 12CP. Both transmission paths follow the ISO-NE RNS forecast. The look-back carries a January 2022 line-item bill (`bill.line_items_start`, `line_item_bridge()`) and normalises C&LM / SBC programme O&M (account 908) out of operating (`programme_normalisation`, group `programme_outside_base_rates`). UI's pool is negative at Cautious and Central (no shared savings earnings); tests that need a positive pool accept that case. The model is summer-peak based; Connecticut moves toward winter peaks in the 2030s.
 - **FRONTLOADED** (earlier model) is a timing mechanism: the utility earns 0% in years 1-3 and the 25-year outcome equals BASE.
 
 ## Coding conventions

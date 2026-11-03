@@ -74,7 +74,7 @@ TRANSMISSION_FORMULATIONS = ('single', 'split')
 # while the formulation is 'single'); avoidable_share is read only by 'single'
 TRANSMISSION_SPLIT_PARAMS = ('allocation_effect', 'zone_nspl_mw', 'utility_share_of_zone', 'avoided_build_enabled',
                              'load_driven_share', 'avoided_build_share', 'planning_lag_years', 'tx_capex_share_of_plan',
-                             'allocation_in_headline')
+                             'allocation_in_headline', 'allocation_peak_factor')
 SCENARIOS = ('Cautious', 'Central', 'Ambitious')
 CATEGORIES = ('distribution_base', 'distribution_rider', 'program_surcharge', 'supply_energy',
               'capacity', 'transmission', 'taxes_and_fees')
@@ -159,18 +159,19 @@ def starting_lines(utility_json, carve_out=True, adjustments=True):
     return out
 
 
-def _reverted(d, y):
+def _reverted(d, y, share=1.0):
     """
     A line's year-zero $/month in year y (2026 $): d['month'], or for a temporary rate
     (starting_bill line 'revert': from_year, rate, first_year_share) the reverted level
-    from from_year on, blended by first_year_share in from_year. Lines without 'revert'
-    return d['month'] unchanged.
+    from from_year on, blended by first_year_share in from_year. share (projection
+    public_benefits_revert_share, default 1.0) scales how far the line moves toward the
+    reverted level. Lines without 'revert' return d['month'] unchanged.
     """
     rv = d.get('revert')
     if not rv or y < rv['from_year']:
         return d['month']
     w = rv['first_year_share'] if y == rv['from_year'] else 1.0
-    return d['month'] + (rv['month'] - d['month']) * w
+    return d['month'] + (rv['month'] - d['month']) * w * share
 
 
 def capacity_carve_out_month(co):
@@ -440,14 +441,26 @@ def flex_mw(pr, year, active):
     Inputs: pr = resolved programs params (mw_start_*, mw_2035_*, mw_2050_*, MW);
       year; active: shared savings with programs in force.
     Output: {type: MW} for FLEX_TYPES (dr, ev, storage, der). BAU (not active)
-      holds today's programs; active interpolates linearly 2026 -> 2035 -> 2050.
-      The ramp limit is applied in project_layers().
+      holds today's programs, or follows bau_path_<type> ({year: MW}, linear between
+      listed years, flat after the last) where a utility has a programme already in
+      BAU policy (Connecticut storage: Energy Storage Solutions); active interpolates
+      linearly 2026 -> 2035 -> 2050 and never falls below the BAU path. The ramp
+      limit is applied in project_layers().
     """
     out = {}
     for k in FLEX_TYPES:
         start = pr[f'mw_start_{k}']
-        out[k] = (float(np.interp(year, [2026, 2035, 2050], [start, pr[f'mw_2035_{k}'], pr[f'mw_2050_{k}']]))
-                  if active else start)
+        bp = pr.get(f'bau_path_{k}')
+        if bp:
+            pts = sorted((int(yy), float(v)) for yy, v in bp.items())
+            bau = float(np.interp(year, [yy for yy, _ in pts], [v for _, v in pts]))
+        else:
+            bau = start
+        if active:
+            ss = float(np.interp(year, [2026, 2035, 2050], [start, pr[f'mw_2035_{k}'], pr[f'mw_2050_{k}']]))
+            out[k] = max(ss, bau) if bp else ss
+        else:
+            out[k] = bau
     return out
 
 
@@ -1452,6 +1465,9 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                     rate = tx['cost_kw_yr'] * 1000 * tx_idx(t) / 1e6              # $M per MW-yr
                     pz = P[t] / tx_s
                     tx_alloc = rate * pz * mw_firm * (1 - tx_s) / (pz - mw_firm)
+                    # allocation_peak_factor (default 1): share of the annual-peak reduction that
+                    # lowers the allocation basis (ISO-NE RNS is allocated on 12 monthly peaks)
+                    tx_alloc *= tx.get('allocation_peak_factor', 1.0) or 0.0
                     tx_shift = tx_alloc                                         # paid by others in the zone
                 tx_r_hist.append((firm_flex + fc_mw) if active else 0.0)
                 if tx_build_on:
@@ -1511,7 +1527,8 @@ def project_layers(utility_json, params, level='central', overrides=None, enable
                         e['month'] = dist_bill * d['month'] / dist0 if dist0 else 0.0
                     elif c == 'program_surcharge':
                         e['month'] = (0.0 if (d['core'] and active)
-                                      else _reverted(d, y) * _infl(pj['program_surcharge_growth'], t))
+                                      else _reverted(d, y, pj.get('public_benefits_revert_share', 1.0))
+                                         * _infl(pj['program_surcharge_growth'], t))
                     elif c == 'supply_energy':
                         e['month'] = d['month'] * _infl(pj['supply_energy_growth'], t)
                         if f_sup:

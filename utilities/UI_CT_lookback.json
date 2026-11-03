@@ -241,7 +241,103 @@
         }
       }
     },
-    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change."
+    "trend_basis": "Headline like-for-like trend: EIA-861 residential average revenue per kWh, 2021-2025, x the benchmark usage; delivery = delivery-only (Part C) revenue per kWh x benchmark, supply = bundled - delivery. The 2026 tariff bill is shown separately; 2021 EIA averages and the 2026 tariff bill are on different bases and are not presented as a change.",
+    "line_items_start": {
+      "label": "Jan 2022",
+      "basis": "OCC bill components effective 1 January 2022 (Rate 1 / Rate R, Standard Service), at the benchmark usage; the earliest line-item bill located. The EIA-861 2021 total stays the trend anchor.",
+      "lines": [
+        {
+          "id": "customer_charge",
+          "name": "Customer Service Charge",
+          "category": "distribution_base",
+          "value": 12.84,
+          "unit": "$/month",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "distribution_kwh",
+          "name": "Distribution Charge",
+          "category": "distribution_base",
+          "value": 0.08756,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "rider_cta",
+          "name": "Competitive Transition Assessment",
+          "category": "distribution_rider",
+          "value": 0.0,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "tac",
+          "name": "Transmission",
+          "category": "transmission",
+          "value": 0.03275,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "sbc",
+          "name": "Systems Benefits Charge",
+          "category": "program_surcharge",
+          "value": 0.004673,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "reif",
+          "name": "Renewable Energy Investment Charge",
+          "category": "program_surcharge",
+          "value": 0.001,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "clm",
+          "name": "Conservation Adjustment Mechanism (C&LM)",
+          "category": "program_surcharge",
+          "value": 0.00479,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "nbfmcc",
+          "name": "Non-Bypassable FMCC",
+          "category": "program_surcharge",
+          "value": 0.0172,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        },
+        {
+          "id": "gsc",
+          "name": "Generation Service Charge (no separate bypassable FMCC)",
+          "category": "supply_energy",
+          "value": 0.106731,
+          "unit": "$/kWh",
+          "source": "OCC, Electric Bill/Rate Components (Effective January 1, 2022), portal.ct.gov/-/media/occ/01012022-electric-bill-components-final-122721.pdf",
+          "as_of": "2026-11-02",
+          "status": "sourced"
+        }
+      ]
+    }
   },
   "rr_bridge": {
     "scope": {
@@ -726,6 +822,27 @@
           "source": "Check: Form 1 account 926 is 3.4 (2021) and 2.4 (2025) $M; not credit-driven, so no normalisation is applied",
           "as_of": "2026-11-02",
           "status": "setting"
+        }
+      }
+    },
+    "programme_normalisation": {
+      "applied": true,
+      "method": "Normalised O&M also excludes programme costs recovered through public-benefits charges rather than base rates: Form 1 account 908 (customer assistance expenses), where Connecticut utilities book C&LM programmes (recovered through the Conservation Adjustment Mechanism) and hardship and arrearage programmes (recovered through the Systems Benefits Charge). The amount is in the scope like the rest of customer service (jurisdictional share 1.0). The detailed bridge keeps reported O&M; the grouped view shows the change as its own line (programme_outside_base_rates), so \"operating\" means base-rate O&M.",
+      "check": "Account 908 is $44.9M (2021) and $47.6M (2025); UI's operating growth is mostly customer accounts (uncollectibles $33.5M to $63.0M, account 904), which stays in base-rate O&M (partly offset through the SBC hardship programmes; not separable).",
+      "programme_om_electric": {
+        "2021": {
+          "value": 44.861,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2021, The United Illuminating Company, electric O&M account 908 (customer assistance expenses), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "derived"
+        },
+        "2025": {
+          "value": 47.589,
+          "unit": "$M nominal",
+          "source": "FERC Form 1, 2025, The United Illuminating Company, electric O&M account 908 (customer assistance expenses), via PUDL core_ferc1__yearly_operating_expenses_sched320",
+          "as_of": "2026-11-02",
+          "status": "derived"
         }
       }
     }

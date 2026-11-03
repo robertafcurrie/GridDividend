@@ -236,7 +236,12 @@ capacity $/month           = obligation_kw x price ($/MW-day) / 1000 x 365 / 12
 
 For Dominion the carved-out amount is split 91.5% from base generation and 8.5% from fuel. In Connecticut it comes out of the Standard Service Generation Service Charge at the FCA 17 price ($2.59/kW-month = $85.15/MW-day) and the ICR / reference-peak factor 1.151.
 
-*Temporary rates* (`revert` on a starting-bill line; Connecticut): a line whose 2026 rate is known to be temporary returns to a stated rate (2026 $, same unit) from `from_year`, with `first_year_share` of that year at the new rate, then grows like its category. It applies to program surcharge lines. Connecticut's public-benefits charges are a credit from May 2026 (PA 25-173 bonding and the Millstone / Seabrook contracts turning into a net benefit) until at least April 2027. NBFMCC + SBC return to 3.3¢/kWh, the pre-credit level of about 4¢ (OCC) less C&LM and renewable energy, from May 2027 (8/12 of 2027). Without it the model would project a temporary credit for 25 years. Lines without `revert` are unchanged (tested: the other utilities' exports are identical).
+*Temporary rates* (`revert` on a starting-bill line; Connecticut): a line whose 2026 rate is known to be temporary returns to a stated rate (2026 $, same unit) from `from_year`, with `first_year_share` of that year at the new rate, then grows like its category. It applies to program surcharge lines. Connecticut's public-benefits charges are a credit from May 2026 (PA 25-173 bonding and the Millstone / Seabrook contracts turning into a net benefit) until at least April 2027. From May 2027 (8/12 of 2027), NBFMCC + SBC move toward 3.3¢/kWh, the pre-credit level of about 4¢ (OCC) less C&LM and renewable energy. How far they move is `projection.public_benefits_revert_share` (a range, so it is in the tornado):
+- low 0: the credit persists;
+- central: only the PA 25-173 bonded amount returns. OCC puts it at about $10/month, which is 1.43¢/kWh at 700 kWh: 0.262 of the full move for CL&P (5.46¢) and 0.192 for UI (7.44¢). The bonding is confirmed only "through at least next spring" (Governor's office, 8 September 2026); no authorisation past 30 April 2027 was located, so the revert starts in May 2027;
+- high 1: full revert to about 3.3¢/kWh. That would assume the bonding, the Millstone / Seabrook net benefit and returned over-collections all end together.
+
+Without the revert, the model would project a temporary credit for 25 years. The share moves BAU and shared-savings bills alike. Lines without `revert` are unchanged (tested: the other utilities' exports are identical).
 
 *Starting adjustments* (Pepco): the residential increase authorised by Order No. 92607 (+$3.94/month) is added, because the tariff in effect at the as-of date was pre-case.
 
@@ -591,6 +596,17 @@ Efficiency also lowers usage. The **average residential bill** scales every volu
 - Many MW paths and costs are `_VERIFY`.
 - Efficiency cost is levelised, not program-year cash.
 
+**A programme already in BAU policy (`bau_path_<type>`; Connecticut storage).** Connecticut's Energy Storage Solutions (ESS) is run by Eversource and UI under PURA, with a 580 MW target by 2030, and is recovered through the NBFMCC. It is BAU, not shared savings.
+- BAU storage follows `bau_path_storage`: today's installed MW to 580 MW × customer share by 2030, flat after.
+- The ESS cost stays in the NBFMCC line on the BAU bill, in both cases.
+- Shared-savings storage never falls below the BAU path. Only the MW above it are costed (at `cost_kw_yr_storage`) and credited:
+  - Cautious: none;
+  - Central: 10% of BAU peak × the storage split;
+  - Ambitious: 20% of BAU peak × the storage split.
+- The ramp limit applies to growth above the BAU path.
+- The cost per kW-year comes from the ESS incentives (effective 1 April 2026, Docket 25-08-05). Performance incentives run 10 years; enrolment incentives ($/kWh × 4 hours) are annualised at a 7% capital recovery factor. Levelised: residential $471, C&I $251. Weighted by the ESS target mix (150 MW residential, 430 MW C&I) that gives $308 (Central). Cautious $360, Ambitious $233 (large C&I).
+- Other utilities have no BAU path, so their BAU holds today's MW (unchanged).
+
 ### 3.5 Deferral (layer 3) and load enabled (layer 4)
 
 **What they represent.** Firm flexible capacity in the right place acts like network headroom. It can be used in one of two ways:
@@ -776,7 +792,7 @@ The six elements:
 - **Long-run price:** FCA 18 Net CONE, $9.078/kW-month = $0.1089M per MW-year (2027/28 $), reached by 2040.
 - **Auction lag:** 3 / 1 / 0 years. FCA 17 and 18 fix 2026/27 and 2027/28 forward; prompt annual auctions from 2028/29 react within the year. The engine applies one lag from 2026, so central is 1.
 - **Growth:** flat real (inflation). The ISO-NE 2026 CELT has the winter peak growing ~2.9% a year (2026-2035) against ~0.7% for summer. 3% a year real is the high level.
-- **Results:** capacity cost avoided, Central, is $1.47B (Eversource CT) and $0.45B (UI), undiscounted nominal. The 2026 price is about a quarter of PJM's, which limits the capacity value until the long-run price is reached.
+- **Results:** capacity cost avoided, Central, is $0.87B (Eversource CT) and $0.28B (UI), undiscounted nominal. The 2026 price is about a quarter of PJM's, which limits the capacity value until the long-run price is reached.
 
 **Double-count guard: efficiency and demand response that clear in the FCM.** Connecticut's C&LM budget counts ISO-NE Forward Capacity Market revenue (~$15.2M a year statewide in 2025) as a funding source. That revenue comes from today's efficiency and active demand response, which are in BAU in both cases, so it is unchanged. Only efficiency and flexible MW above BAU earn the avoided-obligation value. ISO-NE reconstitutes FCM-cleared efficiency into the load forecast, so each MW either clears as a resource and is paid, or lowers the forecast; it is never both. The program cost per kWh (`ee_levelised_cost_kwh`) is gross: it is not net of any FCM revenue. So the incremental MW's capacity value is counted once. If the utility bid them into the FCM instead, the payment would replace this value rather than add to it.
 
@@ -901,15 +917,22 @@ rate_t          = cost_kw_yr x 1000 x transmission index_t / 1e6;   Pz = peak_t 
 - **ISO-NE** (`'zonal_share'`, New England as the zone; Eversource CT, United Illuminating): Regional Network Service pools every transmission owner's PTF revenue requirement (FERC formula rates) and charges it by monthly network load at the 12 coincident peaks.
   - RNS rate from 1 January 2026: $183.71/kW-year. Regional ATRR $3,331.2M; 2024 12CP load 18,133 MW (`zone_nspl_mw`, reference).
   - Each utility's share: its 2026 peak / the ISO-NE 2026 CELT summer peak (25,228 MW). CL&P 0.183, UI 0.050 (`derived`; a proxy for the 12CP share, which was not located).
-  - The same formula as PJM. It is measured on the annual peak, so it overstates (a): the 12CP average is about 72% of the annual peak, and summer-only flexibility lowers only some of the 12 monthly peaks. (a) is reported only, never in savings or the pool.
+  - The same formula as PJM, × `allocation_peak_factor` (ISO-NE only; default 1.0, so PJM is unchanged). RNS is allocated on the 12 monthly coincident peaks, while the engine measures the reduction on the annual peak, and most demand response dispatches only in summer. The factor is the share of the annual-peak reduction that lowers the 12CP basis:
+    - low 0.25: summer-only dispatch, 3 of 12 months;
+    - central 0.5;
+    - high 1.0: storage and managed load across all months.
+
+    It is `_VERIFY`. It applies to the cost-shift line only. (a) is reported only, never in savings or the pool.
   - No engine change was needed: `'zonal_share'` is generic.
 
 **(b) Transmission upgrades deferred (avoided build).** This is the deferral of load-driven transmission investment.
 - **Investment base (`transmission_plan_capex()`):**
   - PJM: from the published transmission rate base path (`bau_plan.transmission_plan_rate_base_m`), with investment = RB_t − RB_{t−1} × (1 − 3.5% decay). That gives Dominion about $2.4–2.9B a year (2026–2030) and Pepco $325–400M a year. Beyond the plan it grows at `transmission_growth`.
   - ISO-NE: from the utility's transmission rate base path, as for PJM.
-    - CL&P: ~$4.6B at YE 2025, rolled forward at its 2025 transmission capex ($398.6M). Its own investment is about its load share of regional investment, so CL&P investment × the CL&P deferral fraction approximates the regional deferral. CL&P customers keep share s of it; other New England customers get the rest.
-    - UI: UI customers pay the pooled rate, not UI's own cost, so its path is scaled to the 2026 RNS forecast. UI's own additions would grow the line ~13% a year.
+    - Both utilities: customers pay the pooled rate, so each path is scaled to the 2026 RNS forecast ($185.28 2025, $183.71 2026, then ~$186 / $197 / $210 / $220 per kW-year to 2030). Each starts from the utility's own transmission base (CL&P ~$4.6B rate base at YE 2025; UI $1.10B Form 1 net plant) × RNS_t / RNS_2025 × peak growth. After 2030 the line tapers to `transmission_growth` by `taper_year`.
+    - The implied investment stands for the utility's share of regional PTF additions. UI's own additions would grow its line ~13% a year.
+    - Local network service (CL&P-specific, part of the TAC) is not quantified separately; it moves with the RNS rate.
+    - BAU transmission line, average bill $/month: CL&P $35.35 (2026), $42.33 (2030), $72.80 (2050); UI $34.11, $40.84, $69.92.
   - New York (the plan includes transmission): `tx_capex_share_of_plan` × the published electric capital plan. The share is the transmission share of T&D net plant growth 2021–2025 (FERC Form 1: the annual financial report utilities file with FERC): Con Edison 0.304, RG&E 0.205 (derived).
 - **Load-driven share (`load_driven_share`, low / central / high).** Retirement, market efficiency, equipment condition and public policy projects are excluded.
 
@@ -962,8 +985,8 @@ The outputs are:
 | RG&E | 4.78 (2.90) | 0.61 | 0.73 | 0.00 | 0.00 | 0.00 | 48.96 |
 | Dominion VA | 18.90 (11.31) | 1.68 | 2.51 | 1.29 | 1.29 | 0.39 | 16.05 |
 | Pepco MD | 4.19 (2.60) | 0.00 | 0.00 | 0.36 | 0.36 | 0.00 | 23.58 |
-| Eversource CT | 4.65 (2.84) | 0.02 | – | 2.42 | 2.42 | – | 22.92 |
-| United Illuminating | 0.60 (0.37) | 0.00 | – | 0.91 | 0.91 | – | 10.46 |
+| Eversource CT | 4.77 (2.94) | 0.01 | – | 0.75 | 0.75 | – | 19.66 |
+| United Illuminating | 0.67 (0.42) | 0.00 | – | 0.29 | 0.29 | – | 7.80 |
 
 **All scenarios:** single (the earlier default) against split, (b) off and on (the default):
 
@@ -981,12 +1004,12 @@ The outputs are:
 | Pepco MD | Cautious | 2.48 / 2.31 / 2.31 | 0.00 | 0.00 | 0.19 | 0.19 | 12.45 / 11.56 / 11.56 |
 | Pepco MD | Central | 4.49 / 4.19 / 4.19 | 0.00 | 0.00 | 0.36 | 0.36 | 25.10 / 23.58 / 23.58 |
 | Pepco MD | Ambitious | 6.24 / 5.72 / 5.72 | 0.00 | 0.00 | 0.64 | 0.64 | 34.26 / 31.78 / 31.78 |
-| Eversource CT | Cautious | 2.06 / 1.86 / 1.86 | 0.00 | – | 0.48 | 0.48 | 9.37 / 8.80 / 8.80 |
-| Eversource CT | Central | 5.65 / 4.64 / 4.65 | 0.02 | – | 2.42 | 2.42 | 25.36 / 22.85 / 22.92 |
-| Eversource CT | Ambitious | 12.31 / 10.33 / 10.38 | 0.07 | – | 4.78 | 4.78 | 48.66 / 44.16 / 44.35 |
-| United Illuminating | Cautious | 0.20 / 0.14 / 0.14 | 0.00 | – | 0.10 | 0.10 | 3.76 / 3.33 / 3.33 |
-| United Illuminating | Central | 0.96 / 0.59 / 0.60 | 0.00 | – | 0.91 | 0.91 | 12.93 / 10.44 / 10.46 |
-| United Illuminating | Ambitious | 2.50 / 1.87 / 1.87 | 0.00 | – | 1.73 | 1.73 | 30.44 / 26.10 / 26.14 |
+| Eversource CT | Cautious | 2.10 / 1.89 / 1.89 | 0.00 | – | 0.24 | 0.24 | 8.33 / 7.76 / 7.76 |
+| Eversource CT | Central | 5.40 / 4.77 / 4.77 | 0.01 | – | 0.75 | 0.75 | 21.24 / 19.62 / 19.66 |
+| Eversource CT | Ambitious | 11.79 / 10.01 / 10.06 | 0.07 | – | 2.14 | 2.14 | 42.72 / 38.59 / 38.81 |
+| United Illuminating | Cautious | 0.20 / 0.16 / 0.16 | 0.00 | – | 0.04 | 0.04 | 2.39 / 2.00 / 2.00 |
+| United Illuminating | Central | 0.89 / 0.67 / 0.67 | 0.00 | – | 0.29 | 0.29 | 9.30 / 7.79 / 7.80 |
+| United Illuminating | Ambitious | 2.30 / 1.76 / 1.77 | 0.00 | – | 0.74 | 0.74 | 22.80 / 19.02 / 19.05 |
 
 Reading the results:
 - **Con Edison:** (b) realises 0.5 / 0.8 / 1.0, like the distribution growth deferral it replaces in the overlap fix. Central customer savings are $39.73B against $40.39B under single: the overlap fix moves load-driven transmission out of the deferral layer, and (b) adds $10.62B. In Cautious, (b) realises less than the deferral layer did ($10.98B against $12.45B). In Ambitious it realises more ($62.89B against $60.16B).
@@ -996,7 +1019,7 @@ Reading the results:
   - (b) adds $1.68B to customer savings, and other zone customers get a further $0.39B.
   - Customer savings are $18.90B against $19.97B under single, whose avoidable share counted part of the cost shift as a saving.
 - **Pepco:** (b) is 0 at a load-driven share of 0. The $0.36B of (a) is a cost shift to Pepco DC and SMECO customers, now outside customer savings ($4.19B against $4.49B).
-- **Connecticut:** (b) is small at a 5% load-driven share. (a) is large relative to customer savings because RNS pools the whole region's costs and (a) is measured on the annual peak (an overstatement; see above). It is reported only. Single counts half of it as a saving (avoidable share 0.5), so single is well above split.
+- **Connecticut:** (b) is small at a 5% load-driven share. (a) is the lower share of New England's pooled costs. It is scaled by the 12CP factor (central 0.5): $0.75B for CL&P and $0.29B for UI, against $2.42B and $0.91B on the annual peak. It is reported only. Single counts half its unscaled value as a saving (avoidable share 0.5), so single is above split.
 - **Shared savings earnings** fall for Pepco in every scenario, and for Dominion in Cautious and Central, because (a) left the pool. Con Edison's fall in Cautious and Central, where the overlap fix removes more deferral than (b) adds back. They rise where (b) adds more: Con Edison and Dominion Ambitious, and RG&E Central and Ambitious.
 
 ### 3.9 Avoided distribution losses (layer 8)
@@ -1427,14 +1450,16 @@ per-call network=  >  per-call overrides=  >  NETWORK_OVERRIDES (notebook)  >  s
 
 ## 8. Validation
 
-`python -m pytest tests/` runs the full suite. The layered-model tests (`tests/test_layers.py`) check the following. Every test runs for all six utilities, except the fixture tests, which pin outputs at earlier commits and run for the four utilities that existed then (`PINNED_UTILS`). Three checks that need a positive pool (deferral earns a positive share; the dividend advance pays a credit when sized on the pool) also accept a pool that is never positive (United Illuminating, Cautious and Central), where there is nothing to attribute or recover.
+`python -m pytest tests/` runs the full suite. The layered-model tests (`tests/test_layers.py`) check the following. Every test runs for all six utilities, except the fixture tests, which pin outputs at earlier commits and run for the four utilities that existed then (`PINNED_UTILS`). The ramp-limit check applies to growth above a BAU path. Three checks that need a positive pool (deferral earns a positive share; the dividend advance pays a credit when sized on the pool) also accept a pool that is never positive (United Illuminating, Cautious and Central), where there is nothing to attribute or recover.
 
 | Test | What it guarantees |
 |---|---|
 | `test_all_layers_off_equals_bau` | With every savings layer off, SS equals BAU |
 | `test_starting_total_equals_starting_bill` | Year zero equals the sum of the starting-bill lines (carve-out moves dollars, adds none) |
 | `test_pepco_order_adjustment` | The Order No. 92607 adjustment is applied (+$3.94 x (1 + gross receipts tax) on the bill) |
-| `test_temporary_rate_revert` | Connecticut's public-benefits credit returns to the pre-credit level from May 2027 (8/12 of 2027) and then grows like any program surcharge; without `revert` the credit is projected forward |
+| `test_temporary_rate_revert` | Connecticut's public-benefits credit moves toward the pre-credit level from May 2027 (8/12 of 2027) by `public_benefits_revert_share` (low 0 / central / high 1), then grows like any program surcharge |
+| `test_bau_storage_path_and_incremental_cost` | Connecticut BAU storage follows the ESS path; shared-savings storage never falls below it, only the MW above it are costed, and Cautious adds none |
+| `test_allocation_peak_factor_scales_cost_shift_only` | The 12CP factor scales the transmission cost-shift line only; bills are unchanged |
 | `test_bau_year_zero_rr_matches_rate_case_target` | 2026 BAU wires RR equals the rate-case delivery revenue requirement |
 | `test_placeholder_layers_cannot_be_enabled` | Older JSON placeholders raise an error if switched on |
 | `test_program_transfer_is_neutral_without_new_resources` | Moving today's programs into rates with no new resources leaves the bill unchanged (sub-band off) |
@@ -1791,12 +1816,14 @@ Grouped bridge, $M nominal:
 | RG&E | 545 | +102 (+43 / +28 / +16 / +15) | +5 | +102 (+96 / +6) | 0 | 755 | +26 | 781 |
 | Dominion VA | 1,648 | +445 (+268 / +106 / +9 / +62) | +26 | +73 (+60 / +13) | 0 | 2,192 | +341 | 2,533 |
 | Pepco MD | 608 | +129 (+59 / +32 / +7 / +31) | −5 | +32 (+19 / +13) | 0 | 764 | +51 | 815 |
-| Eversource CT | 1,467 | +187 (+84 / +58 / +18 / +27) | 0 | +173 (+138 / +34) | 0 | 1,826 | 0 | 1,826 |
-| United Illuminating | 478 | +12 (+4 / +4 / +3 / +2) | −3 | +125 (+114 / +11) | 0 | 612 | +68 | 680 |
+| Eversource CT | 1,467 | +187 (+84 / +58 / +18 / +27) | 0 | +82 (+48 / +34) | 0 | 1,826 | 0 | 1,826 |
+| United Illuminating | 478 | +12 (+4 / +4 / +3 / +2) | −3 | +122 (+111 / +11) | 0 | 612 | +68 | 680 |
 
-Capital is the largest driver for the four utilities above and, narrowly, for Eversource CT; for United Illuminating it is operating costs.
-- **Eversource CT:** no rate-case step in 2026 (base rates have not changed since May 2020; Docket 26-05-10 is pending). Capital-driven growth (+$187M, of which $84M is the return on rate-base growth) is just ahead of operating growth (+$173M). Customer service and information O&M (accounts 907-910) rises from $165M to $256M and includes C&LM programme costs recorded by the utility, so part of the operating group is public-benefits-funded programme growth, not distribution operations.
-- **United Illuminating:** capital barely moves (+$12M; UI's distribution net plant grew $205M over four years and it halved its capital budget after 2023). Operating costs drive the bridge (+$125M; customer accounts $63M → $140M). The 24-10-04 step (+$68.0M after reconsideration) follows. The $222.4M of capital excluded from return in 2023 sits inside Form 1 plant and cannot be separated.
+Connecticut also has a programme line, `programme_outside_base_rates`: CL&P +91, UI +3. It is the change in Form 1 account 908 (customer assistance), where the utilities book C&LM (recovered through the CAM) and hardship and arrearage programmes (recovered through the SBC). These are not base-rate costs, so "operating" is base-rate O&M (`programme_normalisation`). The other utilities have no such line, and their bridges are unchanged.
+
+Capital is the largest driver for the four utilities above and for Eversource CT; for United Illuminating it is base-rate operating costs.
+- **Eversource CT:** no rate-case step in 2026 (base rates have not changed since May 2020; Docket 26-05-10 is pending). Capital drives the bridge: +$187M, of which $84M is the return on rate-base growth. Base-rate operating growth is +$82M. Programme O&M recovered through public-benefits charges adds +$91M: account 908 rose from $164.5M to $255.2M, against EIA-861 2025 efficiency and demand-response costs of $145M.
+- **United Illuminating:** capital barely moves (+$12M; UI's distribution net plant grew $205M over four years and it halved its capital budget after 2023). Base-rate operating costs drive the bridge: +$122M, mainly customer accounts ($63M → $140M, with uncollectibles $34M → $63M). Programme O&M adds +$3M. The 24-10-04 step (+$68.0M after reconsideration) follows. The $222.4M of capital excluded from return in 2023 sits inside Form 1 plant and cannot be separated.
 - Both have a jurisdictional share of 1.0 (single-state utilities) and the scope is distribution only (transmission is pooled through RNS). Neither shows a credit-driven fall in account 926 (CL&P $18.2M → $9.7M; UI $3.4M → $2.4M), so no normalisation applies.
 
 For Con Edison, normalising for the pension credit moves about $450M from "flat O&M" into operating growth.
@@ -1819,7 +1846,22 @@ These are set by wholesale markets, FERC formula rates or fuel markets. The dist
 - **Connecticut, what moved the bill.** EIA-861 at 700 kWh (nominal $/month):
   - CL&P: $149.08 (2021) → $202.13 (2025). Supply peaked at $130.49 in 2023 and was $71.60 in 2025; delivery (distribution, transmission and public benefits) rose $95.27 → $130.53 while base distribution rates were frozen.
   - UI: $176.36 → $247.82. Supply $62.27 → $106.65; delivery $114.08 → $141.18, including the 2023 and 2025 rate increases.
-  - The EIA split is delivery against supply only. The line-item 2021 bill by category was not located (`_VERIFY`), so the split of delivery growth between distribution, transmission and public benefits is not shown.
+  - The EIA split is delivery against supply only.
+- **Connecticut, by category: January 2022 line items → 2026 tariff bill** (`line_item_bridge()`; export `lookback.bill_bridge_line_items`). OCC, *Electric Bill/Rate Components (effective 1 January 2022)*, at 700 kWh, $/month nominal. Supply includes capacity in both years.
+
+  | Category | CL&P Jan 2022 | CL&P 2026 | Change | UI Jan 2022 | UI 2026 | Change |
+  |---|---:|---:|---:|---:|---:|---:|
+  | Distribution base (customer charge + distribution) | 50.53 | 50.53 | 0.00 | 74.13 | 92.45 | +18.32 |
+  | Distribution riders (ESI, decoupling, CTA) | 4.40 | 17.77 | +13.37 | 0.00 | −2.22 | −2.22 |
+  | Transmission | 22.86 | 35.35 | +12.49 | 22.92 | 34.11 | +11.18 |
+  | Public benefits (SBC, NBFMCC, RE, C&LM) | 21.85 | −10.25 | −32.10 | 19.36 | −24.10 | −43.46 |
+  | Supply (Standard Service, incl. capacity) | 80.39 | 81.04 | +0.65 | 74.71 | 83.65 | +8.94 |
+  | Total | 180.02 | 174.43 | −5.59 | 191.13 | 183.88 | −7.25 |
+
+  - **CL&P riders:** ESI +$10.14, CTA +$4.28 (it includes the one-time storm-fund amount), decoupling −$1.06.
+  - **UI distribution:** the customer charge +$0.18 and the distribution charge +$18.14 (the 2023 and 2025 cases).
+  - **Public benefits excluding C&LM:** CL&P +$18.24 → −$14.45; UI +$16.01 → −$28.30.
+  - Base distribution, transmission and the ESI tracker raised CL&P's bill. The May 2026 public-benefits credit more than offset them at the 2026 rates.
 
 ### 12.6 Dominion: Virginia riders and the bill bridge
 
@@ -1888,7 +1930,8 @@ Every base rate case filed 2021–2026 is listed, with Pepco's Case 9655 added: 
 | Eversource CT | Docket 17-10-46 | decided | 255.8/44.7/36.4 | 97.1/32.7/24.7 (`_VERIFY` split) | – → 9.25% |
 | Eversource CT | 2021 settlement | decided | – | −75.0 (one-time credits) | – → 9.25% |
 | Eversource CT | Docket 25-12-13 (storm costs) | decided | 974.2 (one-time) | 869.4 found prudent | – |
-| Eversource CT | Docket 26-05-10 | pending | 451.0 (base; 727 with storms) | – | 10.25% → – |
+| Eversource CT | Docket 26-05-10 | pending | 451.0 filed (base, excl. storms; 727 with storms) | – | 10.25% → – |
+| Eversource CT | Docket 26-05-10 notice of intent (May 2026) | pre-filing estimate | ~503 | – | – |
 | United Illuminating | Docket 16-06-04 | decided | not located | not located | – |
 | United Illuminating | Docket 22-08-08 | decided | 91.1/20.1/19.5 | 23.0 | 10.20% → 8.63% (9.10% less 47 bp) |
 | United Illuminating | Docket 24-10-04 | decided | 105.4 | 68.0 (after reconsideration) | 10.50% → 9.40% (derived) |

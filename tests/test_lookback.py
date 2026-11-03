@@ -99,7 +99,9 @@ def test_grouped_bridge_sums_and_matches_detailed(key):
     for g in ('start', 'subtotal', 'end'):
         assert grp.loc[grp['group'] == g, 'value_m'].iloc[0] == pytest.approx(det.loc[det['group'] == g, 'value_m'].iloc[0], rel=1e-12)
     tot = LB.group_totals(grp)
-    assert list(tot.index) == list(LB.GROUPS)
+    present = [g for g in LB.GROUPS if g in set(grp['group'])]
+    assert list(tot.index) == present
+    assert ('programme_outside_base_rates' in present) == ('programme_normalisation' in lb['rr_bridge'])
     assert tot.sum() == pytest.approx(det.loc[det['group'] == 'end', 'value_m'].iloc[0] - det.loc[det['group'] == 'start', 'value_m'].iloc[0], rel=1e-12)
     # cost of capital and rate-base growth carry the detailed rows unchanged
     assert tot['cost_of_capital'] == pytest.approx(det[det['group'] == 'return']['value_m'].sum(), rel=1e-12)
@@ -109,7 +111,7 @@ def test_grouped_bridge_sums_and_matches_detailed(key):
         # property tax split and O&M normalisation are attributions inside the reported totals
         assert d['plant_property_tax'] + d['non_plant_taxes'] == pytest.approx(d['taxes_other'], rel=1e-12)
         assert d['plant_property_tax'] >= 0 and d['non_plant_taxes'] >= 0
-        assert d['om_normalised'] + d['non_service_benefits'] == pytest.approx(d['om'], rel=1e-12)
+        assert d['om_normalised'] + d['non_service_benefits'] + d.get('programme_om', 0.0) == pytest.approx(d['om'], rel=1e-12)
         r = lb['rr_bridge']['property_tax_attribution']['ratio'][y]
         f1 = lb['rr_bridge']['form1'][y]
         assert r['status'] == 'derived'
