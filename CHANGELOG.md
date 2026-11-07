@@ -6,6 +6,28 @@ One entry per commit on `main`, newest first, from the commits pushed on 31 Octo
 
 ---
 
+## 2026-11-06: README brought up to date (this commit)
+
+**Effect on results:** none. No model code, JSON or export changed. Every figure changed or added in the README was read from a run of the current engine, or from the current exports where they carry it.
+
+**Corrected in the README.** The table states utility-forecast load, but its Upgrade Delay row did not follow that basis: Dominion's and Pepco's old figures equal the current state-policy run, and Con Edison's and RG&E's match neither current pace.
+
+| Figure, Central (Cautious–Ambitious) | Con Edison | Dominion | Pepco | RG&E |
+|---|---|---|---|---|
+| Upgrade Delay avoided, MW-years, was | 178 (31–215) | 482 (32–637) | 36 (11–49) | 24 (1–26) |
+| Now | 119 (22–125) | 408 (36–496) | 29 (15–30) | 0.5 (0.3–0.5) |
+| MW affected in BAU, was → now | 141 → 57 | 373 → 221 | 23 → 9 | 17 → 0.4 |
+
+The row's label changes from "MW waiting" to "MW affected", which is what it reports. Average delay at Central, BAU → shared savings, in years: Con Edison 1.59 → 0.32 becomes 2.25 → 0.17; Dominion 1.75 → 0.45 becomes 2.28 → 0.43. The ROE lever on Con Edison's 2050 saving moves from ±$8.28 to ±$8.88/month (nominal). UI's Central pool is positive "from 2048" (was "by 2050").
+
+**Added:**
+- Connecticut in the model-vs-plan, state-policy, rate-case context, allocation and driver comparisons, plus its delivery-bill share and flexible MW rows and its caveats.
+- ISO-NE alongside PJM where the cost shift is described.
+- Layer numbers now match METHODOLOGY (objective 8a, mechanism 9, ROE 10).
+- `jupyter` in the install line, and the notebook timeout in the headless command.
+
+The stale "three mechanisms" and $12,907 wording had already left the README in cf28849 (31 October 2026).
+
 ## 2026-11-02: Regenerate exports: Connecticut review fixes (this commit)
 
 **Effect on results:** as in the review-fixes entry. The Connecticut exports carry the new results and the `bill_bridge_line_items` look-back block. Con Edison, RG&E, Dominion and Pepco change only in `source_commit` (now f152f20), and are identical to 582d744 apart from the stamps. 603 tests pass.
